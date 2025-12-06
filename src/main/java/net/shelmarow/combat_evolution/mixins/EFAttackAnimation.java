@@ -52,20 +52,21 @@ public class EFAttackAnimation {
 //    }
 
     @Inject(
-            method = "getEpicFightDamageSource(Lnet/minecraft/world/damagesource/DamageSource;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)Lyesman/epicfight/world/damagesource/EpicFightDamageSource;",
+            method = "getEpicFightDamageSource(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)Lyesman/epicfight/world/damagesource/EpicFightDamageSource;",
             at = @At(value = "RETURN"),
             cancellable = true,
             remap = false
     )
-    private void onGetDamageSource(DamageSource originalSource, LivingEntityPatch<?> entitypatch, Entity target, AttackAnimation.Phase phase, CallbackInfoReturnable<EpicFightDamageSource> cir){
-        if (entitypatch instanceof CEHumanoidPatch) {
-            ILivingEntityData entityData = (ILivingEntityData) entitypatch;
+    private void onGetDamageSource(LivingEntityPatch<?> entityPatch, Entity target, AttackAnimation.Phase phase, CallbackInfoReturnable<EpicFightDamageSource> cir){
+        if (entityPatch instanceof CEHumanoidPatch) {
+            ILivingEntityData entityData = (ILivingEntityData) entityPatch;
             EpicFightDamageSource returnValue = cir.getReturnValue();
-            float damage = entityData.combat_evolution$getDamageMultiplier(entitypatch.getOriginal());
-            float impact = entityData.combat_evolution$getImpactMultiplier(entitypatch.getOriginal());
-            float armorNegation = entityData.combat_evolution$getArmorNegationMultiplier(entitypatch.getOriginal());
-            int stunIndex = entityData.combat_evolution$getStunType(entitypatch.getOriginal());
-            Set<TagKey<DamageType>> sourceTag = entityData.combat_evolution$getDamageSource();
+            float damage = entityData.combat_evolution$getDamageMultiplier(entityPatch.getOriginal());
+            float impact = entityData.combat_evolution$getImpactMultiplier(entityPatch.getOriginal());
+            float armorNegation = entityData.combat_evolution$getArmorNegationMultiplier(entityPatch.getOriginal());
+            int stunIndex = entityData.combat_evolution$getStunType(entityPatch.getOriginal());
+            Set<TagKey<DamageType>> sourceTag = BehaviorUtils.getSourceTagSet(entityPatch);
+            //= entityData.combat_evolution$getDamageSource();
 
             if(stunIndex != -1){
                 StunType stunType = StunType.values()[stunIndex];

@@ -37,8 +37,8 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private static EntityDataAccessor<Float> combat_evolution$ARMOR_NEGATION_MULTIPLIER;
     @Unique
     private static EntityDataAccessor<Integer> combat_evolution$STUN_TYPE;
-    @Unique
-    private static final Set<TagKey<DamageType>> combatEvolution$DAMAGE_SOURCE = new HashSet<>();
+//    @Unique
+//    private static final Set<TagKey<DamageType>> combatEvolution$DAMAGE_SOURCE = new HashSet<>();
 
     //耐力修改
     @Unique
@@ -168,16 +168,16 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
         entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType);
     }
 
-    public Set<TagKey<DamageType>> combat_evolution$getDamageSource() {
-        return combatEvolution$DAMAGE_SOURCE;
-    }
-
-    public void combat_evolution$setDamageSource(Set<TagKey<DamageType>> sourceSet) {
-        combatEvolution$DAMAGE_SOURCE.clear();
-        if (!sourceSet.isEmpty()) {
-            combatEvolution$DAMAGE_SOURCE.addAll(sourceSet);
-        }
-    }
+//    public Set<TagKey<DamageType>> combat_evolution$getDamageSource() {
+//        return combatEvolution$DAMAGE_SOURCE;
+//    }
+//
+//    public void combat_evolution$setDamageSource(Set<TagKey<DamageType>> sourceSet) {
+//        combatEvolution$DAMAGE_SOURCE.clear();
+//        if (!sourceSet.isEmpty()) {
+//            combatEvolution$DAMAGE_SOURCE.addAll(sourceSet);
+//        }
+//    }
 
     @Unique
     public float combat_evolution$getStamina(LivingEntity entity) {

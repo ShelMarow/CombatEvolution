@@ -59,37 +59,37 @@ public class AvalonAttackAnimationMixin extends BasicAttackAnimation {
 //        }
 //    }
 
-    @Inject(
-            method = "getEpicFightDamageSource(Lnet/minecraft/world/damagesource/DamageSource;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)Lyesman/epicfight/world/damagesource/EpicFightDamageSource;",
-            at = @At(value = "RETURN"),
-            cancellable = true,
-            remap = false
-    )
-    private void onGetDamageSource(DamageSource originalSource, LivingEntityPatch<?> entitypatch, Entity target, AttackAnimation.Phase phase, CallbackInfoReturnable<EpicFightDamageSource> cir){
-        if (entitypatch instanceof CEHumanoidPatch) {
-            ILivingEntityData entityData = (ILivingEntityData) entitypatch;
-            EpicFightDamageSource returnValue = cir.getReturnValue();
-            float damage = entityData.combat_evolution$getDamageMultiplier(entitypatch.getOriginal());
-            float impact = entityData.combat_evolution$getImpactMultiplier(entitypatch.getOriginal());
-            float armorNegation = entityData.combat_evolution$getArmorNegationMultiplier(entitypatch.getOriginal());
-            int stunIndex = entityData.combat_evolution$getStunType(entitypatch.getOriginal());
-            Set<TagKey<DamageType>> sourceTag = entityData.combat_evolution$getDamageSource();
-
-            if(stunIndex != -1){
-                StunType stunType = StunType.values()[stunIndex];
-                returnValue.setStunType(stunType);
-            }
-
-            returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
-            returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
-            returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
-            if(!sourceTag.isEmpty()) {
-                sourceTag.forEach(returnValue::addRuntimeTag);
-            }
-
-            cir.setReturnValue(returnValue);
-        }
-    }
+//    @Inject(
+//            method = "getEpicFightDamageSource(Lnet/minecraft/world/damagesource/DamageSource;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)Lyesman/epicfight/world/damagesource/EpicFightDamageSource;",
+//            at = @At(value = "RETURN"),
+//            cancellable = true,
+//            remap = false
+//    )
+//    private void onGetDamageSource(DamageSource originalSource, LivingEntityPatch<?> entitypatch, Entity target, AttackAnimation.Phase phase, CallbackInfoReturnable<EpicFightDamageSource> cir){
+//        if (entitypatch instanceof CEHumanoidPatch) {
+//            ILivingEntityData entityData = (ILivingEntityData) entitypatch;
+//            EpicFightDamageSource returnValue = cir.getReturnValue();
+//            float damage = entityData.combat_evolution$getDamageMultiplier(entitypatch.getOriginal());
+//            float impact = entityData.combat_evolution$getImpactMultiplier(entitypatch.getOriginal());
+//            float armorNegation = entityData.combat_evolution$getArmorNegationMultiplier(entitypatch.getOriginal());
+//            int stunIndex = entityData.combat_evolution$getStunType(entitypatch.getOriginal());
+//            Set<TagKey<DamageType>> sourceTag = entityData.combat_evolution$getDamageSource();
+//
+//            if(stunIndex != -1){
+//                StunType stunType = StunType.values()[stunIndex];
+//                returnValue.setStunType(stunType);
+//            }
+//
+//            returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
+//            returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
+//            returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
+//            if(!sourceTag.isEmpty()) {
+//                sourceTag.forEach(returnValue::addRuntimeTag);
+//            }
+//
+//            cir.setReturnValue(returnValue);
+//        }
+//    }
 
     @Redirect(
             method = "hurtCollidingEntities",

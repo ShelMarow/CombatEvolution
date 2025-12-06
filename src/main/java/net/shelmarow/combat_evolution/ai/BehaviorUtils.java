@@ -1,13 +1,13 @@
 package net.shelmarow.combat_evolution.ai;
 
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.Set;
 
 public class BehaviorUtils {
 
@@ -53,5 +53,10 @@ public class BehaviorUtils {
                         }
                     });
         }
+    }
+
+    public static Set<TagKey<DamageType>> getSourceTagSet(LivingEntityPatch<?> entitypatch) {
+        CECombatBehaviors.Behavior<?> current = getCurrentBehavior(entitypatch);
+        return current != null ? current.getSourceTagSet() : Set.of();
     }
 }

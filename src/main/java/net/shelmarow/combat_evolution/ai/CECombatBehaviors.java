@@ -1,5 +1,7 @@
 package net.shelmarow.combat_evolution.ai;
 
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.ai.efcondition.CurrentAngle;
@@ -387,6 +389,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         private final AssetAccessor<? extends StaticAnimation> counterAnimation;    //防御反击动画
         private final List<TimeEvent> timeEventList;                                //时间事件列表
         private final List<HitEvent> hitEventList;                                  //攻击命中事件列表
+        private final Set<TagKey<DamageType>> sourceTagSet;                         //伤害源集合
+        private boolean shouldAddSourceTagSet = false;                              //伤害源附加锁
         private boolean shouldExecuteTimeEvent = false;                             //时间事件锁
         private boolean shouldExecuteHitEvent = false;                              //攻击命中事件锁
 
@@ -419,10 +423,19 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             this.nextBehaviors = builder.nextBehaviors.stream().map(b->b.build(behaviorRoot)).toList();
             this.timeEventList = builder.timeEventList;
             this.hitEventList = builder.hitEventList;
+            this.sourceTagSet = builder.sourceTagSet;
         }
 
         public BehaviorRoot<T> getBehaviorRoot() {
             return behaviorRoot;
+        }
+
+        public void setShouldAddSourceTagSet(boolean shouldAddSourceTagSet) {
+            this.shouldAddSourceTagSet = shouldAddSourceTagSet;
+        }
+
+        public Set<TagKey<DamageType>> getSourceTagSet() {
+            return shouldAddSourceTagSet ? sourceTagSet : Set.of();
         }
 
         public void setShouldExecuteTimeEvent(boolean shouldExecuteTimeEvent) {
@@ -497,6 +510,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 consumer.accept(mobpatch);
             }
             mobpatch.updateEntityState();
+            this.shouldAddSourceTagSet = true;
             this.shouldExecuteTimeEvent = true;
             this.shouldExecuteHitEvent = true;
             this.state = BehaviorState.RUNNING;
@@ -654,6 +668,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             guardHit = maxGuardHit;
             waitTime = totalWaitTime;
             canCounter = false;
+            shouldAddSourceTagSet = false;
             shouldExecuteTimeEvent = false;
             shouldExecuteHitEvent = false;
         }
@@ -737,6 +752,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             private final LivingEntityPatch.ServerAnimationPacketProvider packetProvider = SPAnimatorControl::new;
             private final List<TimeEvent> timeEventList = new ArrayList<>();
             private final List<HitEvent> hitEventList = new ArrayList<>();
+            private final Set<TagKey<DamageType>> sourceTagSet = new HashSet<>();
 
 
             public Builder<T> addTimeEvent(TimeEvent timeEvent) {
@@ -781,7 +797,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                         livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());
                         livingEntityData.combat_evolution$setArmorNegationMultiplier(mobPatch.getOriginal(), params.getArmorNegationMultiplier());
                         livingEntityData.combat_evolution$setStunType(mobPatch.getOriginal(), params.getStunType());
-                        livingEntityData.combat_evolution$setDamageSource(params.getDamageSource());
+                        sourceTagSet.addAll(params.getDamageSource());
                     }
                 };
                 return this;
@@ -945,7 +961,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                         livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());
                         livingEntityData.combat_evolution$setArmorNegationMultiplier(mobPatch.getOriginal(), params.getArmorNegationMultiplier());
                         livingEntityData.combat_evolution$setStunType(mobPatch.getOriginal(), params.getStunType());
-                        livingEntityData.combat_evolution$setDamageSource(params.getDamageSource());
+                        sourceTagSet.addAll(params.getDamageSource());
                     }
                 };
                 return this;

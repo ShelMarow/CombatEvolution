@@ -20,8 +20,6 @@ import java.util.Set;
 
 @Mixin(value = StaticAnimation.class,remap = false)
 public class StaticAnimationsMixin {
-    @Shadow
-    protected AnimationManager.AnimationAccessor<? extends StaticAnimation> accessor;
 
     @Inject(
             method = "end",
@@ -38,14 +36,15 @@ public class StaticAnimationsMixin {
                 livingEntityData.combat_evolution$setImpactMultiplier(entitypatch.getOriginal(), 1F);
                 livingEntityData.combat_evolution$setArmorNegationMultiplier(entitypatch.getOriginal(),1F);
                 livingEntityData.combat_evolution$setStunType(entitypatch.getOriginal(), -1);
-                if((StaticAnimation)(Object)this instanceof AttackAnimation) {
-                    livingEntityData.combat_evolution$setDamageSource(Set.of());
-                }
+//                if((StaticAnimation)(Object)this instanceof AttackAnimation) {
+//                    livingEntityData.combat_evolution$setDamageSource(Set.of());
+//                }
             }
 
             //重置时间戳事件和命中事件
             CECombatBehaviors.Behavior<?> behavior = BehaviorUtils.getCurrentBehavior(ceHumanoidPatch);
             if(behavior != null){
+                behavior.setShouldAddSourceTagSet(false);
                 behavior.resetTimeEventAvailable();
                 behavior.setShouldExecuteTimeEvent(false);
                 behavior.setShouldExecuteHitEvent(false);
