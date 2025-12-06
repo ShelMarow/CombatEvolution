@@ -1,0 +1,8 @@
+{
+  "effect.combat_evolution.full_stun_immunity": "Full Stun Immunity",
+  "hud.combat_evolution.execution_tooltip": "Aim target and\npress [%s]",
+  "text.combat_evolution.not_available_pos": "Location is not standing or have not enough space",
+  "death.attack.execution": "%1&s was executed",
+  "key.categories.combat_evolution": "Combat Evolution",
+  "key.combat_evolution.execution": "Execution"
+}

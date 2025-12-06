@@ -1,0 +1,8 @@
+{
+  "effect.combat_evolution.full_stun_immunity": "完全霸体",
+  "hud.combat_evolution.execution_tooltip": "瞄准敌人并按下 [%s]",
+  "text.combat_evolution.not_available_pos": "处决位置无法站立或没有足够空间",
+  "death.attack.execution": "%1&s 被处决了",
+  "key.categories.combat_evolution": "战斗进化",
+  "key.combat_evolution.execution": "处决"
+}
