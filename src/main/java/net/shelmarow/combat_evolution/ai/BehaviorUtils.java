@@ -37,9 +37,10 @@ public class BehaviorUtils {
         return null;
     }
 
-    public static void onGuardHit(LivingEntityPatch<?> entityPatch) {
+    public static boolean onGuardHit(LivingEntityPatch<?> entityPatch) {
         CECombatBehaviors.Behavior<?> b = getCurrentBehavior(entityPatch);
-        if (b != null) b.whenGuardHit();
+        if (b != null) return b.whenGuardHit();
+        return false;
     }
 
     public static void stopCurrentBehavior(LivingEntity entity) {

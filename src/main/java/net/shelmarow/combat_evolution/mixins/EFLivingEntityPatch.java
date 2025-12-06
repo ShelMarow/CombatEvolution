@@ -26,6 +26,8 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     //伤害源修改
     @Unique
+    private static EntityDataAccessor<Boolean> combat_evolution$CAN_MODIFY_SPEED;
+    @Unique
     private static EntityDataAccessor<Float> combat_evolution$ATTACK_SPEED;
     @Unique
     private static EntityDataAccessor<Float> combat_evolution$DAMAGE_MULTIPLIER;
@@ -36,7 +38,7 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     @Unique
     private static EntityDataAccessor<Integer> combat_evolution$STUN_TYPE;
     @Unique
-    private static final Set<TagKey<DamageType>> combatEvolution$damageSource = new HashSet<>();
+    private static final Set<TagKey<DamageType>> combatEvolution$DAMAGE_SOURCE = new HashSet<>();
 
     //耐力修改
     @Unique
@@ -57,6 +59,7 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Inject(method = "initLivingEntityDataAccessor", at = @At("HEAD"), remap = false)
     private static void onInitLivingEntityDataAccessor(CallbackInfo ci) {
+        combat_evolution$CAN_MODIFY_SPEED = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.BOOLEAN);
         combat_evolution$ATTACK_SPEED = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
         combat_evolution$DAMAGE_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
         combat_evolution$IMPACT_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
@@ -74,6 +77,7 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Inject(method = "createSyncedEntityData", at = @At("HEAD"), remap = false)
     private static void onCreateSyncedEntityData(LivingEntity livingentity,CallbackInfo ci) {
+        livingentity.getEntityData().define(combat_evolution$CAN_MODIFY_SPEED, false);
         livingentity.getEntityData().define(combat_evolution$ATTACK_SPEED, 1.0F);
         livingentity.getEntityData().define(combat_evolution$DAMAGE_MULTIPLIER, 1.0F);
         livingentity.getEntityData().define(combat_evolution$IMPACT_MULTIPLIER, 1.0F);
@@ -98,6 +102,17 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     @Unique
     public void combat_evolution$setPhase(LivingEntity entity, int phase) {
         entity.getEntityData().set(combat_evolution$PHASE,phase);
+    }
+
+
+    @Unique
+    public boolean combat_evolution$getCanModifySpeed(LivingEntity entity) {
+        return entity.getEntityData().get(combat_evolution$CAN_MODIFY_SPEED);
+    }
+
+    @Unique
+    public void combat_evolution$setCanModifySpeed(LivingEntity entity, boolean canModifySpeed) {
+        entity.getEntityData().set(combat_evolution$CAN_MODIFY_SPEED,canModifySpeed);
     }
 
     @Unique
@@ -154,13 +169,13 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     }
 
     public Set<TagKey<DamageType>> combat_evolution$getDamageSource() {
-        return combatEvolution$damageSource;
+        return combatEvolution$DAMAGE_SOURCE;
     }
 
     public void combat_evolution$setDamageSource(Set<TagKey<DamageType>> sourceSet) {
-        combatEvolution$damageSource.clear();
+        combatEvolution$DAMAGE_SOURCE.clear();
         if (!sourceSet.isEmpty()) {
-            combatEvolution$damageSource.addAll(sourceSet);
+            combatEvolution$DAMAGE_SOURCE.addAll(sourceSet);
         }
     }
 

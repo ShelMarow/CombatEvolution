@@ -71,6 +71,7 @@ public class AvalonAttackAnimationMixin extends BasicAttackAnimation {
             EpicFightDamageSource returnValue = cir.getReturnValue();
             float damage = entityData.combat_evolution$getDamageMultiplier(entitypatch.getOriginal());
             float impact = entityData.combat_evolution$getImpactMultiplier(entitypatch.getOriginal());
+            float armorNegation = entityData.combat_evolution$getArmorNegationMultiplier(entitypatch.getOriginal());
             int stunIndex = entityData.combat_evolution$getStunType(entitypatch.getOriginal());
             Set<TagKey<DamageType>> sourceTag = entityData.combat_evolution$getDamageSource();
 
@@ -78,9 +79,13 @@ public class AvalonAttackAnimationMixin extends BasicAttackAnimation {
                 StunType stunType = StunType.values()[stunIndex];
                 returnValue.setStunType(stunType);
             }
+
             returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
             returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
-            sourceTag.forEach(returnValue::addRuntimeTag);
+            returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
+            if(!sourceTag.isEmpty()) {
+                sourceTag.forEach(returnValue::addRuntimeTag);
+            }
 
             cir.setReturnValue(returnValue);
         }

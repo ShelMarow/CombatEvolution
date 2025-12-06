@@ -13,6 +13,9 @@ public interface ILivingEntityData {
     int combat_evolution$getPhase(LivingEntity entity);
     void combat_evolution$setPhase(LivingEntity entity, int Phase);
 
+    boolean combat_evolution$getCanModifySpeed(LivingEntity entity);
+    void combat_evolution$setCanModifySpeed(LivingEntity entity, boolean canModifySpeed);
+
     float combat_evolution$getAttackSpeed(LivingEntity entity);
     void combat_evolution$setAttackSpeed(LivingEntity entity, float attackSpeed);
 

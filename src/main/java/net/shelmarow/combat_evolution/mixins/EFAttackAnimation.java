@@ -75,7 +75,9 @@ public class EFAttackAnimation {
             returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
             returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
             returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
-            sourceTag.forEach(returnValue::addRuntimeTag);
+            if(!sourceTag.isEmpty()) {
+                sourceTag.forEach(returnValue::addRuntimeTag);
+            }
 
             cir.setReturnValue(returnValue);
         }

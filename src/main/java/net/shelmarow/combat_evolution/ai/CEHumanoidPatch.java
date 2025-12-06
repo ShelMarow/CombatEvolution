@@ -235,11 +235,13 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         if(!dealStaminaDamage(damageSource,impact)){
             if (damageSource.getDirectEntity() != null) knockBackEntity(damageSource.getDirectEntity().position(), 0.15F);
 
+            //是否能进行反击
+            boolean canCounter = BehaviorUtils.onGuardHit(this);
+
+            //播放防御动画
             AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = getGuardHitAnimation(damageSource);
             this.playAnimationSynchronized(guardHit,0F, SPAnimatorControl::new);
             playGuardHitSound();
-
-            BehaviorUtils.onGuardHit(this);
         }
     }
 

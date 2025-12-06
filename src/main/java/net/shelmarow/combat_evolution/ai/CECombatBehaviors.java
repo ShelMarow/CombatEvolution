@@ -624,7 +624,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
         }
 
-        public void whenGuardHit(){
+        public boolean whenGuardHit(){
             switch (counterType){
                 case END -> {
                     guardHit--;
@@ -640,6 +640,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     }
                 }
             }
+            return canCounter;
         }
 
         public void behaviorWaiting(){
@@ -771,14 +772,15 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             public Builder<T> counterAnimation(AssetAccessor<? extends StaticAnimation> counterAnimation, AnimationParams params) {
                 this.counterAnimation = counterAnimation;
-                this.counter = (mobpatch)-> {
-                    mobpatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
-                    if(mobpatch instanceof ILivingEntityData livingEntityData) {
-                        livingEntityData.combat_evolution$setAttackSpeed(mobpatch.getOriginal(), params.getAttackSpeed());
-                        livingEntityData.combat_evolution$setDamageMultiplier(mobpatch.getOriginal(), params.getDamageMultiplier());
-                        livingEntityData.combat_evolution$setImpactMultiplier(mobpatch.getOriginal(), params.getImpactMultiplier());
-                        livingEntityData.combat_evolution$setArmorNegationMultiplier(mobpatch.getOriginal(), params.getArmorNegationMultiplier());
-                        livingEntityData.combat_evolution$setStunType(mobpatch.getOriginal(), params.getStunType());
+                this.counter = (mobPatch)-> {
+                    mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
+                    if(mobPatch instanceof ILivingEntityData livingEntityData) {
+                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), true);
+                        livingEntityData.combat_evolution$setAttackSpeed(mobPatch.getOriginal(), params.getAttackSpeed());
+                        livingEntityData.combat_evolution$setDamageMultiplier(mobPatch.getOriginal(), params.getDamageMultiplier());
+                        livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());
+                        livingEntityData.combat_evolution$setArmorNegationMultiplier(mobPatch.getOriginal(), params.getArmorNegationMultiplier());
+                        livingEntityData.combat_evolution$setStunType(mobPatch.getOriginal(), params.getStunType());
                         livingEntityData.combat_evolution$setDamageSource(params.getDamageSource());
                     }
                 };
@@ -937,6 +939,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.behavior = (mobPatch) -> {
                     mobPatch.playAnimationSynchronized(motion, params.getTransitionTime(), this.packetProvider);
                     if (mobPatch instanceof ILivingEntityData livingEntityData) {
+                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), true);
                         livingEntityData.combat_evolution$setAttackSpeed(mobPatch.getOriginal(), params.getAttackSpeed());
                         livingEntityData.combat_evolution$setDamageMultiplier(mobPatch.getOriginal(), params.getDamageMultiplier());
                         livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());

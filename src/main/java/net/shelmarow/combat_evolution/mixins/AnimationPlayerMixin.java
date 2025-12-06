@@ -54,14 +54,14 @@ public abstract class AnimationPlayerMixin {
             remap = false
     )
     private float modifyPlaybackSpeed(float originalValue) {
-        if(combatEvolution$currentPlay instanceof ActionAnimation && combatEvolution$storeEntityPatch instanceof CEHumanoidPatch){
-            ILivingEntityData livingEntityData = (ILivingEntityData) combatEvolution$storeEntityPatch;
-            return livingEntityData.combat_evolution$getAttackSpeed(combatEvolution$storeEntityPatch.getOriginal());
+        ILivingEntityData livingEntityData = (ILivingEntityData) combatEvolution$storeEntityPatch;
+        if(livingEntityData.combat_evolution$getCanModifySpeed(combatEvolution$storeEntityPatch.getOriginal())) {
+            if(combatEvolution$currentPlay instanceof ActionAnimation && combatEvolution$storeEntityPatch instanceof CEHumanoidPatch){
+                return livingEntityData.combat_evolution$getAttackSpeed(combatEvolution$storeEntityPatch.getOriginal());
+            }
         }
         return originalValue;
     }
-
-
 
     @Redirect(
             method = "tick",
@@ -73,8 +73,12 @@ public abstract class AnimationPlayerMixin {
             remap = false
     )
     private float redirectModify(AnimationProperty.PlaybackSpeedModifier instance, DynamicAnimation dynamicAnimation, LivingEntityPatch<?> entityPatch, float playbackSpeed, float prevElapsedTime, float elapsedTime){
-        if(dynamicAnimation instanceof ActionAnimation && entityPatch instanceof CEHumanoidPatch){
-            return playbackSpeed;
+
+        ILivingEntityData livingEntityData = (ILivingEntityData) entityPatch;
+        if(livingEntityData.combat_evolution$getCanModifySpeed(entityPatch.getOriginal())) {
+            if (dynamicAnimation instanceof ActionAnimation && entityPatch instanceof CEHumanoidPatch) {
+                return playbackSpeed;
+            }
         }
         return instance.modify(dynamicAnimation, entityPatch, playbackSpeed, prevElapsedTime, elapsedTime);
     }
