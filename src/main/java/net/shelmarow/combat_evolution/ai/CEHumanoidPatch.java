@@ -132,7 +132,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 }
                 //如果有耐力回复属性，则在一段时间未行动时回复耐力
                 else if(original.getAttribute(EpicFightAttributes.STAMINA_REGEN.get()) != null){
-                    if(state.inaction()){
+                    if(state.inaction() || entityData.combat_evolution$isGuard(original)){
                         lastActionTime = original.tickCount;
                     }
                     else if(original.tickCount - lastActionTime > staminaRegenDelay && currentStamina < maxStamina){

@@ -9,6 +9,7 @@ import java.util.Set;
 
 public class AnimationParams {
     private float transitionTime = 0f;
+    private boolean shouldChangeSpeed = false;
     private float attackSpeed = 1f;
     private float damageMultiplier = 1f;
     private float impactMultiplier = 1f;
@@ -21,8 +22,17 @@ public class AnimationParams {
         return this;
     }
 
+    public void setShouldChangeSpeed(boolean shouldChangeSpeed) {
+        this.shouldChangeSpeed = shouldChangeSpeed;
+    }
+
+    public boolean shouldChangeSpeed() {
+        return shouldChangeSpeed;
+    }
+
     public AnimationParams playSpeed(float attackSpeed) {
         this.attackSpeed = attackSpeed;
+        setShouldChangeSpeed(true);
         return this;
     }
 

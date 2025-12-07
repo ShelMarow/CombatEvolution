@@ -39,10 +39,10 @@ public abstract class AnimationPlayerMixin {
     private void tick(LivingEntityPatch<?> entityPatch, CallbackInfo ci){
         combatEvolution$storeEntityPatch = entityPatch;
         combatEvolution$currentPlay = ((AnimationPlayer)(Object) this).getAnimation().get();
-        if(entityPatch instanceof CEHumanoidPatch nfiHumanoidPatch){
-            CECombatBehaviors.Behavior<?> behavior = BehaviorUtils.getCurrentBehavior(nfiHumanoidPatch);
+        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch){
+            CECombatBehaviors.Behavior<?> behavior = BehaviorUtils.getCurrentBehavior(ceHumanoidPatch);
             if(behavior != null){
-                behavior.executeTimeEvent(prevElapsedTime,elapsedTime,nfiHumanoidPatch);
+                behavior.executeTimeEvent(prevElapsedTime,elapsedTime,ceHumanoidPatch);
             }
         }
     }

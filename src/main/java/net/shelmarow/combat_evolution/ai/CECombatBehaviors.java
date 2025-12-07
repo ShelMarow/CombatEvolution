@@ -485,7 +485,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                         }
                     }
                     else {
-                        return timeCount * 0.05F >= interruptedWindow.get(0) && timeCount * 0.05F < interruptedWindow.get(1);
+                        int elapsedTick = behaviorTime - timeCount;
+                        return elapsedTick * 0.05F >= interruptedWindow.get(0) && elapsedTick * 0.05F < interruptedWindow.get(1);
                     }
                 }
                 else if(interruptType == InterruptType.LEVEL) {
@@ -724,11 +725,18 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return counterAnimation;
         }
 
+        public int getBehaviorTime() {
+            return behaviorTime;
+        }
+
+        public int getTimeCount() {
+            return timeCount;
+        }
 
         //行为类构造器
         public static class Builder<T extends MobPatch<?>> {
             private Consumer<T> counter;
-            private String behaviorName;
+            private String behaviorName = "";
             private Consumer<T> behavior;
             private final List<Consumer<T>> exBehaviors = new ArrayList<>();
             private final List<Consumer<T>> onCounterStart = new ArrayList<>();
@@ -791,7 +799,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.counter = (mobPatch)-> {
                     mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
                     if(mobPatch instanceof ILivingEntityData livingEntityData) {
-                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), true);
+                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), params.shouldChangeSpeed());
                         livingEntityData.combat_evolution$setAttackSpeed(mobPatch.getOriginal(), params.getAttackSpeed());
                         livingEntityData.combat_evolution$setDamageMultiplier(mobPatch.getOriginal(), params.getDamageMultiplier());
                         livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());
@@ -922,7 +930,10 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.behaviorTime = totalTime;
                 this.type = BehaviorType.WANDER;
                 this.behavior = (mobpatch)->{
-                    mobpatch.playAnimationSynchronized(animation,0F);
+                    AssetAccessor<? extends StaticAnimation> currentAnimation = mobpatch.getAnimator().getPlayerFor(null).getAnimation().get().getRealAnimation();
+                    if(currentAnimation != animation) {
+                        mobpatch.playAnimationSynchronized(animation, 0F, this.packetProvider);
+                    }
                     mobpatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
                 };
                 return this;
@@ -955,7 +966,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.behavior = (mobPatch) -> {
                     mobPatch.playAnimationSynchronized(motion, params.getTransitionTime(), this.packetProvider);
                     if (mobPatch instanceof ILivingEntityData livingEntityData) {
-                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), true);
+                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), params.shouldChangeSpeed());
                         livingEntityData.combat_evolution$setAttackSpeed(mobPatch.getOriginal(), params.getAttackSpeed());
                         livingEntityData.combat_evolution$setDamageMultiplier(mobPatch.getOriginal(), params.getDamageMultiplier());
                         livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());
