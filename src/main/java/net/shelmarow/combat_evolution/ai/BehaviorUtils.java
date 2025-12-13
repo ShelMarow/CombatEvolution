@@ -6,6 +6,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -55,8 +57,8 @@ public class BehaviorUtils {
         }
     }
 
-    public static Set<TagKey<DamageType>> getSourceTagSet(LivingEntityPatch<?> entitypatch) {
+    public static Map<Integer, PhaseParams> getPhaseParams(LivingEntityPatch<?> entitypatch) {
         CECombatBehaviors.Behavior<?> current = getCurrentBehavior(entitypatch);
-        return current != null ? current.getSourceTagSet() : Set.of();
+        return current != null ? current.getPhaseParams() : new HashMap<>();
     }
 }

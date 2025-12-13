@@ -29,16 +29,15 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private static EntityDataAccessor<Boolean> combat_evolution$CAN_MODIFY_SPEED;
     @Unique
     private static EntityDataAccessor<Float> combat_evolution$ATTACK_SPEED;
-    @Unique
-    private static EntityDataAccessor<Float> combat_evolution$DAMAGE_MULTIPLIER;
-    @Unique
-    private static EntityDataAccessor<Float> combat_evolution$IMPACT_MULTIPLIER;
-    @Unique
-    private static EntityDataAccessor<Float> combat_evolution$ARMOR_NEGATION_MULTIPLIER;
-    @Unique
-    private static EntityDataAccessor<Integer> combat_evolution$STUN_TYPE;
 //    @Unique
-//    private static final Set<TagKey<DamageType>> combatEvolution$DAMAGE_SOURCE = new HashSet<>();
+//    private static EntityDataAccessor<Float> combat_evolution$DAMAGE_MULTIPLIER;
+//    @Unique
+//    private static EntityDataAccessor<Float> combat_evolution$IMPACT_MULTIPLIER;
+//    @Unique
+//    private static EntityDataAccessor<Float> combat_evolution$ARMOR_NEGATION_MULTIPLIER;
+//    @Unique
+//    private static EntityDataAccessor<Integer> combat_evolution$STUN_TYPE;
+
 
     //耐力修改
     @Unique
@@ -61,10 +60,10 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private static void onInitLivingEntityDataAccessor(CallbackInfo ci) {
         combat_evolution$CAN_MODIFY_SPEED = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.BOOLEAN);
         combat_evolution$ATTACK_SPEED = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-        combat_evolution$DAMAGE_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-        combat_evolution$IMPACT_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-        combat_evolution$ARMOR_NEGATION_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-        combat_evolution$STUN_TYPE = SynchedEntityData.defineId(LivingEntity.class,EntityDataSerializers.INT);
+//        combat_evolution$DAMAGE_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
+//        combat_evolution$IMPACT_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
+//        combat_evolution$ARMOR_NEGATION_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
+//        combat_evolution$STUN_TYPE = SynchedEntityData.defineId(LivingEntity.class,EntityDataSerializers.INT);
 
         combat_evolution$STAMINA = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
         combat_evolution$STAMINA_STATUS = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.INT);
@@ -79,10 +78,10 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private static void onCreateSyncedEntityData(LivingEntity livingentity,CallbackInfo ci) {
         livingentity.getEntityData().define(combat_evolution$CAN_MODIFY_SPEED, false);
         livingentity.getEntityData().define(combat_evolution$ATTACK_SPEED, 1.0F);
-        livingentity.getEntityData().define(combat_evolution$DAMAGE_MULTIPLIER, 1.0F);
-        livingentity.getEntityData().define(combat_evolution$IMPACT_MULTIPLIER, 1.0F);
-        livingentity.getEntityData().define(combat_evolution$ARMOR_NEGATION_MULTIPLIER, 1.0F);
-        livingentity.getEntityData().define(combat_evolution$STUN_TYPE, -1);
+//        livingentity.getEntityData().define(combat_evolution$DAMAGE_MULTIPLIER, 1.0F);
+//        livingentity.getEntityData().define(combat_evolution$IMPACT_MULTIPLIER, 1.0F);
+//        livingentity.getEntityData().define(combat_evolution$ARMOR_NEGATION_MULTIPLIER, 1.0F);
+//        livingentity.getEntityData().define(combat_evolution$STUN_TYPE, -1);
 
         livingentity.getEntityData().define(combat_evolution$STAMINA, 0.0F);
         livingentity.getEntityData().define(combat_evolution$STAMINA_STATUS, StaminaStatus.COMMON.ordinal());
@@ -125,48 +124,48 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
         entity.getEntityData().set(combat_evolution$ATTACK_SPEED,Math.max(0,speed));
     }
 
-    @Override
-    public float combat_evolution$getDamageMultiplier(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$DAMAGE_MULTIPLIER);
-    }
-
-    @Override
-    public void combat_evolution$setDamageMultiplier(LivingEntity entity, float multiplier) {
-        entity.getEntityData().set(combat_evolution$DAMAGE_MULTIPLIER,Math.max(0,multiplier));
-    }
-
-    @Override
-    public float combat_evolution$getImpactMultiplier(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$IMPACT_MULTIPLIER);
-    }
-
-    @Override
-    public void combat_evolution$setImpactMultiplier(LivingEntity entity, float multiplier) {
-        entity.getEntityData().set(combat_evolution$IMPACT_MULTIPLIER,Math.max(0,multiplier));
-    }
-
-    public float combat_evolution$getArmorNegationMultiplier(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$ARMOR_NEGATION_MULTIPLIER);
-    }
-
-    public void combat_evolution$setArmorNegationMultiplier(LivingEntity entity, float multiplier) {
-        entity.getEntityData().set(combat_evolution$ARMOR_NEGATION_MULTIPLIER,multiplier);
-    }
-
-    @Override
-    public int combat_evolution$getStunType(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$STUN_TYPE);
-    }
-
-    @Override
-    public void combat_evolution$setStunType(LivingEntity entity, StunType stunType) {
-        entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType.ordinal());
-    }
-
-    @Override
-    public void combat_evolution$setStunType(LivingEntity entity, int stunType) {
-        entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType);
-    }
+//    @Override
+//    public float combat_evolution$getDamageMultiplier(LivingEntity entity) {
+//        return entity.getEntityData().get(combat_evolution$DAMAGE_MULTIPLIER);
+//    }
+//
+//    @Override
+//    public void combat_evolution$setDamageMultiplier(LivingEntity entity, float multiplier) {
+//        entity.getEntityData().set(combat_evolution$DAMAGE_MULTIPLIER,Math.max(0,multiplier));
+//    }
+//
+//    @Override
+//    public float combat_evolution$getImpactMultiplier(LivingEntity entity) {
+//        return entity.getEntityData().get(combat_evolution$IMPACT_MULTIPLIER);
+//    }
+//
+//    @Override
+//    public void combat_evolution$setImpactMultiplier(LivingEntity entity, float multiplier) {
+//        entity.getEntityData().set(combat_evolution$IMPACT_MULTIPLIER,Math.max(0,multiplier));
+//    }
+//
+//    public float combat_evolution$getArmorNegationMultiplier(LivingEntity entity) {
+//        return entity.getEntityData().get(combat_evolution$ARMOR_NEGATION_MULTIPLIER);
+//    }
+//
+//    public void combat_evolution$setArmorNegationMultiplier(LivingEntity entity, float multiplier) {
+//        entity.getEntityData().set(combat_evolution$ARMOR_NEGATION_MULTIPLIER,multiplier);
+//    }
+//
+//    @Override
+//    public int combat_evolution$getStunType(LivingEntity entity) {
+//        return entity.getEntityData().get(combat_evolution$STUN_TYPE);
+//    }
+//
+//    @Override
+//    public void combat_evolution$setStunType(LivingEntity entity, StunType stunType) {
+//        entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType.ordinal());
+//    }
+//
+//    @Override
+//    public void combat_evolution$setStunType(LivingEntity entity, int stunType) {
+//        entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType);
+//    }
 
     @Unique
     public float combat_evolution$getStamina(LivingEntity entity) {

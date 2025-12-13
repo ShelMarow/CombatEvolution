@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.mixins;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
@@ -10,6 +11,7 @@ import net.minecraft.world.phys.AABB;
 import net.shelmarow.combat_evolution.ai.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
+import net.shelmarow.combat_evolution.ai.PhaseParams;
 import net.shelmarow.combat_evolution.iml.ILivingEntityData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.EntityState;
+import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.api.utils.HitEntityList;
 import yesman.epicfight.api.utils.math.ValueModifier;
@@ -30,11 +33,12 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 @Mixin(value = AttackAnimation.class)
-public abstract class EFAttackAnimation {
+public abstract class EFAttackAnimation extends StaticAnimation {
 
     @Shadow(remap = false)
     public abstract int getPhaseOrderByTime(float elapsedTime);
@@ -47,27 +51,37 @@ public abstract class EFAttackAnimation {
     )
     private void onGetDamageSource(LivingEntityPatch<?> entityPatch, Entity target, AttackAnimation.Phase phase, CallbackInfoReturnable<EpicFightDamageSource> cir){
         if (entityPatch instanceof CEHumanoidPatch) {
-            ILivingEntityData entityData = (ILivingEntityData) entityPatch;
-            EpicFightDamageSource returnValue = cir.getReturnValue();
-            float damage = entityData.combat_evolution$getDamageMultiplier(entityPatch.getOriginal());
-            float impact = entityData.combat_evolution$getImpactMultiplier(entityPatch.getOriginal());
-            float armorNegation = entityData.combat_evolution$getArmorNegationMultiplier(entityPatch.getOriginal());
-            int stunIndex = entityData.combat_evolution$getStunType(entityPatch.getOriginal());
-            Set<TagKey<DamageType>> sourceTag = BehaviorUtils.getSourceTagSet(entityPatch);
 
-            if(stunIndex != -1){
-                StunType stunType = StunType.values()[stunIndex];
-                returnValue.setStunType(stunType);
+            Map<Integer, PhaseParams> phaseParamsMap = BehaviorUtils.getPhaseParams(entityPatch);
+            int currentPhase = this.getPhaseOrderByTime(Objects.requireNonNull(entityPatch.getAnimator().getPlayerFor(this.getAccessor())).getElapsedTime());
+
+            //获取当前Phase可用的参数
+            PhaseParams params = phaseParamsMap.containsKey(currentPhase) ? phaseParamsMap.get(currentPhase) : phaseParamsMap.get(-1);
+
+            //如果存在，附加对应的内容
+            if(params != null){
+                EpicFightDamageSource returnValue = cir.getReturnValue();
+
+                int stunIndex = params.getStunType();
+                float damage = params.getDamageMultiplier();
+                float impact = params.getImpactMultiplier();
+                float armorNegation = params.getArmorNegationMultiplier();
+                Set<TagKey<DamageType>> sourceTag = params.getDamageSource();
+
+                if(stunIndex != -1){
+                    StunType stunType = StunType.values()[stunIndex];
+                    returnValue.setStunType(stunType);
+                }
+
+                returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
+                returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
+                returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
+                if(!sourceTag.isEmpty()) {
+                    sourceTag.forEach(returnValue::addRuntimeTag);
+                }
+
+                cir.setReturnValue(returnValue);
             }
-
-            returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
-            returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
-            returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
-            if(!sourceTag.isEmpty()) {
-                sourceTag.forEach(returnValue::addRuntimeTag);
-            }
-
-            cir.setReturnValue(returnValue);
         }
     }
 

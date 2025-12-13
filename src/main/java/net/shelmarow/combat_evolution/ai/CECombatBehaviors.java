@@ -541,8 +541,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         private final AssetAccessor<? extends StaticAnimation> counterAnimation;    //防御反击动画
         private final List<TimeEvent> timeEventList;                                //时间事件列表
         private final List<HitEvent> hitEventList;                                  //攻击命中事件列表
-        private final Set<TagKey<DamageType>> sourceTagSet;                         //伤害源集合
-        private boolean shouldAddSourceTagSet = false;                              //伤害源附加锁
+        private final Map<Integer,PhaseParams> phaseParams;                         //攻击Phase参数
         private boolean shouldExecuteTimeEvent = false;                             //时间事件锁
         private boolean shouldExecuteHitEvent = false;                              //攻击命中事件锁
 
@@ -577,19 +576,16 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             this.nextBehaviors = builder.nextBehaviors.stream().map(b->b.build(behaviorRoot)).toList();
             this.timeEventList = builder.timeEventList;
             this.hitEventList = builder.hitEventList;
-            this.sourceTagSet = builder.sourceTagSet;
+            this.phaseParams = builder.phaseParams;
         }
 
         public BehaviorRoot<T> getBehaviorRoot() {
             return behaviorRoot;
         }
 
-        public void setShouldAddSourceTagSet(boolean shouldAddSourceTagSet) {
-            this.shouldAddSourceTagSet = shouldAddSourceTagSet;
-        }
 
-        public Set<TagKey<DamageType>> getSourceTagSet() {
-            return shouldAddSourceTagSet ? sourceTagSet : Set.of();
+        public Map<Integer, PhaseParams> getPhaseParams() {
+            return phaseParams;
         }
 
         public void setShouldExecuteTimeEvent(boolean shouldExecuteTimeEvent) {
@@ -665,7 +661,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 consumer.accept(mobPatch);
             }
             mobPatch.updateEntityState();
-            this.shouldAddSourceTagSet = true;
             this.shouldExecuteTimeEvent = true;
             this.shouldExecuteHitEvent = true;
             this.state = BehaviorState.RUNNING;
@@ -831,7 +826,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             guardHit = maxGuardHit;
             waitTime = totalWaitTime;
             canCounter = false;
-            shouldAddSourceTagSet = false;
             shouldExecuteTimeEvent = false;
             shouldExecuteHitEvent = false;
         }
@@ -932,7 +926,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             private final LivingEntityPatch.ServerAnimationPacketProvider packetProvider = SPAnimatorControl::new;
             private final List<TimeEvent> timeEventList = new ArrayList<>();
             private final List<HitEvent> hitEventList = new ArrayList<>();
-            private final Set<TagKey<DamageType>> sourceTagSet = new HashSet<>();
+            private final Map<Integer,PhaseParams> phaseParams = new HashMap<>();
 
             public Builder<T> canInsertGlobalBehavior(boolean canInsertGlobalBehavior) {
                 this.canInsertGlobalBehavior = canInsertGlobalBehavior;
@@ -962,38 +956,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             public Builder<T> addHitEvent(HitEvent... hitEvents) {
                 this.hitEventList.addAll(List.of(hitEvents));
                 return this;
-            }
-
-            public Builder<T> onCounterStart(Consumer<T> behavior) {
-                this.onCounterStart.add(behavior);
-                return this;
-            }
-
-            @SafeVarargs
-            public final Builder<T> onCounterStart(Consumer<T>... behavior) {
-                this.exBehaviors.addAll(List.of(behavior));
-                return this;
-            }
-
-            public Builder<T> counterAnimation(AssetAccessor<? extends StaticAnimation> counterAnimation, AnimationParams params) {
-                this.counterAnimation = counterAnimation;
-                this.counter = (mobPatch)-> {
-                    mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
-                    if(mobPatch instanceof ILivingEntityData livingEntityData) {
-                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), params.shouldChangeSpeed());
-                        livingEntityData.combat_evolution$setAttackSpeed(mobPatch.getOriginal(), params.getAttackSpeed());
-                        livingEntityData.combat_evolution$setDamageMultiplier(mobPatch.getOriginal(), params.getDamageMultiplier());
-                        livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());
-                        livingEntityData.combat_evolution$setArmorNegationMultiplier(mobPatch.getOriginal(), params.getArmorNegationMultiplier());
-                        livingEntityData.combat_evolution$setStunType(mobPatch.getOriginal(), params.getStunType());
-                        sourceTagSet.addAll(params.getDamageSource());
-                    }
-                };
-                return this;
-            }
-
-            public Builder<T> counterAnimation(AssetAccessor<? extends StaticAnimation> counterAnimation,float transitionTime) {
-                return counterAnimation(counterAnimation, new AnimationParams().transitionTime(transitionTime));
             }
 
             public Builder<T> counterType(CounterType counterType) {
@@ -1150,18 +1112,45 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
+
+            public Builder<T> onCounterStart(Consumer<T> behavior) {
+                this.onCounterStart.add(behavior);
+                return this;
+            }
+
+            @SafeVarargs
+            public final Builder<T> onCounterStart(Consumer<T>... behavior) {
+                this.exBehaviors.addAll(List.of(behavior));
+                return this;
+            }
+
+            public Builder<T> counterAnimation(AssetAccessor<? extends StaticAnimation> counterAnimation,float transitionTime) {
+                return counterAnimation(counterAnimation, new AnimationParams().transitionTime(transitionTime));
+            }
+
+            public Builder<T> counterAnimation(AssetAccessor<? extends StaticAnimation> counterAnimation, AnimationParams params) {
+                this.counterAnimation = counterAnimation;
+                this.phaseParams.clear();
+                this.phaseParams.putAll(params.getPhaseParams());
+                this.counter = (mobPatch)-> {
+                    mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
+                    if(mobPatch instanceof ILivingEntityData livingEntityData) {
+                        livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), params.shouldChangeSpeed());
+                        livingEntityData.combat_evolution$setAttackSpeed(mobPatch.getOriginal(), params.getAttackSpeed());
+                    }
+                };
+                return this;
+            }
+
             public Builder<T> animationBehavior(AnimationManager.AnimationAccessor<? extends StaticAnimation> motion,AnimationParams params) {
                 this.type = BehaviorType.ANIMATION;
+                this.phaseParams.clear();
+                this.phaseParams.putAll(params.getPhaseParams());
                 this.behavior = (mobPatch) -> {
                     mobPatch.playAnimationSynchronized(motion, params.getTransitionTime(), this.packetProvider);
                     if (mobPatch instanceof ILivingEntityData livingEntityData) {
                         livingEntityData.combat_evolution$setCanModifySpeed(mobPatch.getOriginal(), params.shouldChangeSpeed());
                         livingEntityData.combat_evolution$setAttackSpeed(mobPatch.getOriginal(), params.getAttackSpeed());
-                        livingEntityData.combat_evolution$setDamageMultiplier(mobPatch.getOriginal(), params.getDamageMultiplier());
-                        livingEntityData.combat_evolution$setImpactMultiplier(mobPatch.getOriginal(), params.getImpactMultiplier());
-                        livingEntityData.combat_evolution$setArmorNegationMultiplier(mobPatch.getOriginal(), params.getArmorNegationMultiplier());
-                        livingEntityData.combat_evolution$setStunType(mobPatch.getOriginal(), params.getStunType());
-                        sourceTagSet.addAll(params.getDamageSource());
                     }
                 };
                 return this;

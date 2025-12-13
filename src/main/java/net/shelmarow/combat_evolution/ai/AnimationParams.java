@@ -4,26 +4,19 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 import yesman.epicfight.world.damagesource.StunType;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class AnimationParams {
     private float transitionTime = 0f;
     private boolean shouldChangeSpeed = false;
     private float attackSpeed = 1f;
-    private float damageMultiplier = 1f;
-    private float impactMultiplier = 1f;
-    private float armorNegationMultiplier = 1f;
-    private int stunType = -1;
-    private final Set<TagKey<DamageType>> damageSource = new HashSet<>();
+    private final Map<Integer,PhaseParams> phaseParams = new HashMap<>();
 
     public AnimationParams transitionTime(float t) {
         this.transitionTime = t;
         return this;
-    }
-
-    protected void setShouldChangeSpeed(boolean shouldChangeSpeed) {
-        this.shouldChangeSpeed = shouldChangeSpeed;
     }
 
     protected boolean shouldChangeSpeed() {
@@ -32,35 +25,50 @@ public class AnimationParams {
 
     public AnimationParams playSpeed(float attackSpeed) {
         this.attackSpeed = attackSpeed;
-        setShouldChangeSpeed(true);
+        this.shouldChangeSpeed = true;
         return this;
     }
 
+    //新版Phase动画参数设置
+    public AnimationParams addPhase(int phase, PhaseParams params) {
+        this.phaseParams.put(phase, params);
+        return this;
+    }
+
+    /*--------------------保留旧版功能调用------------------------*/
+
+    private PhaseParams getOrCreateDefaultPhase() {
+        return phaseParams.computeIfAbsent(-1, k -> new PhaseParams());
+    }
+
     public AnimationParams damageMultiplier(float multiplier) {
-        this.damageMultiplier = multiplier;
+        getOrCreateDefaultPhase().damageMultiplier(multiplier);
         return this;
     }
 
     public AnimationParams impactMultiplier(float multiplier) {
-        this.impactMultiplier = multiplier;
+        getOrCreateDefaultPhase().impactMultiplier(multiplier);
         return this;
     }
 
     public AnimationParams armorNegationMultiplier(float multiplier) {
-        armorNegationMultiplier = multiplier;
+        getOrCreateDefaultPhase().armorNegationMultiplier(multiplier);
         return this;
     }
 
     public AnimationParams stunType(StunType stunType) {
-        this.stunType = stunType.ordinal();
+        getOrCreateDefaultPhase().stunType(stunType);
         return this;
     }
 
     public AnimationParams damageSource(Set<TagKey<DamageType>> damageSource) {
-        this.damageSource.addAll(damageSource);
+        getOrCreateDefaultPhase().damageSource(damageSource);
         return this;
     }
 
+    /*---------------------------------------------------------------------------*/
+
+    //Getter
     public float getTransitionTime() {
         return transitionTime;
     }
@@ -69,23 +77,7 @@ public class AnimationParams {
         return attackSpeed;
     }
 
-    public float getDamageMultiplier() {
-        return damageMultiplier;
-    }
-
-    public float getImpactMultiplier() {
-        return impactMultiplier;
-    }
-
-    public float getArmorNegationMultiplier() {
-        return armorNegationMultiplier;
-    }
-
-    public int getStunType() {
-        return stunType;
-    }
-
-    public Set<TagKey<DamageType>> getDamageSource() {
-        return damageSource;
+    public Map<Integer,PhaseParams> getPhaseParams() {
+        return phaseParams;
     }
 }
