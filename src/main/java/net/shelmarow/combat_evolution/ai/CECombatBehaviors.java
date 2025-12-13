@@ -536,6 +536,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         private final List<TimeEvent> timeEventList;                                //时间事件列表
         private final List<HitEvent> hitEventList;                                  //攻击命中事件列表
         private final Map<Integer,PhaseParams> phaseParams;                         //攻击Phase参数
+        private boolean canApplyPhaseParams = false;                                //Phase参数锁
         private boolean shouldExecuteTimeEvent = false;                             //时间事件锁
         private boolean shouldExecuteHitEvent = false;                              //攻击命中事件锁
 
@@ -580,6 +581,14 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
         public Map<Integer, PhaseParams> getPhaseParams() {
             return phaseParams;
+        }
+
+        public boolean canApplyPhaseParams() {
+            return canApplyPhaseParams;
+        }
+
+        public void setCanApplyPhaseParam(boolean canApplyPhaseParams) {
+            this.canApplyPhaseParams = canApplyPhaseParams;
         }
 
         public void setShouldExecuteTimeEvent(boolean shouldExecuteTimeEvent) {
@@ -655,6 +664,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 consumer.accept(mobPatch);
             }
             mobPatch.updateEntityState();
+            this.canApplyPhaseParams = true;
             this.shouldExecuteTimeEvent = true;
             this.shouldExecuteHitEvent = true;
             this.state = BehaviorState.RUNNING;
@@ -820,6 +830,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             guardHit = maxGuardHit;
             waitTime = totalWaitTime;
             canCounter = false;
+            canApplyPhaseParams = false;
             shouldExecuteTimeEvent = false;
             shouldExecuteHitEvent = false;
         }

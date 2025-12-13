@@ -29,10 +29,11 @@ public class StaticAnimationsMixin {
                 livingEntityData.combat_evolution$setAttackSpeed(entitypatch.getOriginal(), 1F);
             }
 
-            //重置时间戳事件和命中事件
+            //重置时间戳事件和命中事件等等
             CECombatBehaviors.Behavior<?> behavior = BehaviorUtils.getCurrentBehavior(ceHumanoidPatch);
             if(behavior != null){
                 behavior.resetTimeEventAvailable();
+                behavior.setCanApplyPhaseParam(false);
                 behavior.setShouldExecuteTimeEvent(false);
                 behavior.setShouldExecuteHitEvent(false);
             }

@@ -56,6 +56,6 @@ public class BehaviorUtils {
 
     public static Map<Integer, PhaseParams> getPhaseParams(LivingEntityPatch<?> entitypatch) {
         CECombatBehaviors.Behavior<?> current = getCurrentBehavior(entitypatch);
-        return current != null ? current.getPhaseParams() : new HashMap<>();
+        return current != null && current.canApplyPhaseParams() ? current.getPhaseParams() : new HashMap<>();
     }
 }
