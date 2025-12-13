@@ -3,13 +3,11 @@ package net.shelmarow.combat_evolution;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -24,7 +22,6 @@ import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
 import org.slf4j.Logger;
-import yesman.epicfight.client.gui.screen.config.IngameConfigurationScreen;
 import yesman.epicfight.gameasset.Armatures;
 
 @Mod(CombatEvolution.MOD_ID)

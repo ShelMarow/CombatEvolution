@@ -1,7 +1,5 @@
 package net.shelmarow.combat_evolution.ai;
 
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -9,7 +7,6 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class BehaviorUtils {
 

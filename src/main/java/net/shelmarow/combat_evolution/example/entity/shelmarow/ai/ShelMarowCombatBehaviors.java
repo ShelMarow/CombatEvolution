@@ -1,6 +1,5 @@
 package net.shelmarow.combat_evolution.example.entity.shelmarow.ai;
 
-import com.hm.efn.gameasset.animations.EFNShortSwordAnimations;
 import net.shelmarow.combat_evolution.ai.AnimationParams;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.HitEvent;
@@ -26,7 +25,7 @@ public class ShelMarowCombatBehaviors {
                                 .animationBehavior(Animations.BIPED_MOB_SWORD_DUAL1, new AnimationParams()
                                         .transitionTime(0.5F).playSpeed(0.25F)
                                         .addPhase(0, new PhaseParams().damageMultiplier(0.01F).stunType(StunType.LONG))
-                                        .addPhase(1, new PhaseParams().damageMultiplier(0.01F).stunType(StunType.KNOCKDOWN))
+                                        .addPhase(1, new PhaseParams().damageMultiplier(10F).stunType(StunType.KNOCKDOWN))
                                 )
                                 .addHitEvent(
                                         new HitEvent(0, AttackResult.ResultType.SUCCESS,(mobPatch, entity) -> {

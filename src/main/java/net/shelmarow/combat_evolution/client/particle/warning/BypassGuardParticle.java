@@ -1,15 +1,13 @@
 package net.shelmarow.combat_evolution.client.particle.warning;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.*;
-import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SpriteSet;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.client.particle.follow.CEFollowParticleOptions;
 import net.shelmarow.combat_evolution.client.particle.follow.CEPosFollowBaseParticle;
-import net.shelmarow.combat_evolution.client.rendertype.CERenderTypes;
 import org.jetbrains.annotations.NotNull;
 
 public class BypassGuardParticle extends CEPosFollowBaseParticle {

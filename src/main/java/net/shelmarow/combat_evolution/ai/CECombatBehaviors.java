@@ -1,8 +1,6 @@
 package net.shelmarow.combat_evolution.ai;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.ai.efcondition.CurrentAngle;
@@ -28,7 +26,6 @@ import yesman.epicfight.world.damagesource.StunType;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 
 public class CECombatBehaviors<T extends MobPatch<?>> {
@@ -42,9 +39,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         this.behaviorRoots = builder.behaviorRoots.stream().map(BehaviorRoot.Builder::build).toList();
         this.globalBehaviors = builder.globalBehaviors.stream().map(BehaviorRoot.Builder::build).toList();
     }
-
-    //TODO
-    //动画参数和命中事件添加Phase绑定
 
     /*
         1.选择一个根节点行为序列

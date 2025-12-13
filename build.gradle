@@ -70,8 +70,8 @@ mixin {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    implementation fg.deobf('libs:epicfightx:1.0.0')
-    implementation fg.deobf('libs:invincible:20.13.6.3')
+    //implementation fg.deobf('libs:epicfightx:1.0.0')
+    //implementation fg.deobf('libs:invincible:20.13.6.3')
     implementation fg.deobf('libs:epic_fight_avalon:20.12.4')
     implementation fg.deobf("curse.maven:epic-fight-mod-405076:7303229-sources-7303232")
 

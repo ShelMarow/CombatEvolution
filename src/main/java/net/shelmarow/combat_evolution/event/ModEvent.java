@@ -8,9 +8,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
 import net.shelmarow.combat_evolution.client.execution.types.DefaultType;
+import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassDodgeParticle;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassGuardParticle;
-import net.shelmarow.combat_evolution.client.particle.CEParticles;
 
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEvent {

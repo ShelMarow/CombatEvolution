@@ -1,12 +1,7 @@
 package net.shelmarow.combat_evolution.iml;
 
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
-import yesman.epicfight.world.damagesource.StunType;
-
-import java.util.Set;
 
 public interface ILivingEntityData {
     boolean combat_evolution$getCanModifySpeed(LivingEntity entity);
