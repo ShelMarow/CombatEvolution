@@ -22,11 +22,11 @@ public class AnimationParams {
         return this;
     }
 
-    public void setShouldChangeSpeed(boolean shouldChangeSpeed) {
+    protected void setShouldChangeSpeed(boolean shouldChangeSpeed) {
         this.shouldChangeSpeed = shouldChangeSpeed;
     }
 
-    public boolean shouldChangeSpeed() {
+    protected boolean shouldChangeSpeed() {
         return shouldChangeSpeed;
     }
 

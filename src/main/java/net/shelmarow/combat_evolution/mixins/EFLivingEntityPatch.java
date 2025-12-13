@@ -168,17 +168,6 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
         entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType);
     }
 
-//    public Set<TagKey<DamageType>> combat_evolution$getDamageSource() {
-//        return combatEvolution$DAMAGE_SOURCE;
-//    }
-//
-//    public void combat_evolution$setDamageSource(Set<TagKey<DamageType>> sourceSet) {
-//        combatEvolution$DAMAGE_SOURCE.clear();
-//        if (!sourceSet.isEmpty()) {
-//            combatEvolution$DAMAGE_SOURCE.addAll(sourceSet);
-//        }
-//    }
-
     @Unique
     public float combat_evolution$getStamina(LivingEntity entity) {
         return entity.getEntityData().get(combat_evolution$STAMINA);

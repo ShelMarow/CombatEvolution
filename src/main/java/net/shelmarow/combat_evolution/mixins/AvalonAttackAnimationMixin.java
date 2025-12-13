@@ -7,6 +7,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.AABB;
 import net.shelmarow.combat_evolution.ai.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
@@ -37,14 +38,16 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Mixin(value = AvalonAttackAnimation.class)
-public class AvalonAttackAnimationMixin extends BasicAttackAnimation {
+public abstract class AvalonAttackAnimationMixin extends BasicAttackAnimation{
 
     public AvalonAttackAnimationMixin(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, contact, recovery, collider, colliderJoint, accessor, armature);
     }
+
 
 //    @Inject(
 //            method = "getPlaySpeed",
@@ -90,21 +93,44 @@ public class AvalonAttackAnimationMixin extends BasicAttackAnimation {
 //            cir.setReturnValue(returnValue);
 //        }
 //    }
+//    @Redirect(
+//            method = "hurtCollidingEntities",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lcom/merlin204/avalon/epicfight/animations/AvalonAttackAnimation;spawnHitParticle(Lnet/minecraft/server/level/ServerLevel;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)V"
+//            ),
+//            remap = false
+//    )
+//    private void onHurtCollidingEntities(AvalonAttackAnimation instance, ServerLevel level, LivingEntityPatch<?> entityPatch, Entity target, AttackAnimation.Phase phase){
+//        spawnHitParticle((ServerLevel)target.level(), entityPatch, target, phase);
+//        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
+//            CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
+//            if(current != null){
+//                int currentPhase = instance.getPhaseOrderByTime(Objects.requireNonNull(entityPatch.getAnimator().getPlayerFor(null)).getElapsedTime());
+//                current.executeHitEvent(currentPhase,ceHumanoidPatch,target);
+//            }
+//        }
+//    }
 
-    @Redirect(
+
+    @Inject(
             method = "hurtCollidingEntities",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/merlin204/avalon/epicfight/animations/AvalonAttackAnimation;spawnHitParticle(Lnet/minecraft/server/level/ServerLevel;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)V"
+                    target = "Ljava/util/List;add(Ljava/lang/Object;)Z",
+                    ordinal = 0
             ),
+            locals = LocalCapture.CAPTURE_FAILHARD,
             remap = false
     )
-    private void onHurtCollidingEntities(AvalonAttackAnimation instance, ServerLevel level, LivingEntityPatch<?> entityPatch, Entity target, AttackAnimation.Phase phase){
-        spawnHitParticle((ServerLevel)target.level(), entityPatch, target, phase);
+    private void onAttack(LivingEntityPatch<?> entityPatch, float prevElapsedTime, float elapsedTime, EntityState prevState, EntityState state, Phase phase, CallbackInfo ci,
+                          LivingEntity entity, float phasePrevTime, float phaseCurrentTime, float phasePreDelay, float phaseContact, List list, HitEntityList hitEntities,
+                          int maxStrikes, Entity target, LivingEntity trueEntity, boolean canAttack, EpicFightDamageSource damagesource, int prevInvulTime, AttackResult attackResult){
         if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
             CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
             if(current != null){
-                current.executeHitEvent(ceHumanoidPatch,target);
+                int currentPhase = this.getPhaseOrderByTime(elapsedTime);
+                current.executeHitEvent(currentPhase,attackResult.resultType,ceHumanoidPatch,target);
             }
         }
     }

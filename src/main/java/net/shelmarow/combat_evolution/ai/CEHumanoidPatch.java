@@ -230,19 +230,31 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         EpicFightDamageSource efSource = damageSource instanceof EpicFightDamageSource ? (EpicFightDamageSource) damageSource : null;
 
         float impact = 0.5F;
-        if (efSource != null) impact = efSource.calculateImpact();
+        if (efSource != null) {
+            impact = efSource.calculateImpact();
+        }
+        impact *= getGuardHitImpactPercent(damageSource);
 
         if(!dealStaminaDamage(damageSource,impact)){
-            if (damageSource.getDirectEntity() != null) knockBackEntity(damageSource.getDirectEntity().position(), 0.15F);
+            if (damageSource.getDirectEntity() != null) {
+                knockBackEntity(damageSource.getDirectEntity().position(), 0.15F);
+            }
 
             //是否能进行反击
             boolean canCounter = BehaviorUtils.onGuardHit(this);
-
-            //播放防御动画
-            AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = getGuardHitAnimation(damageSource);
-            this.playAnimationSynchronized(guardHit,0F, SPAnimatorControl::new);
-            playGuardHitSound();
+            playGuardHitAnimation(damageSource,canCounter);
         }
+    }
+
+    public float getGuardHitImpactPercent(DamageSource damageSource){
+        return 1F;
+    }
+
+    public void playGuardHitAnimation(DamageSource damageSource, boolean canCounter){
+        //播放防御动画
+        AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = getGuardHitAnimation(damageSource);
+        this.playAnimationSynchronized(guardHit,0F, SPAnimatorControl::new);
+        playGuardHitSound();
     }
 
     public boolean dealStaminaDamage(DamageSource damageSource,float amount){

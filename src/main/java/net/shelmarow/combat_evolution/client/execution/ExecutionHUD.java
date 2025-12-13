@@ -42,6 +42,7 @@ public class ExecutionHUD {
     private static float timePercent = 1F;
 
 
+    @SuppressWarnings("removal")
     @SubscribeEvent
     public static void onPlayerClientTick(TickEvent.PlayerTickEvent event) {
         if(event.player.level().isClientSide && event.phase == TickEvent.Phase.END){

@@ -30,26 +30,14 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Mixin(value = AttackAnimation.class)
-public class EFAttackAnimation {
+public abstract class EFAttackAnimation {
 
     @Shadow(remap = false)
-    protected void spawnHitParticle(ServerLevel world, LivingEntityPatch<?> attacker, Entity hit, AttackAnimation.Phase phase){}
-
-//    @Inject(
-//            method = "getPlaySpeed",
-//            at = @At("HEAD"),
-//            cancellable = true,
-//            remap = false
-//    )
-//    private void onGetPlaySpeed(LivingEntityPatch<?> entityPatch, DynamicAnimation animation,CallbackInfoReturnable<Float> cir) {
-//        if(entityPatch instanceof CEHumanoidPatch) {
-//            ILivingEntityData livingEntityData = (ILivingEntityData) entityPatch;
-//            cir.setReturnValue(livingEntityData.combat_evolution$getAttackSpeed(entityPatch.getOriginal()));
-//        }
-//    }
+    public abstract int getPhaseOrderByTime(float elapsedTime);
 
     @Inject(
             method = "getEpicFightDamageSource(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)Lyesman/epicfight/world/damagesource/EpicFightDamageSource;",
@@ -66,7 +54,6 @@ public class EFAttackAnimation {
             float armorNegation = entityData.combat_evolution$getArmorNegationMultiplier(entityPatch.getOriginal());
             int stunIndex = entityData.combat_evolution$getStunType(entityPatch.getOriginal());
             Set<TagKey<DamageType>> sourceTag = BehaviorUtils.getSourceTagSet(entityPatch);
-            //= entityData.combat_evolution$getDamageSource();
 
             if(stunIndex != -1){
                 StunType stunType = StunType.values()[stunIndex];
@@ -84,23 +71,47 @@ public class EFAttackAnimation {
         }
     }
 
+//    @Inject(
+//            method = "hurtCollidingEntities",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lyesman/epicfight/api/animation/types/AttackAnimation;spawnHitParticle(Lnet/minecraft/server/level/ServerLevel;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)V"
+//            ),
+//            locals = LocalCapture.CAPTURE_FAILHARD,
+//            remap = false
+//    )
+//    private void onHurtCollidingEntities(LivingEntityPatch<?> entityPatch, float prevElapsedTime, float elapsedTime, EntityState prevState, EntityState state,
+//                                         AttackAnimation.Phase phase, CallbackInfo ci, LivingEntity entity, float prevPoseTime, float poseTime, List<Entity> list,
+//                                         HitEntityList hitEntities, int maxStrikes, Entity target, LivingEntity trueEntity, AABB aabb, EpicFightDamageSource damagesource,
+//                                         int prevInvulTime, AttackResult attackResult){
+//        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
+//            CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
+//            if(current != null){
+//                int currentPhase = this.getPhaseOrderByTime(elapsedTime);
+//                current.executeHitEvent(currentPhase,ceHumanoidPatch,target);
+//            }
+//        }
+//    }
 
-    @Redirect(
+    @Inject(
             method = "hurtCollidingEntities",
             at = @At(
                     value = "INVOKE",
-                    target = "Lyesman/epicfight/api/animation/types/AttackAnimation;spawnHitParticle(Lnet/minecraft/server/level/ServerLevel;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)V"
+                    target = "Ljava/util/List;add(Ljava/lang/Object;)Z",
+                    ordinal = 0
             ),
+            locals = LocalCapture.CAPTURE_FAILHARD,
             remap = false
     )
-    private void onHurtCollidingEntities(AttackAnimation instance, ServerLevel world, LivingEntityPatch<?> entityPatch, Entity target, AttackAnimation.Phase phase){
-        spawnHitParticle((ServerLevel)target.level(), entityPatch, target, phase);
+    private void onAttack(LivingEntityPatch<?> entityPatch, float prevElapsedTime, float elapsedTime, EntityState prevState, EntityState state, AttackAnimation.Phase phase, CallbackInfo ci,
+                          LivingEntity entity,float prevPoseTime, float poseTime, List<Entity> list, HitEntityList hitEntities, int maxStrikes, Entity target, LivingEntity trueEntity, AABB aabb,
+                          EpicFightDamageSource damagesource, int prevInvulTime, AttackResult attackResult){
         if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
             CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
             if(current != null){
-                current.executeHitEvent(ceHumanoidPatch,target);
+                int currentPhase = this.getPhaseOrderByTime(elapsedTime);
+                current.executeHitEvent(currentPhase,attackResult.resultType,ceHumanoidPatch,target);
             }
         }
     }
-
 }

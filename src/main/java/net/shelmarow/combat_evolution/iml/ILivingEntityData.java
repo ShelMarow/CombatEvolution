@@ -32,9 +32,6 @@ public interface ILivingEntityData {
     void combat_evolution$setStunType(LivingEntity entity, StunType stunType);
     void combat_evolution$setStunType(LivingEntity entity, int stunType);
 
-//    Set<TagKey<DamageType>> combat_evolution$getDamageSource();
-//    void combat_evolution$setDamageSource(Set<TagKey<DamageType>> damageSource);
-
     float combat_evolution$getStamina(LivingEntity entity);
     void combat_evolution$setStamina(LivingEntity entity, float stamina);
 

@@ -36,7 +36,7 @@ public class CEAnimationAttackGoal<T extends MobPatch<?>> extends Goal {
 
     public void clearCurrentBehavior(CECombatBehaviors.Behavior<?> currentBehavior){
         currentBehavior.behaviorFinished();
-        currentBehavior.resetCooldown();
+        currentBehavior.resetAllCooldown();
         combatBehaviors.clearCurrentBehavior();
         ILivingEntityData entityData = (ILivingEntityData) mobpatch;
         entityData.combat_evolution$setWander(mobpatch.getOriginal(), false);

@@ -10,6 +10,7 @@ import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -20,9 +21,11 @@ import net.shelmarow.combat_evolution.client.gui.CombatEvolutionConfigScreen;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.config.ClientConfig;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
+import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
 import org.slf4j.Logger;
 import yesman.epicfight.client.gui.screen.config.IngameConfigurationScreen;
+import yesman.epicfight.gameasset.Armatures;
 
 @Mod(CombatEvolution.MOD_ID)
 public class CombatEvolution {
@@ -40,9 +43,11 @@ public class CombatEvolution {
     public CombatEvolution(FMLJavaModLoadingContext context){
         IEventBus modEventBus = context.getModEventBus();
         modEventBus.addListener(this::constructMod);
+        modEventBus.addListener(this::commonSetup);
 
         CEMobEffects.EFFECTS.register(modEventBus);
         CEParticles.PARTICLE_TYPES.register(modEventBus);
+        CEEntities.ENTITY_TYPES.register(modEventBus);
 
         if(FMLEnvironment.dist == Dist.CLIENT) {
             context.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CLIENT_SPEC);
@@ -58,6 +63,15 @@ public class CombatEvolution {
             RegisterHUDTypeEvent registerHUDTypeEvent = new RegisterHUDTypeEvent();
             ModLoader.get().postEvent(registerHUDTypeEvent);
         });
+    }
+
+
+    private void commonSetup(final FMLCommonSetupEvent event){
+        event.enqueueWork(CombatEvolution::registerArmatures);
+    }
+
+    public static void registerArmatures() {
+        Armatures.registerEntityTypeArmature(CEEntities.SHELMAROW.get(),Armatures.BIPED);
     }
 
     private void registerPackets() {

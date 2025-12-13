@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.ai;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
@@ -14,6 +15,7 @@ import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
+import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.data.conditions.entity.*;
 import yesman.epicfight.gameasset.Animations;
@@ -26,18 +28,23 @@ import yesman.epicfight.world.damagesource.StunType;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 
 public class CECombatBehaviors<T extends MobPatch<?>> {
     private final List<BehaviorRoot<T>> behaviorRoots;
+    private final List<BehaviorRoot<T>> globalBehaviors;
     private final Map<BehaviorRoot<T>, Behavior<T>> cachedBehaviors = new HashMap<>();
     private Behavior<T> currentBehavior;
 
     //AI决策树
     protected CECombatBehaviors(Builder<T> builder) {
         this.behaviorRoots = builder.behaviorRoots.stream().map(BehaviorRoot.Builder::build).toList();
+        this.globalBehaviors = builder.globalBehaviors.stream().map(BehaviorRoot.Builder::build).toList();
     }
 
+    //TODO
+    //动画参数和命中事件添加Phase绑定
 
     /*
         1.选择一个根节点行为序列
@@ -57,18 +64,24 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         （1）如果当前行为可以被打断，且有打断窗口
         （2）持续检查子行为中，拥有能够打断父节点的行为是否满足条件
         （3）满足则结束当前行为，执行子行为
+        5.全局行为
+        （1）如果当前行为可接入全局行为，检查可用的全局行为
+        （2）根据全局行为的属性，选择不同的接入方式
+        （3）如果是打断方式，表示执行完毕后直接结束行为
+        （4）如果是返回方式，表示执行完毕后返回原行为继续执行
+        （5）执行全局行为时如果中断，自身和接入的行为都会进入冷却
      */
 
 
-    public Behavior<T> selectBehaviorRootByPriority(T mobpatch) {
+    public Behavior<T> selectBehaviorRootByPriority(T mobPatch,List<BehaviorRoot<T>> behaviorRootList, boolean shouldCheckGlobal) {
         //先清空缓存
         cachedBehaviors.clear();
         //可用的根节点列表
         List<BehaviorRoot<T>> usableBehaviors = new ArrayList<>();
 
         //选出冷却完毕，且存在子行为能执行（顺便选出最优并缓存）的根节点
-        behaviorRoots.stream().filter(root-> root.cooldown <= 0 && root.priority > 0).forEach(root->{
-            Behavior<T> behavior = selectBehavior(mobpatch,root.getBehaviors(),false);
+        behaviorRootList.stream().filter(root-> root.cooldown <= 0 && root.priority > 0).forEach(root->{
+            Behavior<T> behavior = selectBehavior(mobPatch,root.getBehaviors(),false, shouldCheckGlobal);
             if(behavior != null){
                 usableBehaviors.add(root);
                 cachedBehaviors.put(root,behavior);
@@ -118,55 +131,105 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
     }
 
     //选择最优子行为
-    public Behavior<T> selectBehavior(T mobpatch, List<Behavior<T>> behaviors, boolean canBeInterrupted) {
+    public Behavior<T> selectBehavior(T mobPatch, List<Behavior<T>> behaviors, boolean canBeInterrupted, boolean shouldCheckGlobal) {
 
         //先选出condition通过且符合打断条件的行为，然后按照优先级和权重挑选
-        List<Behavior<T>> usableBehaviors = selectHighestPriorityBehavior(behaviors.stream().filter(b -> b.priority > 0 && b.checkPredicates(mobpatch) && (!canBeInterrupted || b.canInterruptParent)).toList());
+        List<Pair<Behavior<T>,Boolean>> usableBehaviors = new ArrayList<>();
+
+        //收集当前节点所属的子行为
+        List<Behavior<T>> temp = behaviors.stream().filter(b -> b.priority > 0 && b.checkPredicates(mobPatch) && (!canBeInterrupted || b.canInterruptParent)).toList();
+        for (Behavior<T> behavior : temp) {
+            usableBehaviors.add(new Pair<>(behavior,false));
+        }
+
+        //如果当前行为能够接入全局行为，额外挑选出可用的全局行为
+        if(shouldCheckGlobal && currentBehavior != null && currentBehavior.canInsertGlobalBehavior()) {
+            List<BehaviorRoot<T>> canUseList;
+            List<String> allowedGlobalNameList = currentBehavior.getAllowedGlobalNameList();
+            if(!allowedGlobalNameList.isEmpty()){
+                canUseList = globalBehaviors.stream().filter(behaviorRoot-> allowedGlobalNameList.contains(behaviorRoot.rootName)).toList();
+            }
+            else{
+                canUseList = globalBehaviors;
+            }
+
+            Behavior<T> usableGlobalBehavior = selectBehaviorRootByPriority(mobPatch, canUseList, false);
+            if(usableGlobalBehavior != null){
+                usableBehaviors.add(Pair.of(usableGlobalBehavior, true));
+            }
+        }
+
+        usableBehaviors = selectHighestPriorityBehavior(usableBehaviors);
 
         //检查可用行为的数量，如果只有一个直接返回，否则按照权重进行随机选择（筛选掉权重为0的节点）
-        if(usableBehaviors.size() == 1) return usableBehaviors.get(0);
-        else if(usableBehaviors.size() > 1) return selectBehaviorByWeight(usableBehaviors.stream().filter(b -> b.weight > 0).toList());
+        if(usableBehaviors.size() == 1) {
+            //如果选中的是全局行为，则记录当前行为
+            if(usableBehaviors.get(0).getSecond()){
+                usableBehaviors.get(0).getFirst().getBehaviorRoot().addLastInsertedBehavior(currentBehavior);
+            }
+
+            return usableBehaviors.get(0).getFirst();
+        }
+        else if(usableBehaviors.size() > 1) {
+            Pair<Behavior<T>, Boolean> bestOne = selectBehaviorByWeight(usableBehaviors.stream().filter(b -> b.getFirst().weight > 0).toList());
+
+            //如果选中的是全局行为，则记录当前行为
+            if(bestOne.getSecond()){
+                bestOne.getFirst().getBehaviorRoot().addLastInsertedBehavior(currentBehavior);
+            }
+
+            return bestOne.getFirst();
+        }
 
         return null;
     }
 
-    public List<Behavior<T>> selectHighestPriorityBehavior(List<Behavior<T>> list) {
-        List<Behavior<T>> usableBehaviors = new ArrayList<>();
+    public List<Pair<Behavior<T>, Boolean>> selectHighestPriorityBehavior(List<Pair<Behavior<T>, Boolean>> list) {
+        List<Pair<Behavior<T>, Boolean>> usableBehaviors = new ArrayList<>();
         double max = -Double.MAX_VALUE;
 
-        for (Behavior<T> behavior : list) {
+        for (Pair<Behavior<T>, Boolean> pair : list) {
             //如果有优先级更高的，清空列表，添加自身，更新最大值
-            if(behavior.priority > max){
+            if(pair.getFirst().priority > max){
                 usableBehaviors.clear();
-                usableBehaviors.add(behavior);
-                max = behavior.priority;
+                usableBehaviors.add(pair);
+                max = pair.getFirst().priority;
             }
             //如果优先级相等，添加自身
-            else if(behavior.priority == max){
-                usableBehaviors.add(behavior);
+            else if(pair.getFirst().priority == max){
+                usableBehaviors.add(pair);
             }
         }
         return usableBehaviors;
     }
 
-    public Behavior<T> selectBehaviorByWeight(List<Behavior<T>> list){
+    public Pair<Behavior<T>, Boolean> selectBehaviorByWeight(List<Pair<Behavior<T>, Boolean>> list){
         if(list.isEmpty()) return null;
 
         double totalWeight = 0;
         double counter = 0;
 
-        for (Behavior<T> behavior : list) {
-            totalWeight += behavior.weight;
+        for(Pair<Behavior<T>, Boolean> pair : list){
+            totalWeight += pair.getFirst().weight;
         }
+//        for (Behavior<T> behavior : list) {
+//            totalWeight += behavior.weight;
+//        }
 
         double random = Math.random()*totalWeight;
 
-        for (Behavior<T> behavior : list) {
-            counter += behavior.weight;
+        for (Pair<Behavior<T>, Boolean> pair : list) {
+            counter += pair.getFirst().weight;
             if (counter >= random) {
-                return behavior;
+                return pair;
             }
         }
+//        for (Behavior<T> behavior : list) {
+//            counter += behavior.weight;
+//            if (counter >= random) {
+//                return behavior;
+//            }
+//        }
 
         //理论上不会到这里，但是还是要写
         return null;
@@ -174,14 +237,14 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
 
     //主要tick时间，用于挑选和执行行为，以及处理冷却等
-    public void tick(T mobpatch) {
+    public void tick(T mobPatch) {
 
         //不存在行为时，挑选行为
-        if (currentBehavior == null && !mobpatch.getEntityState().inaction()) {
-            Behavior<T> behavior = selectBehaviorRootByPriority(mobpatch);
+        if (currentBehavior == null && !mobPatch.getEntityState().inaction()) {
+            Behavior<T> behavior = selectBehaviorRootByPriority(mobPatch,behaviorRoots, false);
             if (behavior != null) {
                 currentBehavior = behavior;
-                currentBehavior.execute(mobpatch);
+                currentBehavior.execute(mobPatch);
             }
         }
 
@@ -193,32 +256,43 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             //未结束执行行为
             if(!currentBehavior.isFinished()){
-                currentBehavior.tick(mobpatch);
+                currentBehavior.tick(mobPatch);
             }
             //如果当前行为是可打断行为，需要持续检测子行为是否满足打断条件
-            if(currentBehavior.canBeInterrupted(mobpatch)){
-                Behavior<T> behavior = selectBehavior(mobpatch,currentBehavior.getNextBehaviors(), true);
+            if(currentBehavior.canBeInterrupted(mobPatch)){
+                Behavior<T> behavior = selectBehavior(mobPatch,currentBehavior.getNextBehaviors(), true, true);
                 if(behavior != null){
-                    currentBehavior.stopGuardAndWander(mobpatch);
+                    currentBehavior.stopGuardAndWander(mobPatch);
                     currentBehavior.behaviorFinished();
                     currentBehavior = behavior;
-                    currentBehavior.execute(mobpatch);
+                    currentBehavior.execute(mobPatch);
                 }
             }
             //如果当前行为不是运行中，尝试选择下一个行为
             if(!currentBehavior.isRunning()){
-                //如果子节点已经全部执行完毕，清空当前行为
-                if(currentBehavior.getNextBehaviors().isEmpty() && !mobpatch.getEntityState().inaction()){
-                    currentBehavior.resetCooldown();
-                    clearCurrentBehavior();
+                //如果没有可执行的子行为
+                if(currentBehavior.getNextBehaviors().isEmpty() && !currentBehavior.canInsertGlobalBehavior()){
+                    //如果自身是全局行为并且允许返回，尝试返回至上一个行为并继续执行
+                    BehaviorRoot<T> behaviorRoot = currentBehavior.getBehaviorRoot();
+                    if(behaviorRoot.isGlobal() && behaviorRoot.isBackAfterFinished()){
+                        currentBehavior.resetCooldown();
+                        //然后递归向上查找，直到查询到有子行为的节点并继续执行
+                        findAndExecuteLastBehavior(mobPatch,behaviorRoot);
+                    }
+                    //动作已经执行完了
+                    else if(!mobPatch.getEntityState().inaction()) {
+                        //清空行为并重置冷却
+                        currentBehavior.resetAllCooldown();
+                        clearCurrentBehavior();
+                    }
                 }
                 //尝试寻找可用的子行为
-                else if(!currentBehavior.getNextBehaviors().isEmpty()){
-                    Behavior<T> behavior = selectBehavior(mobpatch,currentBehavior.getNextBehaviors(), false);
+                else if(currentBehavior != null && (!currentBehavior.getNextBehaviors().isEmpty() || currentBehavior.canInsertGlobalBehavior())){
+                    Behavior<T> behavior = selectBehavior(mobPatch,currentBehavior.getNextBehaviors(), false,true);
                     //成功找到，直接执行
                     if(behavior != null){
                         currentBehavior = behavior;
-                        currentBehavior.execute(mobpatch);
+                        currentBehavior.execute(mobPatch);
                     }
                     //没找到且不是等待状态，清空并结束
                     else if(!currentBehavior.isWaiting()){
@@ -234,16 +308,51 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             behaviorRoot.tick();
         }
 
+        for (BehaviorRoot<T> behaviorRoot : globalBehaviors) {
+            behaviorRoot.tick();
+        }
+
 
 
         //取消防御动画,为了防止有时候取消失败，在tick中执行
-        ILivingEntityData entityData = (ILivingEntityData) mobpatch;
-        if(!entityData.combat_evolution$isGuard(mobpatch.getOriginal())){
-            AssetAccessor<? extends DynamicAnimation> animation = mobpatch.getAnimator().getPlayerFor(null).getAnimation();
-            if(animation != null && animation == mobpatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.EMPTY_ANIMATION)){
+        ILivingEntityData entityData = (ILivingEntityData) mobPatch;
+        if(!entityData.combat_evolution$isGuard(mobPatch.getOriginal())){
+            AssetAccessor<? extends DynamicAnimation> animation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation();
+            if(animation != null && animation == mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.EMPTY_ANIMATION)){
                 if(animation != Animations.EMPTY_ANIMATION)
-                    mobpatch.stopPlaying(mobpatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.EMPTY_ANIMATION));
+                    mobPatch.stopPlaying(mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.EMPTY_ANIMATION));
             }
+        }
+    }
+
+    private void findAndExecuteLastBehavior(T mobPatch, BehaviorRoot<T> behaviorRoot) {
+        if(!behaviorRoot.lastInsertedBehaviors.isEmpty()){
+            currentBehavior = behaviorRoot.lastInsertedBehaviors.pop();
+            //递归查询子行为不为空的节点
+            if(currentBehavior.getNextBehaviors().isEmpty()){
+                //冷却当前行为，寻找下一个
+                currentBehavior.resetCooldown();
+                findAndExecuteLastBehavior(mobPatch, currentBehavior.getBehaviorRoot());
+            }
+            //成功找到子行为不为空的节点
+            else{
+                //尝试寻找其中可执行的行为
+                Behavior<T> newBehavior = selectBehavior(mobPatch, currentBehavior.getNextBehaviors(), false, false);
+                //成功找到，直接执行
+                if(newBehavior != null){
+                    currentBehavior = newBehavior;
+                    currentBehavior.execute(mobPatch);
+                }
+                //没找到且不是等待状态，冷却继续递归查询
+                else if(!currentBehavior.isWaiting()){
+                    currentBehavior.resetCooldown();
+                    findAndExecuteLastBehavior(mobPatch, currentBehavior.getBehaviorRoot());
+                }
+            }
+        }
+        else{
+            currentBehavior.resetCooldown();
+            clearCurrentBehavior();
         }
     }
 
@@ -258,9 +367,17 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
     //构造器
     public static class Builder<T extends MobPatch<?>>{
         private final List<BehaviorRoot.Builder<T>> behaviorRoots = new ArrayList<>();
+        private final List<BehaviorRoot.Builder<T>> globalBehaviors = new ArrayList<>();
 
         public Builder<T> newBehaviorRoot(BehaviorRoot.Builder<T> behaviors) {
+            behaviors.isGlobal = false;
             this.behaviorRoots.add(behaviors);
+            return this;
+        }
+
+        public Builder<T> newGlobalBehavior(BehaviorRoot.Builder<T> behaviors) {
+            behaviors.isGlobal = true;
+            this.globalBehaviors.add(behaviors);
             return this;
         }
 
@@ -275,24 +392,42 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
     //根节点
     public static class BehaviorRoot<T extends MobPatch<?>> {
+        //通用根属性
         private final String rootName;
         private final List<Behavior<T>> behaviors;
+        private final boolean isGlobal;
+        Deque<Behavior<T>> lastInsertedBehaviors = new LinkedList<>();
+        //private Behavior<T> lastInsertedBehavior = null;
         private final double priority;
         private final double weight;
         private final int maxCooldown;
         private int cooldown;
+        //全局专用属性
+        //是否在结束后返回原行为
+        private final boolean backAfterFinished;
 
         public BehaviorRoot(Builder<T> builder) {
             this.rootName = builder.rootName;
             this.behaviors = builder.behavior.stream().map(b->b.build(this)).toList();
+            this.isGlobal = builder.isGlobal;
             this.priority = builder.priority;
             this.weight = builder.weight;
             this.maxCooldown = builder.maxCooldown;
             this.cooldown = builder.cooldown;
+            this.backAfterFinished = builder.backAfterFinished;
         }
 
         public String getRootName() {
             return rootName;
+        }
+
+
+        public Deque<Behavior<T>> getLastInsertedBehaviors() {
+            return lastInsertedBehaviors;
+        }
+
+        public void addLastInsertedBehavior(Behavior<T> behavior) {
+            this.lastInsertedBehaviors.push(behavior);
         }
 
         public List<Behavior<T>> getBehaviors() {
@@ -309,14 +444,24 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             this.cooldown = this.maxCooldown + exCoolDown;
         }
 
+        public boolean isBackAfterFinished() {
+            return backAfterFinished;
+        }
+
+        public boolean isGlobal() {
+            return isGlobal;
+        }
+
 
         public static class Builder<T extends MobPatch<?>> {
             private String rootName;
             private final List<Behavior.Builder<T>> behavior = new ArrayList<>();
+            private boolean isGlobal = false;
             private double priority = 1;
             private double weight = 1;
             private int maxCooldown = 0;
             private int cooldown = 0;
+            private boolean backAfterFinished = false;
 
             public Builder<T> rootName(String rootName) {
                 this.rootName = rootName;
@@ -347,6 +492,11 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
+            public Builder<T> backAfterFinished(boolean backAfterFinished) {
+                this.backAfterFinished = backAfterFinished;
+                return this;
+            }
+
             public BehaviorRoot<T> build() {
                 return new BehaviorRoot<>(this);
             }
@@ -362,6 +512,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         private final String behaviorName;                  //行为名称
         private final Consumer<T> behavior;                 //具体行为
         private final Consumer<T> counter;                  //反击行为
+        private final boolean canInsertGlobalBehavior;      //是否允许接入全局行为
+        private final List<String> allowedGlobalNameList;   //允许的全局行为名称列表
         private final List<Consumer<T>> exBehaviors;        //额外行为
         private final List<Consumer<T>> onCounterStart;     //额外行为
         private final BehaviorType type;                    //主行为类型
@@ -400,6 +552,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             this.behaviorRoot = behaviorRoot;
             this.behavior = builder.behavior;
             this.counter = builder.counter;
+            this.canInsertGlobalBehavior = builder.canInsertGlobalBehavior;
+            this.allowedGlobalNameList = builder.allowedGlobalNameList;
             this.exBehaviors = builder.exBehaviors;
             this.onCounterStart = builder.onCounterStart;
             this.type = builder.type;
@@ -460,15 +614,15 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             this.shouldExecuteHitEvent = shouldExecuteHitEvent;
         }
 
-        public void executeHitEvent(MobPatch<?> mobPatch, Entity target){
+        public void executeHitEvent(int phase, AttackResult.ResultType resultType, MobPatch<?> mobPatch, Entity target){
             if(shouldExecuteHitEvent && !this.hitEventList.isEmpty()) {
                 for(HitEvent event : this.hitEventList){
-                    event.executeHitEvent(mobPatch,target);
+                    event.executeHitEvent(phase,resultType,mobPatch,target);
                 }
             }
         }
 
-        public boolean canBeInterrupted(T mobpatch) {
+        public boolean canBeInterrupted(T mobPatch) {
             /*
                 根据类型进行划分
                 1.时间窗口划分
@@ -477,7 +631,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             if(canBeInterrupted && !interruptedWindow.isEmpty()){
                 if (interruptType == InterruptType.TIME) {
                     if(behaviorTime == 0 || getType() == BehaviorType.ANIMATION) {
-                        AnimationPlayer animator = mobpatch.getAnimator().getPlayerFor(null);
+                        AnimationPlayer animator = mobPatch.getAnimator().getPlayerFor(null);
                         if (animator != null) {
                             float prevElapsedTime = animator.getPrevElapsedTime();
                             float elapsedTime = animator.getElapsedTime();
@@ -490,27 +644,27 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     }
                 }
                 else if(interruptType == InterruptType.LEVEL) {
-                    return interruptedWindow.contains((float)mobpatch.getEntityState().getLevel());
+                    return interruptedWindow.contains((float)mobPatch.getEntityState().getLevel());
                 }
             }
             return false;
         }
 
-        public boolean checkPredicates(T mobpatch) {
+        public boolean checkPredicates(T mobPatch) {
             for(Condition<T> condition : this.conditions) {
-                if (!condition.predicate(mobpatch)) {
+                if (!condition.predicate(mobPatch)) {
                     return false;
                 }
             }
             return true;
         }
 
-        public void execute(T mobpatch) {
-            this.behavior.accept(mobpatch);
+        public void execute(T mobPatch) {
+            this.behavior.accept(mobPatch);
             for(Consumer<T> consumer : this.exBehaviors){
-                consumer.accept(mobpatch);
+                consumer.accept(mobPatch);
             }
-            mobpatch.updateEntityState();
+            mobPatch.updateEntityState();
             this.shouldAddSourceTagSet = true;
             this.shouldExecuteTimeEvent = true;
             this.shouldExecuteHitEvent = true;
@@ -521,6 +675,14 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return this.nextBehaviors;
         }
 
+        public void resetAllCooldown() {
+            //递归清理所有相关的序列冷却
+            if(!this.behaviorRoot.lastInsertedBehaviors.isEmpty()){
+                Behavior<T> lastBehavior = behaviorRoot.lastInsertedBehaviors.pop();
+                lastBehavior.resetAllCooldown();
+            }
+            resetCooldown();
+        }
         public void resetCooldown() {
             this.behaviorRoot.resetCooldown(this.exCoolDown);
         }
@@ -533,58 +695,58 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return this.type;
         }
 
-        public void tick(T mobpatch) {
+        public void tick(T mobPatch) {
             if(state == BehaviorState.RUNNING) {
-                running(mobpatch);
+                running(mobPatch);
             }
             else if(state == BehaviorState.WAITING){
-                waiting(mobpatch);
+                waiting(mobPatch);
             }
         }
 
-        public void running(T mobpatch) {
+        public void running(T mobPatch) {
             if(type == BehaviorType.WANDER || type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) {
                 if (timeCount > 0) {
-                    ILivingEntityData entityData = (ILivingEntityData) mobpatch;
+                    ILivingEntityData entityData = (ILivingEntityData) mobPatch;
                     //索敌朝向
-                    if(mobpatch.getTarget()!=null) {
-                        mobpatch.rotateTo(mobpatch.getTarget(),360F,true);
+                    if(mobPatch.getTarget()!=null) {
+                        mobPatch.rotateTo(mobPatch.getTarget(),360F,true);
                     }
 
                     //设置游荡
                     if(type == BehaviorType.WANDER || type == BehaviorType.GUARD_WANDER){
-                        this.behavior.accept(mobpatch);
+                        this.behavior.accept(mobPatch);
 
                         if(timeCount >= behaviorTime - 1) {
-                            entityData.combat_evolution$setWander(mobpatch.getOriginal(), true);
+                            entityData.combat_evolution$setWander(mobPatch.getOriginal(), true);
                         }
                         //如果游荡被取消，直接进入等待
-                        if(!entityData.combat_evolution$isWander(mobpatch.getOriginal())) {
+                        if(!entityData.combat_evolution$isWander(mobPatch.getOriginal())) {
                             behaviorWaiting();
                         }
                     }
 
                     //设置防御
                     if(type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER){
-                        this.behavior.accept(mobpatch);
+                        this.behavior.accept(mobPatch);
                         if(timeCount >= behaviorTime - 1) {
-                            entityData.combat_evolution$setGuard(mobpatch.getOriginal(), true);
+                            entityData.combat_evolution$setGuard(mobPatch.getOriginal(), true);
                         }
                         //如果防御被取消，直接进入等待
-                        if(!entityData.combat_evolution$isGuard(mobpatch.getOriginal()) && !canCounter) {
+                        if(!entityData.combat_evolution$isGuard(mobPatch.getOriginal()) && !canCounter) {
                             behaviorWaiting();
                         }
                     }
 
 
                     if((type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) && canCounter){
-                        entityData.combat_evolution$setInCounter(mobpatch.getOriginal(), true);
-                        if (mobpatch.getEntityState().canBasicAttack()) {
+                        entityData.combat_evolution$setInCounter(mobPatch.getOriginal(), true);
+                        if (mobPatch.getEntityState().canBasicAttack()) {
                             canCounter = false;
-                            stopGuardAndWander(mobpatch);
-                            this.counter.accept(mobpatch);
+                            stopGuardAndWander(mobPatch);
+                            this.counter.accept(mobPatch);
                             for (Consumer<T> consumer : this.onCounterStart){
-                                consumer.accept(mobpatch);
+                                consumer.accept(mobPatch);
                             }
                         }
                         else {
@@ -594,43 +756,43 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
                     timeCount--;
                 }
-                else if (timeCount == 0 && mobpatch.getEntityState().canBasicAttack()) {
-                    stopGuardAndWander(mobpatch);
+                else if (timeCount == 0 && mobPatch.getEntityState().canBasicAttack()) {
+                    stopGuardAndWander(mobPatch);
                     behaviorWaiting();
                 }
 
             }
             else if(type == BehaviorType.ANIMATION || type == BehaviorType.CUSTOM){
-                if (mobpatch.getEntityState().canBasicAttack() && !nextBehaviors.isEmpty()) {
+                if (mobPatch.getEntityState().canBasicAttack() && (!nextBehaviors.isEmpty() || behaviorRoot.isGlobal() || canInsertGlobalBehavior)) {
                     behaviorWaiting();
                 }
-                else if (!mobpatch.getEntityState().inaction() && nextBehaviors.isEmpty()) {
+                else if (!mobPatch.getEntityState().inaction() && nextBehaviors.isEmpty()) {
                     behaviorWaiting();
                 }
             }
         }
 
-        public void stopGuardAndWander(T mobpatch) {
-            ILivingEntityData entityData = (ILivingEntityData) mobpatch;
+        public void stopGuardAndWander(T mobPatch) {
+            ILivingEntityData entityData = (ILivingEntityData) mobPatch;
             //结束游荡
             if(type == BehaviorType.WANDER || type == BehaviorType.GUARD_WANDER) {
-                entityData.combat_evolution$setWander(mobpatch.getOriginal(), false);
-                mobpatch.getOriginal().getMoveControl().strafe(0,0);
+                entityData.combat_evolution$setWander(mobPatch.getOriginal(), false);
+                mobPatch.getOriginal().getMoveControl().strafe(0,0);
             }
             //结束防御
             if(type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) {
-                entityData.combat_evolution$setGuard(mobpatch.getOriginal(), false);
-                entityData.combat_evolution$setInCounter(mobpatch.getOriginal(), false);
-                AssetAccessor<? extends StaticAnimation> guardAnimation = mobpatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
-                if (mobpatch.isLogicalClient()) {
-                    mobpatch.getAnimator().stopPlaying(guardAnimation);
+                entityData.combat_evolution$setGuard(mobPatch.getOriginal(), false);
+                entityData.combat_evolution$setInCounter(mobPatch.getOriginal(), false);
+                AssetAccessor<? extends StaticAnimation> guardAnimation = mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
+                if (mobPatch.isLogicalClient()) {
+                    mobPatch.getAnimator().stopPlaying(guardAnimation);
                 } else {
-                    mobpatch.stopPlaying(guardAnimation);
+                    mobPatch.stopPlaying(guardAnimation);
                 }
             }
         }
 
-        public void waiting(T mobpatch) {
+        public void waiting(T mobPatch) {
             if(waitTime > 0) {
                 waitTime--;
             }
@@ -733,11 +895,21 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return timeCount;
         }
 
+        public boolean canInsertGlobalBehavior() {
+            return canInsertGlobalBehavior;
+        }
+
+        public List<String> getAllowedGlobalNameList() {
+            return allowedGlobalNameList;
+        }
+
         //行为类构造器
         public static class Builder<T extends MobPatch<?>> {
-            private Consumer<T> counter;
             private String behaviorName = "";
+            private Consumer<T> counter;
             private Consumer<T> behavior;
+            public boolean canInsertGlobalBehavior = false;
+            public List<String> allowedGlobalNameList = new ArrayList<>();
             private final List<Consumer<T>> exBehaviors = new ArrayList<>();
             private final List<Consumer<T>> onCounterStart = new ArrayList<>();
             private BehaviorType type = BehaviorType.NONE;
@@ -762,6 +934,15 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             private final List<HitEvent> hitEventList = new ArrayList<>();
             private final Set<TagKey<DamageType>> sourceTagSet = new HashSet<>();
 
+            public Builder<T> canInsertGlobalBehavior(boolean canInsertGlobalBehavior) {
+                this.canInsertGlobalBehavior = canInsertGlobalBehavior;
+                return this;
+            }
+
+            public Builder<T> allowedGlobalNameList(String... allowedGlobalNames) {
+                this.allowedGlobalNameList = List.of(allowedGlobalNames);
+                return this;
+            }
 
             public Builder<T> addTimeEvent(TimeEvent timeEvent) {
                 this.timeEventList.add(timeEvent);
@@ -778,7 +959,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
-            public Builder<?> addHitEvent(HitEvent... hitEvents) {
+            public Builder<T> addHitEvent(HitEvent... hitEvents) {
                 this.hitEventList.addAll(List.of(hitEvents));
                 return this;
             }
@@ -813,20 +994,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             public Builder<T> counterAnimation(AssetAccessor<? extends StaticAnimation> counterAnimation,float transitionTime) {
                 return counterAnimation(counterAnimation, new AnimationParams().transitionTime(transitionTime));
-//                this.counterAnimation = counterAnimation;
-//                this.counter = (mobpatch)->{
-//                    if(counterAnimation != null && counterAnimation != Animations.EMPTY_ANIMATION) {
-//                        if(mobpatch instanceof ILivingEntityData livingEntityData) {
-//                            livingEntityData.combat_evolution$setAttackSpeed(mobpatch.getOriginal(),1);
-//                            livingEntityData.combat_evolution$setDamageMultiplier(mobpatch.getOriginal(), 1);
-//                            livingEntityData.combat_evolution$setImpactMultiplier(mobpatch.getOriginal(), 1);
-//                            livingEntityData.combat_evolution$setArmorNegationMultiplier(mobpatch.getOriginal(), 1);
-//                            livingEntityData.combat_evolution$setStunType(mobpatch.getOriginal(), -1);
-//                            livingEntityData.combat_evolution$setDamageSource(new HashSet<>());
-//                        }
-//                        mobpatch.playAnimationSynchronized(counterAnimation, transitionTime, this.packetProvider);
-//                    }
-//                };
             }
 
             public Builder<T> counterType(CounterType counterType) {
@@ -909,9 +1076,19 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> setPhase(int phase){
-                this.exBehaviors.add((mobpatch)->{
-                    ILivingEntityData entityData = (ILivingEntityData) mobpatch;
-                    entityData.combat_evolution$setPhase(mobpatch.getOriginal(), phase);
+                this.exBehaviors.add((mobPatch)->{
+                    ILivingEntityData entityData = (ILivingEntityData) mobPatch;
+                    entityData.combat_evolution$setPhase(mobPatch.getOriginal(), phase);
+                });
+                return this;
+            }
+
+
+            public Builder<T> addPhase(int add){
+                this.exBehaviors.add((mobPatch)->{
+                    ILivingEntityData entityData = (ILivingEntityData) mobPatch;
+                    entityData.combat_evolution$setPhase(mobPatch.getOriginal(),
+                            entityData.combat_evolution$getPhase(mobPatch.getOriginal()) + add);
                 });
                 return this;
             }
@@ -919,8 +1096,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             public Builder<T> wander(int totalTime,float pForward, float pStrafe) {
                 this.behaviorTime = totalTime;
                 this.type = BehaviorType.WANDER;
-                this.behavior = (mobpatch)->{
-                    mobpatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
+                this.behavior = (mobPatch)->{
+                    mobPatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
                 };
                 return this;
             }
@@ -929,12 +1106,12 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             public Builder<T> wanderWithAnimation(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation, int totalTime, float pForward, float pStrafe) {
                 this.behaviorTime = totalTime;
                 this.type = BehaviorType.WANDER;
-                this.behavior = (mobpatch)->{
-                    AssetAccessor<? extends StaticAnimation> currentAnimation = mobpatch.getAnimator().getPlayerFor(null).getAnimation().get().getRealAnimation();
+                this.behavior = (mobPatch)->{
+                    AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
                     if(currentAnimation != animation) {
-                        mobpatch.playAnimationSynchronized(animation, 0F, this.packetProvider);
+                        mobPatch.playAnimationSynchronized(animation, 0F, this.packetProvider);
                     }
-                    mobpatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
+                    mobPatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
                 };
                 return this;
             }
@@ -942,21 +1119,33 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             public Builder<T> guard(int totalTime) {
                 behaviorTime = totalTime;
                 this.type = BehaviorType.GUARD;
-                this.behavior = (mobpatch)->{
-                    AssetAccessor<? extends StaticAnimation> currentAnimation = mobpatch.getAnimator().getPlayerFor(null).getAnimation().get().getRealAnimation();
-                    AssetAccessor<? extends StaticAnimation> guardAnimation = mobpatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
-                    if(currentAnimation != guardAnimation && !mobpatch.getEntityState().inaction()) {
-                        mobpatch.playAnimationSynchronized(guardAnimation, 0F, this.packetProvider);
+                this.behavior = (mobPatch)->{
+                    AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
+                    AssetAccessor<? extends StaticAnimation> guardAnimation = mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
+                    if(currentAnimation != guardAnimation && !mobPatch.getEntityState().inaction()) {
+                        mobPatch.playAnimationSynchronized(guardAnimation, 0F, this.packetProvider);
                     }
                 };
                 return this;
             }
 
             public Builder<T> guardWithWander(int totalTime,float pForward, float pStrafe) {
+                return guardWithWander(totalTime,pForward,pStrafe,false);
+            }
+
+
+            public Builder<T> guardWithWander(int totalTime,float pForward, float pStrafe,boolean playGuardAnimation) {
                 behaviorTime = totalTime;
                 this.type = BehaviorType.GUARD_WANDER;
-                this.behavior = (mobpatch)->{
-                    mobpatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
+                this.behavior = (mobPatch)->{
+                    mobPatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
+                    if(playGuardAnimation){
+                        AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
+                        AssetAccessor<? extends StaticAnimation> guardAnimation = mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
+                        if(currentAnimation != guardAnimation && !mobPatch.getEntityState().inaction()) {
+                            mobPatch.playAnimationSynchronized(guardAnimation, 0F, this.packetProvider);
+                        }
+                    }
                 };
                 return this;
             }
@@ -980,19 +1169,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             public Builder<T> animationBehavior(AnimationManager.AnimationAccessor<? extends StaticAnimation> motion,float transitionTime) {
                 return animationBehavior(motion, new AnimationParams().transitionTime(transitionTime));
-//                this.type = BehaviorType.ANIMATION;
-//                this.behavior = (mobpatch) -> {
-//                    if(mobpatch instanceof ILivingEntityData livingEntityData) {
-//                        livingEntityData.combat_evolution$setAttackSpeed(mobpatch.getOriginal(), 1.0F);
-//                        livingEntityData.combat_evolution$setDamageMultiplier(mobpatch.getOriginal(), 1.0F);
-//                        livingEntityData.combat_evolution$setImpactMultiplier(mobpatch.getOriginal(), 1.0F);
-//                        livingEntityData.combat_evolution$setArmorNegationMultiplier(mobpatch.getOriginal(), 1.0F);
-//                        livingEntityData.combat_evolution$setStunType(mobpatch.getOriginal(), -1);
-//                        livingEntityData.combat_evolution$setDamageSource(new HashSet<>());
-//                    }
-//                    mobpatch.playAnimationSynchronized(motion, transitionTime, this.packetProvider);
-//                };
-//                return this;
             }
 
             public Builder<T> priority(double priority) {
@@ -1070,25 +1246,25 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> phaseBetween(int min, int max) {
-                return custom((mobpatch) -> {
-                    ILivingEntityData entityData = (ILivingEntityData) mobpatch;
-                    int phase = entityData.combat_evolution$getPhase(mobpatch.getOriginal());
+                return custom((mobPatch) -> {
+                    ILivingEntityData entityData = (ILivingEntityData) mobPatch;
+                    int phase = entityData.combat_evolution$getPhase(mobPatch.getOriginal());
                     return min <= phase && phase <= max;
                 });
             }
 
             public Builder<T> phaseContain(Integer... phases) {
-                return custom((mobpatch) -> {
+                return custom((mobPatch) -> {
                     List<Integer> list = new ArrayList<>(List.of(phases));
-                    ILivingEntityData entityData = (ILivingEntityData) mobpatch;
-                    int phase = entityData.combat_evolution$getPhase(mobpatch.getOriginal());
+                    ILivingEntityData entityData = (ILivingEntityData) mobPatch;
+                    int phase = entityData.combat_evolution$getPhase(mobPatch.getOriginal());
                     return list.contains(phase);
                 });
             }
 
             public Builder<T> targetAnimation(AssetAccessor<? extends StaticAnimation> animation){
-                return custom((mobpatch)->{
-                    LivingEntity target = mobpatch.getTarget();
+                return custom((mobPatch)->{
+                    LivingEntity target = mobPatch.getTarget();
                     if(target != null){
                         LivingEntityPatch<?> entityPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
                         if(entityPatch != null){
@@ -1148,6 +1324,12 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         RUNNING,
         WAITING,
         FINISHED,
+    }
+
+    public enum ContinueCondition{
+        CAN_BASIC_ATTACK,
+        CAN_USE_SKILL,
+        NO_INACTION
     }
 
     public enum BehaviorType {

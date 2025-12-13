@@ -48,7 +48,7 @@ public class TimeEvent {
             }
             case BETWEEN_TIMES -> {
                 if(available) {
-                    if ((preTime >= timeStart && timeStart <= currenTime) || (preTime >= timeEnd && timeEnd <= currenTime)) {
+                    if (timeStart <= currenTime && currenTime < timeEnd) {
                         behavior.accept(mobPatch);
                     }
                 }
