@@ -1,6 +1,6 @@
 package net.shelmarow.combat_evolution.mixins;
 
-import net.shelmarow.combat_evolution.ai.BehaviorUtils;
+import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.iml.ILivingEntityData;
@@ -25,8 +25,8 @@ public class StaticAnimationsMixin {
 
             //动画结束时重置属性
             if(ceHumanoidPatch instanceof ILivingEntityData livingEntityData) {
-                livingEntityData.combat_evolution$setCanModifySpeed(entitypatch.getOriginal(), false);
-                livingEntityData.combat_evolution$setAttackSpeed(entitypatch.getOriginal(), 1F);
+                livingEntityData.combat_evolution$setCanModifySpeed(false);
+                livingEntityData.combat_evolution$setAttackSpeed(1F);
             }
 
             //重置时间戳事件和命中事件等等

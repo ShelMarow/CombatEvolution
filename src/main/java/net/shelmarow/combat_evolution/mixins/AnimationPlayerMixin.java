@@ -1,6 +1,6 @@
 package net.shelmarow.combat_evolution.mixins;
 
-import net.shelmarow.combat_evolution.ai.BehaviorUtils;
+import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.iml.ILivingEntityData;
@@ -55,9 +55,9 @@ public abstract class AnimationPlayerMixin {
     )
     private float modifyPlaybackSpeed(float originalValue) {
         ILivingEntityData livingEntityData = (ILivingEntityData) combatEvolution$storeEntityPatch;
-        if(livingEntityData.combat_evolution$getCanModifySpeed(combatEvolution$storeEntityPatch.getOriginal())) {
+        if(livingEntityData.combat_evolution$getCanModifySpeed()) {
             if(combatEvolution$currentPlay instanceof ActionAnimation && combatEvolution$storeEntityPatch instanceof CEHumanoidPatch){
-                return livingEntityData.combat_evolution$getAttackSpeed(combatEvolution$storeEntityPatch.getOriginal());
+                return livingEntityData.combat_evolution$getAttackSpeed();
             }
         }
         return originalValue;
@@ -75,7 +75,7 @@ public abstract class AnimationPlayerMixin {
     private float redirectModify(AnimationProperty.PlaybackSpeedModifier instance, DynamicAnimation dynamicAnimation, LivingEntityPatch<?> entityPatch, float playbackSpeed, float prevElapsedTime, float elapsedTime){
 
         ILivingEntityData livingEntityData = (ILivingEntityData) entityPatch;
-        if(livingEntityData.combat_evolution$getCanModifySpeed(entityPatch.getOriginal())) {
+        if(livingEntityData.combat_evolution$getCanModifySpeed()) {
             if (dynamicAnimation instanceof ActionAnimation && entityPatch instanceof CEHumanoidPatch) {
                 return playbackSpeed;
             }

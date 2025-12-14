@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.ai;
+package net.shelmarow.combat_evolution.ai.goal;
 
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
@@ -107,11 +107,11 @@ public class CommonChasingGoal extends Goal {
             double dd0 = this.attackRadius * this.attackRadius;
             double dd1 = this.mob.distanceToSqr(livingentity.getX(), livingentity.getY(), livingentity.getZ());
 
-            if(entityData.combat_evolution$isGuard(mobpatch.getOriginal())){
+            if(entityData.combat_evolution$isGuard()){
                 dd0 = 2 * 2;
             }
 
-            if (dd1 <= dd0 || entityData.combat_evolution$isWander(mobpatch.getOriginal())) {
+            if (dd1 <= dd0 || entityData.combat_evolution$isWander()) {
                 this.mob.getNavigation().stop();
                 this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
                 this.mobpatch.rotateTo(livingentity,30,true);

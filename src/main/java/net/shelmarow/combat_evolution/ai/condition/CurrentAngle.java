@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.ai.efcondition;
+package net.shelmarow.combat_evolution.ai.condition;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
@@ -113,7 +113,7 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
         if (start <= end) {
             return angle >= start && angle <= end;
         } else {
-            // 跨越的情况，例如 150~30（180→0→30）
+            // 跨越的情况，例如 150~30（150→0→30）
             return angle >= start || angle <= end;
         }
     }

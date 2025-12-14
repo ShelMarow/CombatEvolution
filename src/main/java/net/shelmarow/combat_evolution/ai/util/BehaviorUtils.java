@@ -1,7 +1,11 @@
-package net.shelmarow.combat_evolution.ai;
+package net.shelmarow.combat_evolution.ai.util;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
+import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
+import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
+import net.shelmarow.combat_evolution.ai.PhaseParams;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 import java.util.HashMap;

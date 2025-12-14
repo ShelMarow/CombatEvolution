@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.example.entity.shelmarow.ai;
 
+import net.minecraft.sounds.SoundEvents;
 import net.shelmarow.combat_evolution.ai.AnimationParams;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.HitEvent;
@@ -16,25 +17,84 @@ public class ShelMarowCombatBehaviors {
     static{
         COMMON = CECombatBehaviors.builder()
 
-                .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1)
-                        .maxCooldown(20)
+
+                //攻击间隙的游荡和随机闪避
+                .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
+                        .priority(1).weight(1).maxCooldown(20)
+                        .backAfterFinished(false).rootName("randomDodgeGround")
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("全局闪避1")
+                                .phaseBetween(0,4)
+                                .withinDistance(4,12)
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_FORWARD,0F)
+                                .addPhase(1)
+                        )
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("全局闪避2")
+                                .phaseBetween(0,4)
                                 .withinDistance(0,4)
-                                .animationBehavior(Animations.BIPED_MOB_SWORD_DUAL1, new AnimationParams()
-                                        .transitionTime(0.5F).playSpeed(0.25F)
-                                        .addPhase(0, new PhaseParams().damageMultiplier(0.01F).stunType(StunType.LONG))
-                                        .addPhase(1, new PhaseParams().damageMultiplier(10F).stunType(StunType.KNOCKDOWN))
-                                )
-                                .addHitEvent(
-                                        new HitEvent(0, AttackResult.ResultType.SUCCESS,(mobPatch, entity) -> {
-                                            System.out.println("第一段成功命中");
-                                        }),
-                                        new HitEvent(1, AttackResult.ResultType.BLOCKED,(mobPatch, entity) -> {
-                                            System.out.println("第二段被防御");
-                                        })
-                                )
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_BACKWARD,0F)
+                                .addPhase(1)
+                        )
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("全局闪避3")
+                                .phaseBetween(0,4)
+                                .withinDistance(0,8)
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_LEFT,0F)
+                                .addPhase(1)
+                        )
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("全局闪避4")
+                                .phaseBetween(0,4)
+                                .withinDistance(0,8)
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_RIGHT,0F)
+                                .addPhase(1)
+                        )
+                )
+
+                //闪避
+                .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
+                        .rootName("普通闪避")
+                        .priority(2).weight(1).maxCooldown(100)
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("闪避1")
+                                .withinDistance(3,12)
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_FORWARD,0F)
+                                .setPhase(0)
+                        )
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("闪避2")
+                                .withinDistance(0,3)
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_BACKWARD,0F)
+                                .setPhase(0)
+                        )
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("闪避3")
+                                .withinDistance(0,8)
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_LEFT,0F)
+                                .setPhase(0)
+                        )
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("闪避4")
+                                .withinDistance(0,8)
+                                .canInsertGlobalBehavior(true,"randomDodgeGround")
+                                .animationBehavior(Animations.BIPED_STEP_RIGHT,0F)
+                                .setPhase(0)
                         )
                 )
 

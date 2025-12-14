@@ -86,36 +86,50 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
         livingentity.getEntityData().define(combat_evolution$WANDER, false);
     }
 
-
     @Unique
-    public int combat_evolution$getPhase(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$PHASE);
+    private LivingEntity combatEvolution$getEntity(){
+        return ((LivingEntityPatch<?>) (Object) this).getOriginal();
+    }
+    @Unique
+    private SynchedEntityData combatEvolution$getEntityData(){
+        return combatEvolution$getEntity().getEntityData();
     }
 
     @Unique
-    public void combat_evolution$setPhase(LivingEntity entity, int phase) {
-        entity.getEntityData().set(combat_evolution$PHASE,phase);
+    @Override
+    public int combat_evolution$getPhase() {
+        return combatEvolution$getEntityData().get(combat_evolution$PHASE);
+    }
+
+    @Unique
+    @Override
+    public void combat_evolution$setPhase(int phase) {
+        combatEvolution$getEntityData().set(combat_evolution$PHASE,phase);
     }
 
 
     @Unique
-    public boolean combat_evolution$getCanModifySpeed(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$CAN_MODIFY_SPEED);
+    @Override
+    public boolean combat_evolution$getCanModifySpeed() {
+        return combatEvolution$getEntityData().get(combat_evolution$CAN_MODIFY_SPEED);
     }
 
     @Unique
-    public void combat_evolution$setCanModifySpeed(LivingEntity entity, boolean canModifySpeed) {
-        entity.getEntityData().set(combat_evolution$CAN_MODIFY_SPEED,canModifySpeed);
+    @Override
+    public void combat_evolution$setCanModifySpeed(boolean canModifySpeed) {
+        combatEvolution$getEntityData().set(combat_evolution$CAN_MODIFY_SPEED,canModifySpeed);
     }
 
     @Unique
-    public float combat_evolution$getAttackSpeed(LivingEntity entity){
-        return entity.getEntityData().get(combat_evolution$ATTACK_SPEED);
+    @Override
+    public float combat_evolution$getAttackSpeed(){
+        return combatEvolution$getEntityData().get(combat_evolution$ATTACK_SPEED);
     }
 
     @Unique
-    public void combat_evolution$setAttackSpeed(LivingEntity entity, float speed) {
-        entity.getEntityData().set(combat_evolution$ATTACK_SPEED,Math.max(0,speed));
+    @Override
+    public void combat_evolution$setAttackSpeed(float speed) {
+        combatEvolution$getEntityData().set(combat_evolution$ATTACK_SPEED,Math.max(0,speed));
     }
 
 //    @Override
@@ -162,52 +176,62 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 //    }
 
     @Unique
-    public float combat_evolution$getStamina(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$STAMINA);
+    @Override
+    public float combat_evolution$getStamina() {
+        return combatEvolution$getEntityData().get(combat_evolution$STAMINA);
     }
 
     @Unique
-    public void combat_evolution$setStamina(LivingEntity entity, float stamina) {
+    @Override
+    public void combat_evolution$setStamina(float stamina) {
+        LivingEntity entity = combatEvolution$getEntity();
         float maxStamina = 15;
         if (entity.getAttribute(EpicFightAttributes.MAX_STAMINA.get()) != null) {
             maxStamina = (float) entity.getAttributeValue(EpicFightAttributes.MAX_STAMINA.get());
         }
-        entity.getEntityData().set(combat_evolution$STAMINA, Mth.clamp(stamina,0,maxStamina));
+        combatEvolution$getEntityData().set(combat_evolution$STAMINA, Mth.clamp(stamina,0,maxStamina));
     }
 
     @Unique
-    public boolean combat_evolution$isGuard(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$GUARD);
+    @Override
+    public boolean combat_evolution$isGuard() {
+        return combatEvolution$getEntityData().get(combat_evolution$GUARD);
     }
 
     @Unique
-    public void combat_evolution$setGuard(LivingEntity entity, boolean guard) {
-        entity.getEntityData().set(combat_evolution$GUARD,guard);
+    @Override
+    public void combat_evolution$setGuard(boolean guard) {
+        combatEvolution$getEntityData().set(combat_evolution$GUARD,guard);
     }
 
     @Unique
-    public boolean combat_evolution$isInCounter(LivingEntity entity){
-        return  entity.getEntityData().get(combat_evolution$IN_COUNTER);
+    @Override
+    public boolean combat_evolution$isInCounter(){
+        return combatEvolution$getEntityData().get(combat_evolution$IN_COUNTER);
     }
 
     @Unique
-    public void combat_evolution$setInCounter(LivingEntity entity, boolean counter){
-        entity.getEntityData().set(combat_evolution$IN_COUNTER,counter);
+    @Override
+    public void combat_evolution$setInCounter(boolean counter){
+        combatEvolution$getEntityData().set(combat_evolution$IN_COUNTER,counter);
     }
 
     @Unique
-    public boolean combat_evolution$isWander(LivingEntity entity) {
-        return entity.getEntityData().get(combat_evolution$WANDER);
+    @Override
+    public boolean combat_evolution$isWander() {
+        return combatEvolution$getEntityData().get(combat_evolution$WANDER);
     }
 
     @Unique
-    public void combat_evolution$setWander(LivingEntity entity, boolean wander) {
-        entity.getEntityData().set(combat_evolution$WANDER,wander);
+    @Override
+    public void combat_evolution$setWander(boolean wander) {
+        combatEvolution$getEntityData().set(combat_evolution$WANDER,wander);
     }
 
     @Unique
-    public StaminaStatus combat_evolution$getStaminaStatus(LivingEntity entity) {
-        int index = entity.getEntityData().get(combat_evolution$STAMINA_STATUS);
+    @Override
+    public StaminaStatus combat_evolution$getStaminaStatus() {
+        int index = combatEvolution$getEntityData().get(combat_evolution$STAMINA_STATUS);
         if(index >= 0 && index < StaminaStatus.values().length){
             return StaminaStatus.values()[index];
         }
@@ -215,7 +239,8 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     }
 
     @Unique
-    public void combat_evolution$setStaminaStatus(LivingEntity entity, StaminaStatus staminaStatus) {
-        entity.getEntityData().set(combat_evolution$STAMINA_STATUS, staminaStatus.ordinal());
+    @Override
+    public void combat_evolution$setStaminaStatus(StaminaStatus staminaStatus) {
+        combatEvolution$getEntityData().set(combat_evolution$STAMINA_STATUS, staminaStatus.ordinal());
     }
 }

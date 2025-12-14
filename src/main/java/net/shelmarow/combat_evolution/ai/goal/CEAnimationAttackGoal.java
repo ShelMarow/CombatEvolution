@@ -1,8 +1,9 @@
-package net.shelmarow.combat_evolution.ai;
+package net.shelmarow.combat_evolution.ai.goal;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
+import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.iml.ILivingEntityData;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.StunType;
@@ -39,9 +40,9 @@ public class CEAnimationAttackGoal<T extends MobPatch<?>> extends Goal {
         currentBehavior.resetAllCooldown();
         combatBehaviors.clearCurrentBehavior();
         ILivingEntityData entityData = (ILivingEntityData) mobpatch;
-        entityData.combat_evolution$setWander(mobpatch.getOriginal(), false);
-        entityData.combat_evolution$setGuard(mobpatch.getOriginal(), false);
-        entityData.combat_evolution$setInCounter(mobpatch.getOriginal(), false);
+        entityData.combat_evolution$setWander(false);
+        entityData.combat_evolution$setGuard(false);
+        entityData.combat_evolution$setInCounter(false);
     }
 
     @Override

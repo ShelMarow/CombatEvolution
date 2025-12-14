@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.ai.efcondition;
+package net.shelmarow.combat_evolution.ai.condition;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;

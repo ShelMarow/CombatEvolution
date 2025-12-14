@@ -3,7 +3,7 @@ package net.shelmarow.combat_evolution.mixins;
 import com.merlin204.avalon.epicfight.animations.AvalonAttackAnimation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.shelmarow.combat_evolution.ai.BehaviorUtils;
+import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import org.jetbrains.annotations.Nullable;

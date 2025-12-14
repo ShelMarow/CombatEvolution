@@ -19,6 +19,9 @@ import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
+import net.shelmarow.combat_evolution.ai.goal.CommonChasingGoal;
+import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.iml.ILivingEntityData;
 import yesman.epicfight.api.animation.AnimationManager;
@@ -80,7 +83,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         if(this.original.getAttribute(EpicFightAttributes.MAX_STAMINA.get()) != null){
             maxStamina = (float) this.original.getAttributeValue(EpicFightAttributes.MAX_STAMINA.get());
         }
-        entityData.combat_evolution$setStamina(this.original,maxStamina);
+        entityData.combat_evolution$setStamina(maxStamina);
     }
 
     @Override
@@ -116,8 +119,8 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
             if (this.original.getAttribute(EpicFightAttributes.MAX_STAMINA.get()) != null) {
                 maxStamina = (float) this.original.getAttributeValue(EpicFightAttributes.MAX_STAMINA.get());
             }
-            float currentStamina = entityData.combat_evolution$getStamina(original);
-            StaminaStatus staminaStatus = entityData.combat_evolution$getStaminaStatus(original);
+            float currentStamina = entityData.combat_evolution$getStamina();
+            StaminaStatus staminaStatus = entityData.combat_evolution$getStaminaStatus();
 
 
             if(staminaStatus == StaminaStatus.COMMON){
@@ -127,16 +130,16 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 }
                 //如果耐力归零，切换至破防状态
                 if(currentStamina <= 0){
-                    entityData.combat_evolution$setStaminaStatus(original,StaminaStatus.BREAK);
+                    entityData.combat_evolution$setStaminaStatus(StaminaStatus.BREAK);
                 }
                 //如果有耐力回复属性，则在一段时间未行动时回复耐力
                 else if(original.getAttribute(EpicFightAttributes.STAMINA_REGEN.get()) != null){
-                    if(state.inaction() || entityData.combat_evolution$isGuard(original)){
+                    if(state.inaction() || entityData.combat_evolution$isGuard()){
                         lastActionTime = original.tickCount;
                     }
                     else if(original.tickCount - lastActionTime > staminaRegenDelay && currentStamina < maxStamina){
                         float regenSpeed = (float) original.getAttributeValue(EpicFightAttributes.STAMINA_REGEN.get());
-                        entityData.combat_evolution$setStamina(original, currentStamina + maxStamina * 0.01F * regenSpeed);
+                        entityData.combat_evolution$setStamina(currentStamina + maxStamina * 0.01F * regenSpeed);
                     }
                 }
             }
@@ -146,16 +149,16 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 //破防状态下，等待一段时间，然后切换至恢复状态
                 if(staminaStatus == StaminaStatus.BREAK){
                     if(recoverTickCount >= breakTime){
-                        entityData.combat_evolution$setStaminaStatus(original,StaminaStatus.RECOVER);
+                        entityData.combat_evolution$setStaminaStatus(StaminaStatus.RECOVER);
                     }
                 }
                 //恢复状态下，持续恢复耐力值，恢复满后切换至普通状态
                 else if (staminaStatus == StaminaStatus.RECOVER) {
                     float progress = Mth.clamp((float) (recoverTickCount - breakTime) / recoverTime,0F,1F);
                     currentStamina = Mth.lerp(progress,0,maxStamina);
-                    entityData.combat_evolution$setStamina(original,currentStamina);
+                    entityData.combat_evolution$setStamina(currentStamina);
                     if(progress == 1F){
-                        entityData.combat_evolution$setStaminaStatus(original,StaminaStatus.COMMON);
+                        entityData.combat_evolution$setStaminaStatus(StaminaStatus.COMMON);
                     }
                 }
             }
@@ -164,7 +167,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
             AttributeInstance instance = original.getAttribute(Attributes.MOVEMENT_SPEED);
             AttributeModifier modifier = new AttributeModifier(UUID.fromString("086f00c3-2763-463e-a64e-b19c8959d4bd"),"guard_move_speed",-0.45D, AttributeModifier.Operation.MULTIPLY_TOTAL);
             if (instance != null) {
-                if (entityData.combat_evolution$isGuard(original)) {
+                if (entityData.combat_evolution$isGuard()) {
                     if (!instance.hasModifier(modifier)) {
                         instance.addPermanentModifier(modifier);
                     }
@@ -194,8 +197,8 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         if(damageSource.getDirectEntity() != null && result.resultType == AttackResult.ResultType.SUCCESS) {
             ILivingEntityData entityData = (ILivingEntityData) this;
             //防御受击
-            if(entityData.combat_evolution$isGuard(this.original) && isBlockableSource(damageSource) && !isStunned()){
-                if(!entityData.combat_evolution$isInCounter(this.original)) {
+            if(entityData.combat_evolution$isGuard() && isBlockableSource(damageSource) && !isStunned()){
+                if(!entityData.combat_evolution$isInCounter()) {
                     onGuardHit(damageSource);
                 }
                 return AttackResult.blocked(0);
@@ -259,9 +262,9 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     public boolean dealStaminaDamage(DamageSource damageSource,float amount){
         ILivingEntityData entityData = (ILivingEntityData) this;
         //只有在正常状态下能造成耐力伤害
-        if(entityData.combat_evolution$getStaminaStatus(original) == StaminaStatus.COMMON){
-            float stamina = entityData.combat_evolution$getStamina(this.original);
-            entityData.combat_evolution$setStamina(original, stamina - amount);
+        if(entityData.combat_evolution$getStaminaStatus() == StaminaStatus.COMMON){
+            float stamina = entityData.combat_evolution$getStamina();
+            entityData.combat_evolution$setStamina(stamina - amount);
             if (amount >= stamina) {
                 onBreak(damageSource);
                 return true;
@@ -389,30 +392,124 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
         if (hand == InteractionHand.OFF_HAND) {
             if (!from.isEmpty()) {
-                from.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::removeModifier);
+                from.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(attributeModifier -> {
+                    AttributeInstance instance = this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get());
+                    if (instance != null && attributeModifier != null) {
+                        instance.removeModifier(attributeModifier);
+                    }
+                });
             }
+
             if (!fromCap.isEmpty()) {
-                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::removeModifier);
-                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::removeModifier);
-                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get()))::removeModifier);
-                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get()))::removeModifier);
+                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(mod -> {
+                    AttributeInstance atkSpeed = this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get());
+                    if (atkSpeed != null && mod != null) {
+                        atkSpeed.removeModifier(mod);
+                    }
+                });
+
+                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(mod -> {
+                    AttributeInstance armorNeg = this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get());
+                    if (armorNeg != null && mod != null) {
+                        armorNeg.removeModifier(mod);
+                    }
+                });
+
+                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(mod -> {
+                    AttributeInstance impact = this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get());
+                    if (impact != null && mod != null) {
+                        impact.removeModifier(mod);
+                    }
+                });
+
+                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(mod -> {
+                    AttributeInstance maxStrikes = this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get());
+                    if (maxStrikes != null && mod != null) {
+                        maxStrikes.removeModifier(mod);
+                    }
+                });
             }
 
             if (!to.isEmpty()) {
-                to.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::addTransientModifier);
+                to.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(mod -> {
+                    AttributeInstance atkSpeed = this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get());
+                    if (atkSpeed != null && mod != null) {
+                        atkSpeed.addTransientModifier(mod);
+                    }
+                });
             }
+
             if (!toCap.isEmpty()) {
-                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::addTransientModifier);
-                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::addTransientModifier);
-                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get()))::addTransientModifier);
-                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get()))::addTransientModifier);
+                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(mod -> {
+                    AttributeInstance atkSpeed = this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get());
+                    if (atkSpeed != null && mod != null) {
+                        atkSpeed.addTransientModifier(mod);
+                    }
+                });
+
+                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(mod -> {
+                    AttributeInstance armorNeg = this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get());
+                    if (armorNeg != null && mod != null) {
+                        armorNeg.addTransientModifier(mod);
+                    }
+                });
+
+                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(mod -> {
+                    AttributeInstance impact = this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get());
+                    if (impact != null && mod != null) {
+                        impact.addTransientModifier(mod);
+                    }
+                });
+
+                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(mod -> {
+                    AttributeInstance maxStrikes = this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get());
+                    if (maxStrikes != null && mod != null) {
+                        maxStrikes.addTransientModifier(mod);
+                    }
+                });
             }
         }
-
         this.modifyLivingMotionByCurrentItem();
-
         super.updateHeldItem(fromCap, toCap, from, to, hand);
     }
+
+//    @Override
+//    public void updateHeldItem(CapabilityItem fromCap, CapabilityItem toCap, ItemStack from, ItemStack to, InteractionHand hand) {
+//        super.initAI();
+//        this.setAIAsInfantry();
+//
+//        if (hand == InteractionHand.OFF_HAND) {
+//            if (!from.isEmpty()) {
+//                //Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::removeModifier
+//                from.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(attributeModifier -> {
+//                    AttributeInstance instance = this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get());
+//                    if(instance != null && attributeModifier != null){
+//                        instance.removeModifier(attributeModifier);
+//                    }
+//                });
+//            }
+//            if (!fromCap.isEmpty()) {
+//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::removeModifier);
+//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::removeModifier);
+//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get()))::removeModifier);
+//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get()))::removeModifier);
+//            }
+//
+//            if (!to.isEmpty()) {
+//                to.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::addTransientModifier);
+//            }
+//            if (!toCap.isEmpty()) {
+//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::addTransientModifier);
+//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::addTransientModifier);
+//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get()))::addTransientModifier);
+//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get()))::addTransientModifier);
+//            }
+//        }
+//
+//        this.modifyLivingMotionByCurrentItem();
+//
+//        super.updateHeldItem(fromCap, toCap, from, to, hand);
+//    }
 
     public void modifyLivingMotionByCurrentItem() {
         Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> oldLivingAnimations = this.getAnimator().getLivingAnimations();
