@@ -6,7 +6,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
-import net.shelmarow.combat_evolution.iml.ILivingEntityData;
+import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,6 +17,7 @@ import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 
 @Mixin(LivingEntityPatch.class)
 public abstract class EFLivingEntityPatch implements ILivingEntityData {
+
 
     //伤害源修改
     @Unique
@@ -90,98 +91,54 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private LivingEntity combatEvolution$getEntity(){
         return ((LivingEntityPatch<?>) (Object) this).getOriginal();
     }
+
     @Unique
     private SynchedEntityData combatEvolution$getEntityData(){
         return combatEvolution$getEntity().getEntityData();
     }
 
-    @Unique
+
     @Override
     public int combat_evolution$getPhase() {
         return combatEvolution$getEntityData().get(combat_evolution$PHASE);
     }
 
-    @Unique
     @Override
     public void combat_evolution$setPhase(int phase) {
         combatEvolution$getEntityData().set(combat_evolution$PHASE,phase);
     }
 
-
-    @Unique
     @Override
     public boolean combat_evolution$getCanModifySpeed() {
         return combatEvolution$getEntityData().get(combat_evolution$CAN_MODIFY_SPEED);
     }
 
-    @Unique
     @Override
     public void combat_evolution$setCanModifySpeed(boolean canModifySpeed) {
         combatEvolution$getEntityData().set(combat_evolution$CAN_MODIFY_SPEED,canModifySpeed);
     }
 
-    @Unique
     @Override
     public float combat_evolution$getAttackSpeed(){
         return combatEvolution$getEntityData().get(combat_evolution$ATTACK_SPEED);
     }
 
-    @Unique
     @Override
     public void combat_evolution$setAttackSpeed(float speed) {
         combatEvolution$getEntityData().set(combat_evolution$ATTACK_SPEED,Math.max(0,speed));
     }
 
-//    @Override
-//    public float combat_evolution$getDamageMultiplier(LivingEntity entity) {
-//        return entity.getEntityData().get(combat_evolution$DAMAGE_MULTIPLIER);
-//    }
-//
-//    @Override
-//    public void combat_evolution$setDamageMultiplier(LivingEntity entity, float multiplier) {
-//        entity.getEntityData().set(combat_evolution$DAMAGE_MULTIPLIER,Math.max(0,multiplier));
-//    }
-//
-//    @Override
-//    public float combat_evolution$getImpactMultiplier(LivingEntity entity) {
-//        return entity.getEntityData().get(combat_evolution$IMPACT_MULTIPLIER);
-//    }
-//
-//    @Override
-//    public void combat_evolution$setImpactMultiplier(LivingEntity entity, float multiplier) {
-//        entity.getEntityData().set(combat_evolution$IMPACT_MULTIPLIER,Math.max(0,multiplier));
-//    }
-//
-//    public float combat_evolution$getArmorNegationMultiplier(LivingEntity entity) {
-//        return entity.getEntityData().get(combat_evolution$ARMOR_NEGATION_MULTIPLIER);
-//    }
-//
-//    public void combat_evolution$setArmorNegationMultiplier(LivingEntity entity, float multiplier) {
-//        entity.getEntityData().set(combat_evolution$ARMOR_NEGATION_MULTIPLIER,multiplier);
-//    }
-//
-//    @Override
-//    public int combat_evolution$getStunType(LivingEntity entity) {
-//        return entity.getEntityData().get(combat_evolution$STUN_TYPE);
-//    }
-//
-//    @Override
-//    public void combat_evolution$setStunType(LivingEntity entity, StunType stunType) {
-//        entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType.ordinal());
-//    }
-//
-//    @Override
-//    public void combat_evolution$setStunType(LivingEntity entity, int stunType) {
-//        entity.getEntityData().set(combat_evolution$STUN_TYPE,stunType);
-//    }
-
-    @Unique
     @Override
     public float combat_evolution$getStamina() {
         return combatEvolution$getEntityData().get(combat_evolution$STAMINA);
     }
 
-    @Unique
+    @Override
+    public float combat_evolution$getStamina(LivingEntity entity) {
+        return combat_evolution$getStamina();
+    }
+
+
     @Override
     public void combat_evolution$setStamina(float stamina) {
         LivingEntity entity = combatEvolution$getEntity();
@@ -192,43 +149,41 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
         combatEvolution$getEntityData().set(combat_evolution$STAMINA, Mth.clamp(stamina,0,maxStamina));
     }
 
-    @Unique
+    @Override
+    public void combat_evolution$setStamina(LivingEntity entity, float stamina) {
+        combat_evolution$setStamina(stamina);
+    }
+
     @Override
     public boolean combat_evolution$isGuard() {
         return combatEvolution$getEntityData().get(combat_evolution$GUARD);
     }
 
-    @Unique
     @Override
     public void combat_evolution$setGuard(boolean guard) {
         combatEvolution$getEntityData().set(combat_evolution$GUARD,guard);
     }
 
-    @Unique
     @Override
     public boolean combat_evolution$isInCounter(){
         return combatEvolution$getEntityData().get(combat_evolution$IN_COUNTER);
     }
 
-    @Unique
     @Override
     public void combat_evolution$setInCounter(boolean counter){
         combatEvolution$getEntityData().set(combat_evolution$IN_COUNTER,counter);
     }
 
-    @Unique
     @Override
     public boolean combat_evolution$isWander() {
         return combatEvolution$getEntityData().get(combat_evolution$WANDER);
     }
 
-    @Unique
     @Override
     public void combat_evolution$setWander(boolean wander) {
         combatEvolution$getEntityData().set(combat_evolution$WANDER,wander);
     }
 
-    @Unique
     @Override
     public StaminaStatus combat_evolution$getStaminaStatus() {
         int index = combatEvolution$getEntityData().get(combat_evolution$STAMINA_STATUS);
@@ -238,7 +193,6 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
         return StaminaStatus.COMMON;
     }
 
-    @Unique
     @Override
     public void combat_evolution$setStaminaStatus(StaminaStatus staminaStatus) {
         combatEvolution$getEntityData().set(combat_evolution$STAMINA_STATUS, staminaStatus.ordinal());

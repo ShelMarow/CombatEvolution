@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.ai;
+package net.shelmarow.combat_evolution.ai.event;
 
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 

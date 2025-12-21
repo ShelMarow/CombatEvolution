@@ -23,10 +23,10 @@ public class ShelMarowPatch extends CEHumanoidPatch {
         this.weaponLivingMotions.put(CapabilityItem.WeaponCategories.LONGSWORD,
                 ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, Set.of(
                         Pair.of(LivingMotions.BLOCK, Animations.LONGSWORD_GUARD),
-                        Pair.of(LivingMotions.IDLE, Animations.BIPED_HOLD_LONGSWORD),
-                        Pair.of(LivingMotions.WALK, Animations.BIPED_WALK_LONGSWORD),
-                        Pair.of(LivingMotions.RUN, Animations.BIPED_RUN_LONGSWORD),
-                        Pair.of(LivingMotions.CHASE, Animations.BIPED_RUN_LONGSWORD),
+                        Pair.of(LivingMotions.IDLE, Animations.BIPED_HOLD_SPEAR),
+                        Pair.of(LivingMotions.WALK, Animations.BIPED_WALK_SPEAR),
+                        Pair.of(LivingMotions.RUN, Animations.BIPED_RUN_SPEAR),
+                        Pair.of(LivingMotions.CHASE, Animations.BIPED_RUN_SPEAR),
                         Pair.of(LivingMotions.DEATH, Animations.BIPED_COMMON_NEUTRALIZED)
                 )));
 

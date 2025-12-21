@@ -8,7 +8,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
-import net.shelmarow.combat_evolution.iml.ILivingEntityData;
+import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 public class CommonChasingGoal extends Goal {

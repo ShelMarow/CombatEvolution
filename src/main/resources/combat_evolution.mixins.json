@@ -12,6 +12,7 @@
     "AvalonAttackAnimationMixin",
     "EFAttackAnimation",
     "EFLivingEntityPatch",
+    "GuardSkillInvoker",
     "GuardSkillMixin",
     "LivingEntityPatchMixin",
     "StaticAnimationsMixin"

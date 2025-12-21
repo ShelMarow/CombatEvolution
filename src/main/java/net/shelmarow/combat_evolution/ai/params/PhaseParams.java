@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.ai;
+package net.shelmarow.combat_evolution.ai.params;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;

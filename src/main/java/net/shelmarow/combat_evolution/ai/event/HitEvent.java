@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.ai;
+package net.shelmarow.combat_evolution.ai.event;
 
 import net.minecraft.world.entity.Entity;
 import yesman.epicfight.api.utils.AttackResult;

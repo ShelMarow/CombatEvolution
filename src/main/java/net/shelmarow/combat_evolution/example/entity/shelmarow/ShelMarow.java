@@ -11,10 +11,11 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 import yesman.epicfight.world.item.EpicFightItems;
 
-public class ShelMarow extends PathfinderMob {
+public class ShelMarow extends CEBossEntity {
 
     public ShelMarow(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -29,7 +30,7 @@ public class ShelMarow extends PathfinderMob {
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
 
                 .add(EpicFightAttributes.IMPACT.get(),1.0D)
-                .add(EpicFightAttributes.MAX_STAMINA.get(),50.0D)
+                .add(EpicFightAttributes.MAX_STAMINA.get(),15.0D)
                 .add(EpicFightAttributes.STAMINA_REGEN.get(),1.0D);
     }
 

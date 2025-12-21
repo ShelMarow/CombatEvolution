@@ -8,9 +8,11 @@ import net.minecraft.world.phys.AABB;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
-import net.shelmarow.combat_evolution.ai.PhaseParams;
+import net.shelmarow.combat_evolution.ai.params.PhaseParams;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -26,16 +28,19 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Mixin(value = AttackAnimation.class)
 public abstract class EFAttackAnimation extends StaticAnimation {
 
     @Shadow(remap = false)
-    public abstract int getPhaseOrderByTime(float elapsedTime);
+    @Final
+    public AttackAnimation.Phase[] phases;
+
+    @Unique
+    private int combatEvolution$getCurrentPhaseOrder(AttackAnimation.Phase[] phases, AttackAnimation.Phase phase) {
+        return Arrays.stream(phases).toList().indexOf(phase);
+    }
 
     @Inject(
             method = "getEpicFightDamageSource(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)Lyesman/epicfight/world/damagesource/EpicFightDamageSource;",
@@ -47,14 +52,11 @@ public abstract class EFAttackAnimation extends StaticAnimation {
         if (entityPatch instanceof CEHumanoidPatch) {
 
             Map<Integer, PhaseParams> phaseParamsMap = BehaviorUtils.getPhaseParams(entityPatch);
-            int currentPhase = this.getPhaseOrderByTime(Objects.requireNonNull(entityPatch.getAnimator().getPlayerFor(this.getAccessor())).getElapsedTime());
 
-            //获取当前Phase可用的参数
-            PhaseParams params = phaseParamsMap.containsKey(currentPhase) ? phaseParamsMap.get(currentPhase) : phaseParamsMap.get(-1);
-
-            //如果存在，附加对应的内容
-            if(params != null){
-                EpicFightDamageSource returnValue = cir.getReturnValue();
+            if (!phaseParamsMap.isEmpty()) {
+                //获取当前Phase可用的参数
+                int currentPhase = this.combatEvolution$getCurrentPhaseOrder(this.phases, phase);
+                PhaseParams params = phaseParamsMap.containsKey(currentPhase) ? phaseParamsMap.get(currentPhase) : phaseParamsMap.get(-1);
 
                 int stunIndex = params.getStunType();
                 float damage = params.getDamageMultiplier();
@@ -62,7 +64,9 @@ public abstract class EFAttackAnimation extends StaticAnimation {
                 float armorNegation = params.getArmorNegationMultiplier();
                 Set<TagKey<DamageType>> sourceTag = params.getDamageSource();
 
-                if(stunIndex != -1){
+                EpicFightDamageSource returnValue = cir.getReturnValue();
+
+                if (stunIndex != -1) {
                     StunType stunType = StunType.values()[stunIndex];
                     returnValue.setStunType(stunType);
                 }
@@ -70,36 +74,13 @@ public abstract class EFAttackAnimation extends StaticAnimation {
                 returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
                 returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
                 returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
-                if(!sourceTag.isEmpty()) {
-                    sourceTag.forEach(returnValue::addRuntimeTag);
-                }
+                sourceTag.forEach(returnValue::addRuntimeTag);
 
                 cir.setReturnValue(returnValue);
             }
         }
     }
 
-//    @Inject(
-//            method = "hurtCollidingEntities",
-//            at = @At(
-//                    value = "INVOKE",
-//                    target = "Lyesman/epicfight/api/animation/types/AttackAnimation;spawnHitParticle(Lnet/minecraft/server/level/ServerLevel;Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)V"
-//            ),
-//            locals = LocalCapture.CAPTURE_FAILHARD,
-//            remap = false
-//    )
-//    private void onHurtCollidingEntities(LivingEntityPatch<?> entityPatch, float prevElapsedTime, float elapsedTime, EntityState prevState, EntityState state,
-//                                         AttackAnimation.Phase phase, CallbackInfo ci, LivingEntity entity, float prevPoseTime, float poseTime, List<Entity> list,
-//                                         HitEntityList hitEntities, int maxStrikes, Entity target, LivingEntity trueEntity, AABB aabb, EpicFightDamageSource damagesource,
-//                                         int prevInvulTime, AttackResult attackResult){
-//        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
-//            CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
-//            if(current != null){
-//                int currentPhase = this.getPhaseOrderByTime(elapsedTime);
-//                current.executeHitEvent(currentPhase,ceHumanoidPatch,target);
-//            }
-//        }
-//    }
 
     @Inject(
             method = "hurtCollidingEntities",
@@ -116,8 +97,8 @@ public abstract class EFAttackAnimation extends StaticAnimation {
                           EpicFightDamageSource damagesource, int prevInvulTime, AttackResult attackResult){
         if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
             CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
-            if(current != null){
-                int currentPhase = this.getPhaseOrderByTime(elapsedTime);
+            if(current != null && current.shouldExecuteHitEvent()){
+                int currentPhase = this.combatEvolution$getCurrentPhaseOrder(this.phases,phase);
                 current.executeHitEvent(currentPhase,attackResult.resultType,ceHumanoidPatch,target);
             }
         }

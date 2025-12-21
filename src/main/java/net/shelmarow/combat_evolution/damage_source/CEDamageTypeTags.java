@@ -9,6 +9,7 @@ import net.shelmarow.combat_evolution.CombatEvolution;
 public interface CEDamageTypeTags {
 
     TagKey<DamageType> EXECUTION = create("execution");
+    TagKey<DamageType> EXECUTION_FINISHED = create("execution_finished");
 
     private static TagKey<DamageType> create(String tagName) {
         return TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, tagName));

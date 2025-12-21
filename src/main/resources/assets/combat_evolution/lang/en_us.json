@@ -4,5 +4,6 @@
   "text.combat_evolution.not_available_pos": "Location is not standing or have not enough space",
   "death.attack.execution": "%1&s was executed",
   "key.categories.combat_evolution": "Combat Evolution",
-  "key.combat_evolution.execution": "Execution"
+  "key.combat_evolution.execution": "Execution",
+  "entity.combat_evolution.shelmarow": "ShelMarow"
 }

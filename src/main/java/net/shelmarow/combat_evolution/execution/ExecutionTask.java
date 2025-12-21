@@ -44,26 +44,22 @@ public class ExecutionTask extends TickTask {
         }
 
         //只有人形生物和自定义的生物能播放
-        if (entityPatch instanceof PlayerPatch || entityPatch instanceof CEHumanoidPatch || entityPatch instanceof HumanoidMobPatch) {
-            if (targetPatch instanceof PlayerPatch || targetPatch instanceof CEHumanoidPatch || targetPatch instanceof HumanoidMobPatch) {
+        if (entityPatch != null && targetPatch != null && ExecutionHandler.isTargetPatchSupported(entityPatch) && ExecutionHandler.isTargetPatchSupported(targetPatch)) {
+            //播放处决动画
+            entityPatch.playAnimationSynchronized(executionType.executionAnimation(), 0F);
+            targetPatch.playAnimationSynchronized(executionType.executedAnimation(), 0F);
 
-                //播放处决动画
-                entityPatch.playAnimationSynchronized(executionType.getExecutionAnimation(), 0F);
-                targetPatch.playAnimationSynchronized(executionType.getExecutedAnimation(), 0F);
+            //矫正处决者的模型朝向
+            Vec3 from = executor.getEyePosition();
+            Vec3 to = target.getEyePosition();
+            double dx = to.x - from.x;
+            double dz = to.z - from.z;
+            float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0F) + executionType.rotationOffset();
 
-                //矫正处决者的模型朝向
-                Vec3 from = executor.getEyePosition();
-                Vec3 to = target.getEyePosition();
-                double dx = to.x - from.x;
-                double dz = to.z - from.z;
-                float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0F) - 10;
-
-                if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-                    serverPlayerPatch.setModelYRot(yaw, true);
-                } else {
-                    entityPatch.setYRot(yaw);
-                }
-
+            if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+                serverPlayerPatch.setModelYRot(yaw, true);
+            } else {
+                entityPatch.setYRot(yaw);
             }
         }
     }

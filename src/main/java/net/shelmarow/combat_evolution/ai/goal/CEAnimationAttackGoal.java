@@ -4,7 +4,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
-import net.shelmarow.combat_evolution.iml.ILivingEntityData;
+import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.StunType;
 

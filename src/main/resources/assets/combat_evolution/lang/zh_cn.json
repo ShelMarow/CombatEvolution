@@ -4,5 +4,6 @@
   "text.combat_evolution.not_available_pos": "处决位置无法站立或没有足够空间",
   "death.attack.execution": "%1&s 被处决了",
   "key.categories.combat_evolution": "战斗进化",
-  "key.combat_evolution.execution": "处决"
+  "key.combat_evolution.execution": "处决",
+  "entity.combat_evolution.shelmarow": "ShelMarow"
 }

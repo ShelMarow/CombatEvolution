@@ -22,8 +22,9 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
 import net.shelmarow.combat_evolution.ai.goal.CommonChasingGoal;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
+import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
-import net.shelmarow.combat_evolution.iml.ILivingEntityData;
+import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.Animator;
 import yesman.epicfight.api.animation.LivingMotion;
@@ -76,14 +77,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     @Override
     public void initAI(){
         super.initAI();
-        this.setAIAsInfantry();
-
-        ILivingEntityData entityData = (ILivingEntityData) this;
-        float maxStamina = 15F;
-        if(this.original.getAttribute(EpicFightAttributes.MAX_STAMINA.get()) != null){
-            maxStamina = (float) this.original.getAttributeValue(EpicFightAttributes.MAX_STAMINA.get());
-        }
-        entityData.combat_evolution$setStamina(maxStamina);
+        setAIAsInfantry();
     }
 
     @Override
@@ -101,6 +95,10 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     @Override
     public void initAnimator(Animator animator) {
         super.initAnimator(animator);
+        initLivingMotions(animator);
+    }
+
+    public void initLivingMotions(Animator animator){
         animator.addLivingAnimation(LivingMotions.IDLE, Animations.BIPED_IDLE);
         animator.addLivingAnimation(LivingMotions.WALK, Animations.BIPED_WALK);
         animator.addLivingAnimation(LivingMotions.CHASE, Animations.BIPED_WALK);
@@ -110,17 +108,20 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     }
 
     @Override
+    public void onAddedToWorld(){
+        CEPatchUtils.setStamina(this,CEPatchUtils.getMaxStamina(this));
+        modifyLivingMotionByCurrentItem();
+    }
+
+    @Override
     public void tick(LivingEvent.LivingTickEvent event) {
         super.tick(event);
 
         if(this instanceof ILivingEntityData entityData){
             //处理耐力状态
-            float maxStamina = 15;
-            if (this.original.getAttribute(EpicFightAttributes.MAX_STAMINA.get()) != null) {
-                maxStamina = (float) this.original.getAttributeValue(EpicFightAttributes.MAX_STAMINA.get());
-            }
-            float currentStamina = entityData.combat_evolution$getStamina();
-            StaminaStatus staminaStatus = entityData.combat_evolution$getStaminaStatus();
+            float maxStamina = CEPatchUtils.getMaxStamina(this);
+            float currentStamina = CEPatchUtils.getStamina(this);
+            StaminaStatus staminaStatus = CEPatchUtils.getStaminaStatus(this);
 
 
             if(staminaStatus == StaminaStatus.COMMON){
@@ -260,11 +261,10 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     }
 
     public boolean dealStaminaDamage(DamageSource damageSource,float amount){
-        ILivingEntityData entityData = (ILivingEntityData) this;
         //只有在正常状态下能造成耐力伤害
-        if(entityData.combat_evolution$getStaminaStatus() == StaminaStatus.COMMON){
-            float stamina = entityData.combat_evolution$getStamina();
-            entityData.combat_evolution$setStamina(stamina - amount);
+        if(CEPatchUtils.getStaminaStatus(this) == StaminaStatus.COMMON){
+            float stamina = CEPatchUtils.getStamina(this);
+            CEPatchUtils.setStamina(this,stamina - amount);
             if (amount >= stamina) {
                 onBreak(damageSource);
                 return true;
@@ -285,14 +285,15 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         }
 
         //播放动画
-        this.applyStun(StunType.NEUTRALIZE, 0F);
-        original.forceAddEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(),100),original);
+        if(this.applyStun(StunType.NEUTRALIZE, 0F)){
+            original.forceAddEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 100), original);
 
-        Vec3 eyePosition = this.original.getEyePosition();
-        Vec3 viewVec = this.original.getLookAngle().scale(2.0F);
-        Vec3 pos = new Vec3(eyePosition.x + viewVec.x, eyePosition.y + viewVec.y, eyePosition.z + viewVec.z);
-        this.getOriginal().level().addParticle(EpicFightParticles.NEUTRALIZE.get(), pos.x, pos.y, pos.z, 0, 0, 0);
-        playGuardBreakSound();
+            Vec3 eyePosition = this.original.getEyePosition();
+            Vec3 viewVec = this.original.getLookAngle().scale(2.0F);
+            Vec3 pos = new Vec3(eyePosition.x + viewVec.x, eyePosition.y + viewVec.y, eyePosition.z + viewVec.z);
+            this.getOriginal().level().addParticle(EpicFightParticles.NEUTRALIZE.get(), pos.x, pos.y, pos.z, 0, 0, 0);
+            playGuardBreakSound();
+        }
     }
 
     @Override
@@ -318,11 +319,11 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
     public AnimationManager.AnimationAccessor<? extends StaticAnimation> getGuardHitAnimation(DamageSource damageSource){
         //获取随机防御受击动画
+        AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = Animations.EMPTY_ANIMATION;
         CapabilityItem capabilityItem = this.getHoldingItemCapability(InteractionHand.MAIN_HAND);
         WeaponCategory category = capabilityItem.getWeaponCategory();
         Style style = capabilityItem.getStyle(this);
-        AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = Animations.EMPTY_ANIMATION;
-        if(guardHitMotions.get(category) != null && !guardHitMotions.get(category).isEmpty()){
+        if(!guardHitMotions.get(category).isEmpty() && guardHitMotions.get(category) != null){
             int index = original.getRandom().nextInt(0,guardHitMotions.get(category).get(style).size());
             guardHit = guardHitMotions.get(category).get(style).get(index);
         }
@@ -343,10 +344,10 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         return DefaultCombatBehavior.FIST;
     }
 
-    public void setAIAsInfantry() {
+    protected void setAIAsInfantry() {
         CECombatBehaviors.Builder<MobPatch<?>> builder = this.getCustomWeaponMotionBuilder();
         if(builder != null) {
-            this.original.goalSelector.addGoal(0, new CEAnimationAttackGoal<>(this, getCustomWeaponMotionBuilder().build()));
+            this.original.goalSelector.addGoal(0, new CEAnimationAttackGoal<>(this, builder.build()));
             this.original.goalSelector.addGoal(1, new CommonChasingGoal(this, attackRadius));
         }
 
@@ -389,6 +390,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     public void updateHeldItem(CapabilityItem fromCap, CapabilityItem toCap, ItemStack from, ItemStack to, InteractionHand hand) {
         super.initAI();
         this.setAIAsInfantry();
+        this.modifyLivingMotionByCurrentItem();
 
         if (hand == InteractionHand.OFF_HAND) {
             if (!from.isEmpty()) {
@@ -469,57 +471,18 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 });
             }
         }
-        this.modifyLivingMotionByCurrentItem();
-        super.updateHeldItem(fromCap, toCap, from, to, hand);
     }
 
-//    @Override
-//    public void updateHeldItem(CapabilityItem fromCap, CapabilityItem toCap, ItemStack from, ItemStack to, InteractionHand hand) {
-//        super.initAI();
-//        this.setAIAsInfantry();
-//
-//        if (hand == InteractionHand.OFF_HAND) {
-//            if (!from.isEmpty()) {
-//                //Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::removeModifier
-//                from.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(attributeModifier -> {
-//                    AttributeInstance instance = this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get());
-//                    if(instance != null && attributeModifier != null){
-//                        instance.removeModifier(attributeModifier);
-//                    }
-//                });
-//            }
-//            if (!fromCap.isEmpty()) {
-//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::removeModifier);
-//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::removeModifier);
-//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get()))::removeModifier);
-//                fromCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get()))::removeModifier);
-//            }
-//
-//            if (!to.isEmpty()) {
-//                to.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ATTACK_SPEED.get()))::addTransientModifier);
-//            }
-//            if (!toCap.isEmpty()) {
-//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(Attributes.ATTACK_SPEED).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::addTransientModifier);
-//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.ARMOR_NEGATION.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_ARMOR_NEGATION.get()))::addTransientModifier);
-//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.IMPACT.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_IMPACT.get()))::addTransientModifier);
-//                toCap.getAttributeModifiers(EquipmentSlot.MAINHAND, this).get(EpicFightAttributes.MAX_STRIKES.get()).forEach(Objects.requireNonNull(this.original.getAttribute(EpicFightAttributes.OFFHAND_MAX_STRIKES.get()))::addTransientModifier);
-//            }
-//        }
-//
-//        this.modifyLivingMotionByCurrentItem();
-//
-//        super.updateHeldItem(fromCap, toCap, from, to, hand);
-//    }
 
     public void modifyLivingMotionByCurrentItem() {
         Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> oldLivingAnimations = this.getAnimator().getLivingAnimations();
         Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> newLivingAnimations = Maps.newHashMap();
 
-        CapabilityItem mainhandCap = this.getHoldingItemCapability(InteractionHand.MAIN_HAND);
-        CapabilityItem offhandCap = this.getAdvancedHoldingItemCapability(InteractionHand.OFF_HAND);
+        CapabilityItem mainHandCap = this.getHoldingItemCapability(InteractionHand.MAIN_HAND);
+        CapabilityItem offHandCap = this.getAdvancedHoldingItemCapability(InteractionHand.OFF_HAND);
 
-        Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> livingMotionModifiers = new HashMap<>(mainhandCap.getLivingMotionModifier(this, InteractionHand.MAIN_HAND));
-        livingMotionModifiers.putAll(offhandCap.getLivingMotionModifier(this, InteractionHand.OFF_HAND));
+        Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> livingMotionModifiers = new HashMap<>(mainHandCap.getLivingMotionModifier(this, InteractionHand.MAIN_HAND));
+        livingMotionModifiers.putAll(offHandCap.getLivingMotionModifier(this, InteractionHand.OFF_HAND));
 
         boolean hasChange = false;
 
@@ -535,9 +498,9 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
             newLivingAnimations.put(entry.getKey(), aniamtion);
         }
 
-        if (this.weaponLivingMotions.containsKey(mainhandCap.getWeaponCategory())) {
-            Map<Style, Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> byStyle = this.weaponLivingMotions.get(mainhandCap.getWeaponCategory());
-            Style style = mainhandCap.getStyle(this);
+        if (this.weaponLivingMotions.containsKey(mainHandCap.getWeaponCategory())) {
+            Map<Style, Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> byStyle = this.weaponLivingMotions.get(mainHandCap.getWeaponCategory());
+            Style style = mainHandCap.getStyle(this);
 
             if (byStyle.containsKey(style) || byStyle.containsKey(CapabilityItem.Styles.COMMON)) {
                 Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>> animModifierSet = byStyle.getOrDefault(style, byStyle.get(CapabilityItem.Styles.COMMON));
@@ -563,7 +526,9 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
             SPChangeLivingMotion msg = new SPChangeLivingMotion(this.original.getId());
             msg.putEntries(newLivingAnimations.entrySet());
-            EpicFightNetworkManager.sendToAllPlayerTrackingThisEntity(msg, this.original);
+            if(!isLogicalClient()) {
+                EpicFightNetworkManager.sendToAllPlayerTrackingThisEntity(msg, this.original);
+            }
         }
     }
 

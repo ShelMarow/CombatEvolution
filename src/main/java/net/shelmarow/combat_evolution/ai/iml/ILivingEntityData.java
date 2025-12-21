@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.iml;
+package net.shelmarow.combat_evolution.ai.iml;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
@@ -23,7 +23,9 @@ public interface ILivingEntityData {
 //    void combat_evolution$setStunType( StunType stunType);
 //    void combat_evolution$setStunType( int stunType);
     float combat_evolution$getStamina();
+    float combat_evolution$getStamina(LivingEntity entity);
     void combat_evolution$setStamina(float stamina);
+    void combat_evolution$setStamina(LivingEntity entity, float stamina);
 
     StaminaStatus combat_evolution$getStaminaStatus();
     void combat_evolution$setStaminaStatus(StaminaStatus staminaStatus);

@@ -14,7 +14,11 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
+import net.shelmarow.combat_evolution.bossbar.network.packet.S2CRemoveBossDataPacket;
+import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossDataPacket;
+import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateStaminaDataPacket;
 import net.shelmarow.combat_evolution.client.gui.CombatEvolutionConfigScreen;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.config.ClientConfig;
@@ -57,14 +61,16 @@ public class CombatEvolution {
 
     private void constructMod(final FMLConstructModEvent event) {
         event.enqueueWork(() -> {
-            RegisterHUDTypeEvent registerHUDTypeEvent = new RegisterHUDTypeEvent();
-            ModLoader.get().postEvent(registerHUDTypeEvent);
+            ModLoader.get().postEvent(new RegisterHUDTypeEvent());
         });
     }
 
 
     private void commonSetup(final FMLCommonSetupEvent event){
-        event.enqueueWork(CombatEvolution::registerArmatures);
+        event.enqueueWork(()->{
+            CombatEvolution.registerArmatures();
+            ModLoader.get().postEvent(new RegisterCustomExecutionEvent());
+        });
     }
 
     public static void registerArmatures() {
@@ -73,6 +79,11 @@ public class CombatEvolution {
 
     private void registerPackets() {
         int packetId = 0;
+
+        CHANNEL.registerMessage(packetId++, S2CUpdateBossDataPacket.class, S2CUpdateBossDataPacket::encode, S2CUpdateBossDataPacket::decode, S2CUpdateBossDataPacket::handle);
+        CHANNEL.registerMessage(packetId++, S2CUpdateStaminaDataPacket.class, S2CUpdateStaminaDataPacket::encode, S2CUpdateStaminaDataPacket::decode, S2CUpdateStaminaDataPacket::handle);
+        CHANNEL.registerMessage(packetId++, S2CRemoveBossDataPacket.class, S2CRemoveBossDataPacket::encode, S2CRemoveBossDataPacket::decode, S2CRemoveBossDataPacket::handle);
+
         CHANNEL.registerMessage(packetId++, C2STryExecutionPacket.class, C2STryExecutionPacket::encode,C2STryExecutionPacket::decode, C2STryExecutionPacket::handle);
     }
 

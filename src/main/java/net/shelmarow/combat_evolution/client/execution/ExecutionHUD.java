@@ -23,6 +23,7 @@ import net.shelmarow.combat_evolution.key.CEKeyMappings;
 import org.joml.Matrix4f;
 import yesman.epicfight.api.animation.AnimationPlayer;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
+import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
@@ -41,12 +42,9 @@ public class ExecutionHUD {
     private static boolean showExecutionIcon = false;
     private static float timePercent = 1F;
 
-
-    @SuppressWarnings("removal")
     @SubscribeEvent
     public static void onPlayerClientTick(TickEvent.PlayerTickEvent event) {
-        if(event.player.level().isClientSide && event.phase == TickEvent.Phase.END){
-
+        if(event.player.level().isClientSide && event.player == mc.player && event.phase == TickEvent.Phase.END){
             //从配置文件读取当前图标类型
             HUDType hudType = HUDTypeManager.getHUDType(ClientConfig.HUD_TYPE.get());
 
@@ -58,25 +56,22 @@ public class ExecutionHUD {
             }
 
             //判断是否需要显示图标
-            LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
+            LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(mc.player,LocalPlayerPatch.class);
             if(localPlayerPatch != null){
                 LivingEntity target = localPlayerPatch.getTarget();
                 LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target,LivingEntityPatch.class);
                 if(targetPatch != null){
-                    //检测可处决的条件
-                    if(ExecutionHandler.canExecute(event.player, target, targetPatch)){
-                        AnimationPlayer animationPlayer = targetPatch.getAnimator().getPlayerFor(null);
-                        if(animationPlayer != null){
-                            AssetAccessor<? extends DynamicAnimation> currentAnimation = animationPlayer.getAnimation();
-                            AssetAccessor<? extends DynamicAnimation> stunAnimation = targetPatch.getHitAnimation(StunType.NEUTRALIZE);
+                    AnimationPlayer animationPlayer =  targetPatch.getAnimator().getPlayerFor(null);
+                    if (animationPlayer != null) {
+                        AssetAccessor<? extends StaticAnimation> currentAnimation = animationPlayer.getRealAnimation();
+                        //检测可处决的条件
+                        if (ExecutionHandler.isTargetGuardBreak(currentAnimation, targetPatch) && ExecutionHandler.canExecute(mc.player, target, targetPatch)) {
                             //检测是否处于破防状态
-                            if (stunAnimation != null && stunAnimation == currentAnimation) {
-                                float totalTime = currentAnimation.get().getTotalTime();
-                                float currentTime = animationPlayer.getElapsedTime();
-                                timePercent = currentTime / totalTime;
-                                showExecutionIcon = true;
-                                return;
-                            }
+                            float totalTime = currentAnimation.get().getTotalTime();
+                            float currentTime = animationPlayer.getElapsedTime();
+                            timePercent = currentTime / totalTime;
+                            showExecutionIcon = true;
+                            return;
                         }
                     }
                 }
