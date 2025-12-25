@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionAttackAnimation;
+import net.shelmarow.combat_evolution.gameassets.animation.ExecutionHitAnimation;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationEvent;
 import yesman.epicfight.api.animation.property.AnimationProperty;
@@ -33,7 +34,7 @@ public class ExecutionSkillAnimations {
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_DAGGER;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_TACHI;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_GREATSWORD;
-    public static AnimationManager.AnimationAccessor<LongHitAnimation> EXECUTED_FULL;
+    public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void registerAnimations(AnimationManager.AnimationRegistryEvent event) {
@@ -77,7 +78,7 @@ public class ExecutionSkillAnimations {
 
 
         EXECUTED_FULL = builder.nextAccessor("biped/skill/execution/executed_full", accessor ->
-                new LongHitAnimation(0.01F, accessor, Armatures.BIPED)
+                new ExecutionHitAnimation(0.01F, accessor, Armatures.BIPED)
                         .addProperty(AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER, CONSTANT_EXECUTED)
         );
     }

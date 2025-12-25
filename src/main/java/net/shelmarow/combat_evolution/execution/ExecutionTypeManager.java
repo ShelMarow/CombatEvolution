@@ -7,6 +7,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.combat_evolution.gameassets.ExecutionSkillAnimations;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionAttackAnimation;
+import net.shelmarow.combat_evolution.gameassets.animation.ExecutionHitAnimation;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.gameasset.Animations;
@@ -81,13 +82,10 @@ public class ExecutionTypeManager {
     }
 
     public static Type getExecutionTypeByCategory(WeaponCategory weaponCategory){
-        if(CUSTOM_CATEGORY_EXECUTION_MAP.containsKey(weaponCategory)){
-            return CUSTOM_CATEGORY_EXECUTION_MAP.get(weaponCategory);
-        }
-        return CATEGORY_EXECUTION_MAP.getOrDefault(weaponCategory,DEFAULT_TYPE);
+        return CUSTOM_CATEGORY_EXECUTION_MAP.getOrDefault(weaponCategory, CATEGORY_EXECUTION_MAP.getOrDefault(weaponCategory,DEFAULT_TYPE));
     }
 
-    public record Type(AnimationManager.AnimationAccessor<? extends ExecutionAttackAnimation> executionAnimation, AnimationManager.AnimationAccessor<? extends StaticAnimation> executedAnimation, Vec3 offset, float rotationOffset, int totalTick){
+    public record Type(AnimationManager.AnimationAccessor<? extends ExecutionAttackAnimation> executionAnimation, AnimationManager.AnimationAccessor<? extends ExecutionHitAnimation> executedAnimation, Vec3 offset, float rotationOffset, int totalTick){
         /*
             参数说明
             executionAnimation：处决者使用的动画
@@ -96,7 +94,7 @@ public class ExecutionTypeManager {
                 其中x为前后偏移，正数远离
                 y为高度偏移，一般不调整
                 z为左右偏移，左负右正
-            rotationOffset：在传送完之后是否要强制看齐敌人（默认视线是在目标正前方瞄准敌人）
+            rotationOffset：在传送完之后的视线偏移角度
             totalTick：处决持续的总时长
          */
     }

@@ -66,4 +66,9 @@ public class CEPatchUtils {
         ILivingEntityData entityData = (ILivingEntityData) entityPatch;
         return entityData.combat_evolution$getStaminaStatus();
     }
+
+    public static void setStaminaStatus(LivingEntityPatch<?> entityPatch,StaminaStatus staminaStatus){
+        ILivingEntityData entityData = (ILivingEntityData) entityPatch;
+        entityData.combat_evolution$setStaminaStatus(staminaStatus);
+    }
 }

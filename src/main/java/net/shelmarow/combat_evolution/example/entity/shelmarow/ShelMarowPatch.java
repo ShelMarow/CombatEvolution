@@ -28,17 +28,18 @@ public class ShelMarowPatch extends CEHumanoidPatch {
                         Pair.of(LivingMotions.RUN, Animations.BIPED_RUN_SPEAR),
                         Pair.of(LivingMotions.CHASE, Animations.BIPED_RUN_SPEAR),
                         Pair.of(LivingMotions.DEATH, Animations.BIPED_COMMON_NEUTRALIZED)
-                )));
+                ))
+        );
 
         this.guardHitMotions.put(CapabilityItem.WeaponCategories.LONGSWORD,
-                ImmutableMap.of(CapabilityItem.Styles.TWO_HAND,
-                        List.of(
-                                Animations.LONGSWORD_GUARD_ACTIVE_HIT1,
-                                Animations.LONGSWORD_GUARD_ACTIVE_HIT2,
-                                Animations.SWORD_GUARD_ACTIVE_HIT1,
-                                Animations.SWORD_GUARD_ACTIVE_HIT2,
-                                Animations.SWORD_GUARD_ACTIVE_HIT3
-                        )));
+                ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, List.of(
+                        Animations.LONGSWORD_GUARD_ACTIVE_HIT1,
+                        Animations.LONGSWORD_GUARD_ACTIVE_HIT2,
+                        Animations.SWORD_GUARD_ACTIVE_HIT1,
+                        Animations.SWORD_GUARD_ACTIVE_HIT2,
+                        Animations.SWORD_GUARD_ACTIVE_HIT3
+                ))
+        );
 
         this.weaponAttackMotions.put(CapabilityItem.WeaponCategories.LONGSWORD,
                 ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, ShelMarowCombatBehaviors.COMMON));

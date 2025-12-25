@@ -22,7 +22,7 @@ public class ModEventClient {
     @SubscribeEvent
     public static void onPatchedRenderer(PatchedRenderersEvent.Add event){
         event.addPatchedEntityRenderer(CEEntities.SHELMAROW.get(),
-                entityType -> new PHumanoidRenderer<>(Meshes.BIPED_OLD_TEX,event.getContext(), entityType)
+                entityType -> new PHumanoidRenderer<>(Meshes.BIPED_OLD_TEX, event.getContext(), entityType)
                         .initLayerLast(event.getContext(), entityType));
 
     }

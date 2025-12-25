@@ -175,34 +175,6 @@ public class ExecutionHUD {
             BufferUploader.drawWithShader(buf.end());
         }
 
-
-        //绘制进度外框
-//        RenderSystem.setShaderTexture(0, currentHudType.getOutline());
-//        buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_TEX);
-//
-//        float cx = x + iconSize / 2f;
-//        float cy = y + iconSize / 2f;
-//        buf.vertex(matrix, cx, cy, 0).uv(0.5F, 0.5F).endVertex();
-//
-//        int segments = 100;
-//        float filled = 1.0F - timePercent;
-//        float filledAngle = 360.0F * filled;
-//        double startRad = Math.toRadians(90);
-//        double step = Math.toRadians(filledAngle / segments);
-//
-//        for (int i = 0; i <= segments; i++) {
-//            double angle = startRad - step * i;
-//            float cos = (float) Math.cos(angle);
-//            float sin = (float) Math.sin(angle);
-//
-//            float px = cx + cos * iconSize / 2f;
-//            float py = cy - sin * iconSize / 2f;
-//            float u = 0.5F + cos * 0.5F;
-//            float v = 0.5F - sin * 0.5F;
-//
-//            buf.vertex(matrix, px, py, 0).uv(u, v).endVertex();
-//        }
-//        BufferUploader.drawWithShader(buf.end());
         // 绘制进度外框
         float filled = 1.0F - timePercent;
         ResourceLocation progress = currentHudType.getProgress();

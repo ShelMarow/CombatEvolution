@@ -2,10 +2,29 @@ package net.shelmarow.combat_evolution.effect;
 
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import org.jetbrains.annotations.NotNull;
+import yesman.epicfight.compat.controlify.EpicFightControlifyBindContexts;
+import yesman.epicfight.world.effect.EpicFightMobEffects;
 
 public class CECommonEffect extends MobEffect {
 
     public CECommonEffect(MobEffectCategory pCategory, int pColor) {
         super(pCategory, pColor);
+    }
+
+    @Override
+    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+        if(this == CEMobEffects.FULL_STUN_IMMUNITY.get()){
+            pLivingEntity.addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(),5));
+        }
+    }
+
+    @Override
+    public boolean isDurationEffectTick(int pDuration, int pAmplifier) {
+        return true;
     }
 }

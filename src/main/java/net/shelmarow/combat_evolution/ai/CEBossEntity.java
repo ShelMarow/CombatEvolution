@@ -12,7 +12,8 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 public abstract class CEBossEntity extends PathfinderMob {
 
-    private final CEBossEvent ceBossEvent = new CEBossEvent(getDisplayName());
+    protected final CEBossEvent ceBossEvent = new CEBossEvent(getDisplayName());
+    protected LivingEntityPatch<?> cePatch = null;
 
     protected CEBossEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -23,22 +24,22 @@ public abstract class CEBossEntity extends PathfinderMob {
     public void tick() {
         super.tick();
         this.ceBossEvent.setProgress(this.getHealth() / this.getMaxHealth());
-        LivingEntityPatch<?> entityPatch = EpicFightCapabilities.getEntityPatch(this,LivingEntityPatch.class);
-        if (entityPatch != null) {
-            ceBossEvent.setStaminaStatus(CEPatchUtils.getStaminaStatus(entityPatch));
-            ceBossEvent.setStamina(CEPatchUtils.getStaminaPercent(entityPatch));
+        if(cePatch == null) {
+            cePatch = EpicFightCapabilities.getEntityPatch(this, LivingEntityPatch.class);
+        }
+        if (cePatch != null) {
+            ceBossEvent.setStaminaStatus(CEPatchUtils.getStaminaStatus(cePatch));
+            ceBossEvent.setStamina(CEPatchUtils.getStaminaPercent(cePatch));
         }
     }
 
     @Override
     public void startSeenByPlayer(@NotNull ServerPlayer pPlayer) {
-        super.startSeenByPlayer(pPlayer);
         this.ceBossEvent.addPlayer(pPlayer);
     }
 
     @Override
     public void stopSeenByPlayer(@NotNull ServerPlayer pPlayer) {
-        super.stopSeenByPlayer(pPlayer);
         this.ceBossEvent.removePlayer(pPlayer);
     }
 

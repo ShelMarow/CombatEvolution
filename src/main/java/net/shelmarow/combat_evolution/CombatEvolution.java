@@ -16,6 +16,8 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
+import net.shelmarow.combat_evolution.bgm.network.S2CRemoveMusicPacket;
+import net.shelmarow.combat_evolution.bgm.network.S2CRequestMusicPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CRemoveBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateStaminaDataPacket;
@@ -83,6 +85,8 @@ public class CombatEvolution {
         CHANNEL.registerMessage(packetId++, S2CUpdateBossDataPacket.class, S2CUpdateBossDataPacket::encode, S2CUpdateBossDataPacket::decode, S2CUpdateBossDataPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CUpdateStaminaDataPacket.class, S2CUpdateStaminaDataPacket::encode, S2CUpdateStaminaDataPacket::decode, S2CUpdateStaminaDataPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRemoveBossDataPacket.class, S2CRemoveBossDataPacket::encode, S2CRemoveBossDataPacket::decode, S2CRemoveBossDataPacket::handle);
+        CHANNEL.registerMessage(packetId++, S2CRequestMusicPacket.class, S2CRequestMusicPacket::encode, S2CRequestMusicPacket::decode, S2CRequestMusicPacket::handle);
+        CHANNEL.registerMessage(packetId++, S2CRemoveMusicPacket.class, S2CRemoveMusicPacket::encode, S2CRemoveMusicPacket::decode, S2CRemoveMusicPacket::handle);
 
         CHANNEL.registerMessage(packetId++, C2STryExecutionPacket.class, C2STryExecutionPacket::encode,C2STryExecutionPacket::decode, C2STryExecutionPacket::handle);
     }

@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.bossbar;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.LerpingBossEvent;
 import net.minecraft.network.chat.Component;
@@ -30,7 +31,7 @@ public class RenderCEBossBarEvent {
             if (bossData.displayType.equals("[CE:DefaultType]")) {
                 event.setCanceled(true);
 
-                Minecraft mc = Minecraft.getInstance();
+                Font font = Minecraft.getInstance().font;
                 GuiGraphics guiGraphics = event.getGuiGraphics();
 
                 int x = event.getX();
@@ -56,9 +57,9 @@ public class RenderCEBossBarEvent {
                 }
 
                 //绘制名称
-                guiGraphics.drawString(mc.font, displayName, x + 91 - mc.font.width(displayName) / 2, y - mc.font.lineHeight + 2, 0xFFFFFF, true);
+                guiGraphics.drawString(font, displayName, x + 91 - font.width(displayName) / 2, y - font.lineHeight + 2, 0xFFFFFF, true);
 
-                event.setIncrement(20 + mc.font.lineHeight);
+                event.setIncrement(20 + font.lineHeight);
             }
         }
     }

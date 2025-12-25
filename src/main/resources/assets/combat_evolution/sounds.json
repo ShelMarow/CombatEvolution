@@ -1,0 +1,8 @@
+{
+  "music.test_bgm": {
+    "category": "master",
+    "sounds": [
+      {"name": "combat_evolution:music/ce_test_bgm","stream":true}
+    ]
+  }
+}

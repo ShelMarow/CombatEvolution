@@ -36,7 +36,6 @@ import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.network.EpicFightNetworkManager;
-import yesman.epicfight.network.server.SPAnimatorControl;
 import yesman.epicfight.network.server.SPChangeLivingMotion;
 import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.world.capabilities.entitypatch.Factions;
@@ -131,7 +130,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 }
                 //如果耐力归零，切换至破防状态
                 if(currentStamina <= 0){
-                    entityData.combat_evolution$setStaminaStatus(StaminaStatus.BREAK);
+                    CEPatchUtils.setStaminaStatus(this, StaminaStatus.BREAK);
                 }
                 //如果有耐力回复属性，则在一段时间未行动时回复耐力
                 else if(original.getAttribute(EpicFightAttributes.STAMINA_REGEN.get()) != null){
@@ -140,7 +139,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                     }
                     else if(original.tickCount - lastActionTime > staminaRegenDelay && currentStamina < maxStamina){
                         float regenSpeed = (float) original.getAttributeValue(EpicFightAttributes.STAMINA_REGEN.get());
-                        entityData.combat_evolution$setStamina(currentStamina + maxStamina * 0.01F * regenSpeed);
+                        CEPatchUtils.setStamina(this, currentStamina + maxStamina * 0.01F * regenSpeed);
                     }
                 }
             }
@@ -150,7 +149,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 //破防状态下，等待一段时间，然后切换至恢复状态
                 if(staminaStatus == StaminaStatus.BREAK){
                     if(recoverTickCount >= breakTime){
-                        entityData.combat_evolution$setStaminaStatus(StaminaStatus.RECOVER);
+                        CEPatchUtils.setStaminaStatus(this, StaminaStatus.RECOVER);
                     }
                 }
                 //恢复状态下，持续恢复耐力值，恢复满后切换至普通状态
@@ -159,7 +158,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                     currentStamina = Mth.lerp(progress,0,maxStamina);
                     entityData.combat_evolution$setStamina(currentStamina);
                     if(progress == 1F){
-                        entityData.combat_evolution$setStaminaStatus(StaminaStatus.COMMON);
+                        CEPatchUtils.setStaminaStatus(this, StaminaStatus.COMMON);
                     }
                 }
             }
@@ -256,7 +255,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     public void playGuardHitAnimation(DamageSource damageSource, boolean canCounter){
         //播放防御动画
         AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = getGuardHitAnimation(damageSource);
-        this.playAnimationSynchronized(guardHit,0F, SPAnimatorControl::new);
+        this.playAnimationSynchronized(guardHit,0F);
         playGuardHitSound();
     }
 
@@ -284,7 +283,8 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
             }
         }
 
-        //播放动画
+        //切换状态，并进入硬直
+        CEPatchUtils.setStaminaStatus(this, StaminaStatus.BREAK);
         if(this.applyStun(StunType.NEUTRALIZE, 0F)){
             original.forceAddEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 100), original);
 
@@ -319,15 +319,19 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
     public AnimationManager.AnimationAccessor<? extends StaticAnimation> getGuardHitAnimation(DamageSource damageSource){
         //获取随机防御受击动画
-        AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = Animations.EMPTY_ANIMATION;
         CapabilityItem capabilityItem = this.getHoldingItemCapability(InteractionHand.MAIN_HAND);
         WeaponCategory category = capabilityItem.getWeaponCategory();
         Style style = capabilityItem.getStyle(this);
-        if(!guardHitMotions.get(category).isEmpty() && guardHitMotions.get(category) != null){
-            int index = original.getRandom().nextInt(0,guardHitMotions.get(category).get(style).size());
-            guardHit = guardHitMotions.get(category).get(style).get(index);
+
+        List<AnimationManager.AnimationAccessor<? extends StaticAnimation>> list =
+                guardHitMotions.getOrDefault(category, new HashMap<>()).getOrDefault(style, new ArrayList<>());
+
+        if(list != null && !list.isEmpty()){
+            int index = original.getRandom().nextInt(0, list.size());
+            return list.get(index);
         }
-        return guardHit;
+
+        return Animations.EMPTY_ANIMATION;
     }
 
     protected abstract void setWeaponMotions();
@@ -532,6 +536,15 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         }
     }
 
+
+    @Override
+    public boolean applyStun(StunType stunType, float stunTime) {
+        if(CEPatchUtils.getStaminaStatus(this) != StaminaStatus.BREAK && stunType == StunType.NEUTRALIZE){
+            stunType = StunType.LONG;
+        }
+        return super.applyStun(stunType, stunTime);
+    }
+
     @Override
     public AnimationManager.AnimationAccessor<? extends StaticAnimation> getHitAnimation(StunType stunType) {
         switch (stunType) {
@@ -544,11 +557,11 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
             case KNOCKDOWN -> {
                 return Animations.BIPED_KNOCKDOWN;
             }
-            case NEUTRALIZE -> {
-                return Animations.BIPED_COMMON_NEUTRALIZED;
-            }
             case FALL -> {
                 return Animations.BIPED_LANDING;
+            }
+            case NEUTRALIZE -> {
+                return Animations.BIPED_COMMON_NEUTRALIZED;
             }
             default -> {
                 return null;
