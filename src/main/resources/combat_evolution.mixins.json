@@ -10,8 +10,11 @@
   "mixins": [
     "AnimationPlayerMixin",
     "AvalonAttackAnimationMixin",
+    "CustomHumanoidMobPatchMixin",
+    "CustomMobPatchMixin",
     "EFAttackAnimation",
     "EFLivingEntityPatch",
+    "EpicFightDamageSourceMixin",
     "GuardSkillInvoker",
     "GuardSkillMixin",
     "LivingEntityPatchMixin",

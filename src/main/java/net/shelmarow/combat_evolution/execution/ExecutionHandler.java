@@ -118,7 +118,7 @@ public class ExecutionHandler {
     }
 
     public static boolean isExecutingTarget(LivingEntity executor, LivingEntity target) {
-        return !EXECUTION_TARGETS.containsKey(target) && !EXECUTION_TARGETS.containsKey(executor);
+        return EXECUTION_TARGETS.containsKey(target) || EXECUTION_TARGETS.containsKey(executor);
     }
 
 
@@ -274,7 +274,7 @@ public class ExecutionHandler {
     }
 
     public static boolean canExecute(Player player, LivingEntity entity, LivingEntityPatch<?> entityPatch) {
-        return player.isAlive() && entity.isAlive() && isExecutingTarget(player, entity) && isTargetSupported(entityPatch) &&
+        return player.isAlive() && entity.isAlive() && !isExecutingTarget(player, entity) && isTargetSupported(entityPatch) &&
                 isHoldingWeapon(player) && targetIsInRange(player, entity,0, EXECUTION_DISTANCE,180);
     }
 

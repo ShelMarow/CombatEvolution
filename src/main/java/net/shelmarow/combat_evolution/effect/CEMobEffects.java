@@ -13,4 +13,10 @@ public class CEMobEffects {
     public static final RegistryObject<MobEffect> FULL_STUN_IMMUNITY =
             EFFECTS.register("full_stun_immunity",() -> new CECommonEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
 
+    public static final RegistryObject<MobEffect> BYPASS_DODGE_EFFECT =
+            EFFECTS.register("bypass_dodge_effect",() -> new CECommonEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
+
+    public static final RegistryObject<MobEffect> BYPASS_GUARD_EFFECT =
+            EFFECTS.register("bypass_guard_effect",() -> new CECommonEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
+
 }

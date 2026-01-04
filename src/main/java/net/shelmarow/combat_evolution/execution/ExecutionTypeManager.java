@@ -22,25 +22,25 @@ public class ExecutionTypeManager {
 
     public static final Type DEFAULT_TYPE =
             new Type(
-                    ExecutionSkillAnimations.EXECUTION_SWORD,ExecutionSkillAnimations.EXECUTED_FULL,
+                    ExecutionSkillAnimations.EXECUTION_SWORD, ExecutionSkillAnimations.EXECUTED_FULL,
                     new Vec3(1.35,0,0),-10,100
             );
 
     public static final Type DAGGER_TYPE =
             new Type(
-                    ExecutionSkillAnimations.EXECUTION_DAGGER,ExecutionSkillAnimations.EXECUTED_FULL,
+                    ExecutionSkillAnimations.EXECUTION_DAGGER, ExecutionSkillAnimations.EXECUTED_FULL,
                     new Vec3(0.65,0,0),-30,100
             );
 
     public static final Type TACHI_TYPE =
             new Type(
-                    ExecutionSkillAnimations.EXECUTION_TACHI,ExecutionSkillAnimations.EXECUTED_FULL,
+                    ExecutionSkillAnimations.EXECUTION_TACHI, ExecutionSkillAnimations.EXECUTED_FULL,
                     new Vec3(1.35,0,0),-30,100
             );
 
     public static final Type GREATSWORD_TYPE =
             new Type(
-                    ExecutionSkillAnimations.EXECUTION_GREATSWORD,ExecutionSkillAnimations.EXECUTED_FULL,
+                    ExecutionSkillAnimations.EXECUTION_GREATSWORD, ExecutionSkillAnimations.EXECUTED_FULL,
                     new Vec3(1.35,0,-0.4),-23F,100
             );
 

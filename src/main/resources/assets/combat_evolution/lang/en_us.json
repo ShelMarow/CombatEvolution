@@ -1,5 +1,7 @@
 {
   "effect.combat_evolution.full_stun_immunity": "Full Stun Immunity",
+  "effect.combat_evolution.bypass_dodge_effect": "Bypass Dodge",
+  "effect.combat_evolution.bypass_guard_effect": "Bypass Guard",
   "hud.combat_evolution.execution_tooltip": "Aim target and\npress [%s]",
   "text.combat_evolution.not_available_pos": "Location is not standing or have not enough space",
   "death.attack.execution": "%1&s was executed",

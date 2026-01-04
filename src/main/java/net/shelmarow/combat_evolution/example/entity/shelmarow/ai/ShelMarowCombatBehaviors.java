@@ -1,5 +1,7 @@
 package net.shelmarow.combat_evolution.example.entity.shelmarow.ai;
 
+import com.hm.efn.gameasset.animations.EFNClawAnimations_N;
+import com.hm.efn.gameasset.animations.EFNShortSwordAnimations;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
@@ -13,9 +15,13 @@ import net.shelmarow.combat_evolution.ai.event.HitEvent;
 import net.shelmarow.combat_evolution.ai.event.TimeEvent;
 import net.shelmarow.combat_evolution.ai.params.AnimationParams;
 import net.shelmarow.combat_evolution.ai.params.PhaseParams;
+import net.shelmarow.combat_evolution.ai.util.CEParticleUtils;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.client.particle.follow.CEFollowParticleOptions;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
+import reascer.wom.gameasset.WOMAnimations;
+import reascer.wom.gameasset.animations.weapons.AnimsSatsujin;
+import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
@@ -116,7 +122,7 @@ public class ShelMarowCombatBehaviors {
                                         .withinDistance(0,6)
                                         .animationBehavior(Animations.TACHI_AUTO2,0F)
                                         .addHitEvent(
-                                                new HitEvent(0,(mobPatch, entity) -> {
+                                                new HitEvent(0, (mobPatch, entity) -> {
                                                     mobPatch.getOriginal().addEffect(new MobEffectInstance(MobEffects.GLOWING,20));
                                                     if(entity instanceof LivingEntity livingEntity){
                                                         livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,100,3));
@@ -147,13 +153,7 @@ public class ShelMarowCombatBehaviors {
                                                 )
                                                 .addExBehavior(mobPatch -> {
                                                     mobPatch.playSound(SoundEvents.ANVIL_LAND,0,0);
-                                                    if(mobPatch.getTarget() != null) {
-                                                        Vec3 targetPos = mobPatch.getTarget().position();
-                                                        int entityID = mobPatch.getOriginal().getId();
-                                                        Vec3 offset = new Vec3(0, 1, 0);
-                                                        ParticleOptions options = new CEFollowParticleOptions(CEParticles.BYPASS_DODGE_WARNING.get(), entityID, offset);
-                                                        ((ServerLevel) mobPatch.getOriginal().level()).sendParticles(options, targetPos.x, targetPos.y, targetPos.z, 1, 0, 0, 0, 1);
-                                                    }
+                                                    CEParticleUtils.spawnWarningParticle(CEParticles.BYPASS_DODGE_WARNING.get(), mobPatch.getTarget(), new Vec3(0,1.25,0));
                                                 })
 
                                                 .addNextBehavior(CECombatBehaviors.Behavior.builder()

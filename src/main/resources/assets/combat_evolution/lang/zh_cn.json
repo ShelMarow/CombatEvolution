@@ -1,5 +1,7 @@
 {
   "effect.combat_evolution.full_stun_immunity": "完全霸体",
+  "effect.combat_evolution.bypass_dodge_effect": "无视闪避",
+  "effect.combat_evolution.bypass_guard_effect": "无视防御",
   "hud.combat_evolution.execution_tooltip": "瞄准敌人并按下 [%s]",
   "text.combat_evolution.not_available_pos": "处决位置无法站立或没有足够空间",
   "death.attack.execution": "%1&s 被处决了",

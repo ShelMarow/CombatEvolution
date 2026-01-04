@@ -39,7 +39,7 @@ public abstract class AvalonAttackAnimationMixin extends BasicAttackAnimation{
 
     @Unique
     private int combatEvolution$getCurrentPhaseOrder(AttackAnimation.Phase[] phases, AttackAnimation.Phase phase) {
-        return Arrays.stream(phases).toList().indexOf(phase);
+        return List.of(phases).indexOf(phase);
     }
 
     @Inject(
@@ -59,7 +59,6 @@ public abstract class AvalonAttackAnimationMixin extends BasicAttackAnimation{
             CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
             if(current != null && current.shouldExecuteHitEvent()){
                 int currentPhase = combatEvolution$getCurrentPhaseOrder(this.phases, phase);
-
                 current.executeHitEvent(currentPhase,attackResult.resultType,ceHumanoidPatch,target);
             }
         }

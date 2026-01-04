@@ -5,6 +5,7 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
+import net.shelmarow.combat_evolution.ai.iml.IDamageSourceData;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
@@ -12,7 +13,6 @@ import net.shelmarow.combat_evolution.ai.params.PhaseParams;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -37,11 +37,6 @@ public abstract class EFAttackAnimation extends StaticAnimation {
     @Final
     public AttackAnimation.Phase[] phases;
 
-    @Unique
-    private int combatEvolution$getCurrentPhaseOrder(AttackAnimation.Phase[] phases, AttackAnimation.Phase phase) {
-        return Arrays.stream(phases).toList().indexOf(phase);
-    }
-
     @Inject(
             method = "getEpicFightDamageSource(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lnet/minecraft/world/entity/Entity;Lyesman/epicfight/api/animation/types/AttackAnimation$Phase;)Lyesman/epicfight/world/damagesource/EpicFightDamageSource;",
             at = @At(value = "RETURN"),
@@ -49,13 +44,17 @@ public abstract class EFAttackAnimation extends StaticAnimation {
             remap = false
     )
     private void onGetDamageSource(LivingEntityPatch<?> entityPatch, Entity target, AttackAnimation.Phase phase, CallbackInfoReturnable<EpicFightDamageSource> cir){
+        //拿到原来的伤害源，并加上Phase参数
+        EpicFightDamageSource returnValue = cir.getReturnValue();
+        IDamageSourceData sourceData = (IDamageSourceData) returnValue;
+        sourceData.setSourcePhase(phase);
+
+        //如果是CE实体，尝试应用行为中存放的伤害参数
         if (entityPatch instanceof CEHumanoidPatch) {
-
             Map<Integer, PhaseParams> phaseParamsMap = BehaviorUtils.getPhaseParams(entityPatch);
-
             if (!phaseParamsMap.isEmpty()) {
                 //获取当前Phase可用的参数
-                int currentPhase = this.combatEvolution$getCurrentPhaseOrder(this.phases, phase);
+                int currentPhase = List.of(this.phases).indexOf(phase);
                 PhaseParams params = phaseParamsMap.containsKey(currentPhase) ? phaseParamsMap.get(currentPhase) : phaseParamsMap.get(-1);
 
                 int stunIndex = params.getStunType();
@@ -63,8 +62,6 @@ public abstract class EFAttackAnimation extends StaticAnimation {
                 float impact = params.getImpactMultiplier();
                 float armorNegation = params.getArmorNegationMultiplier();
                 Set<TagKey<DamageType>> sourceTag = params.getDamageSource();
-
-                EpicFightDamageSource returnValue = cir.getReturnValue();
 
                 if (stunIndex != -1) {
                     StunType stunType = StunType.values()[stunIndex];
@@ -75,10 +72,10 @@ public abstract class EFAttackAnimation extends StaticAnimation {
                 returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
                 returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
                 sourceTag.forEach(returnValue::addRuntimeTag);
-
-                cir.setReturnValue(returnValue);
             }
         }
+
+        cir.setReturnValue(returnValue);
     }
 
 
@@ -98,7 +95,7 @@ public abstract class EFAttackAnimation extends StaticAnimation {
         if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
             CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
             if(current != null && current.shouldExecuteHitEvent()){
-                int currentPhase = this.combatEvolution$getCurrentPhaseOrder(this.phases,phase);
+                int currentPhase = List.of(this.phases).indexOf(phase);
                 current.executeHitEvent(currentPhase,attackResult.resultType,ceHumanoidPatch,target);
             }
         }

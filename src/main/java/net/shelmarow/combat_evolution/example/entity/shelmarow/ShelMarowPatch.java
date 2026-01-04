@@ -41,7 +41,9 @@ public class ShelMarowPatch extends CEHumanoidPatch {
                 ))
         );
 
-        this.weaponAttackMotions.put(CapabilityItem.WeaponCategories.LONGSWORD,
-                ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, ShelMarowCombatBehaviors.COMMON));
+        this.weaponAttackMotions.put(
+                CapabilityItem.WeaponCategories.LONGSWORD,
+                ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, ShelMarowCombatBehaviors.COMMON)
+        );
     }
 }

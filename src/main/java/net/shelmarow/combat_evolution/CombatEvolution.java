@@ -4,7 +4,10 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -23,6 +26,7 @@ import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossDataPa
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateStaminaDataPacket;
 import net.shelmarow.combat_evolution.client.gui.CombatEvolutionConfigScreen;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
+import net.shelmarow.combat_evolution.command.CEParticleCommand;
 import net.shelmarow.combat_evolution.config.ClientConfig;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.example.entity.CEEntities;
@@ -45,6 +49,7 @@ public class CombatEvolution {
 
     public CombatEvolution(FMLJavaModLoadingContext context){
         IEventBus modEventBus = context.getModEventBus();
+        MinecraftForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::constructMod);
         modEventBus.addListener(this::commonSetup);
 
@@ -89,6 +94,12 @@ public class CombatEvolution {
         CHANNEL.registerMessage(packetId++, S2CRemoveMusicPacket.class, S2CRemoveMusicPacket::encode, S2CRemoveMusicPacket::decode, S2CRemoveMusicPacket::handle);
 
         CHANNEL.registerMessage(packetId++, C2STryExecutionPacket.class, C2STryExecutionPacket::encode,C2STryExecutionPacket::decode, C2STryExecutionPacket::handle);
+    }
+
+
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+        CEParticleCommand.register(event.getDispatcher());
     }
 
 }

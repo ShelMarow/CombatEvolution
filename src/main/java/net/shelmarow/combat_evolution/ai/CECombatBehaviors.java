@@ -648,10 +648,19 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return shouldExecuteHitEvent;
         }
 
+        //Mixin内调用
         public void executeHitEvent(int phase, AttackResult.ResultType resultType, MobPatch<?> mobPatch, Entity target){
             if(shouldExecuteHitEvent && !this.hitEventList.isEmpty()) {
                 for(HitEvent event : this.hitEventList){
                     event.executeHitEvent(phase,resultType,mobPatch,target);
+                }
+            }
+        }
+
+        public void executeHitEvent(int phase, MobPatch<?> mobPatch, Entity target){
+            if(shouldExecuteHitEvent && !this.hitEventList.isEmpty()) {
+                for(HitEvent event : this.hitEventList){
+                    event.executeHitEvent(phase,mobPatch,target);
                 }
             }
         }
