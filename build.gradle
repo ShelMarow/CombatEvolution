@@ -73,15 +73,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     implementation fg.deobf("curse.maven:epic-fight-mod-405076:7345468-sources-7345469")
-
-    //implementation fg.deobf('libs:betterlockon:1.1.3')
-    //implementation fg.deobf('libs:epicfightx:1.0.0')
-
-    implementation fg.deobf('libs:wom:20.2.0.9')
-
-    implementation fg.deobf('libs:epic_fight_avalon:20.12.4')
-    implementation fg.deobf('libs:invincible:20.14.6.4.2')
-    implementation fg.deobf("libs:Nightfall:2.4")
+    compileOnly('libs:epic_fight_avalon:20.12.4')
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'

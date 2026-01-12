@@ -3,9 +3,9 @@ package net.shelmarow.combat_evolution.mixins;
 import com.merlin204.avalon.epicfight.animations.AvalonAttackAnimation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
+import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -26,7 +26,6 @@ import yesman.epicfight.api.utils.HitEntityList;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Mixin(value = AvalonAttackAnimation.class)

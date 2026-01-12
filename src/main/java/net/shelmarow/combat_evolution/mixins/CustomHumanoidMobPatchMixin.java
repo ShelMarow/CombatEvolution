@@ -10,7 +10,6 @@ import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.world.capabilities.entitypatch.CustomHumanoidMobPatch;
-import yesman.epicfight.world.capabilities.entitypatch.CustomMobPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.Map;

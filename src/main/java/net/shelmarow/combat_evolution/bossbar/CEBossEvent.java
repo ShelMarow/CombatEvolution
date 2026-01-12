@@ -1,10 +1,8 @@
 package net.shelmarow.combat_evolution.bossbar;
 
-import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.bossbar.network.CEBossNetworkHandler;
 import org.jetbrains.annotations.NotNull;
