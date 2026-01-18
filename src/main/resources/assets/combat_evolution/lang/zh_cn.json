@@ -7,5 +7,11 @@
   "death.attack.execution": "%1&s 被处决了",
   "key.categories.combat_evolution": "战斗进化",
   "key.combat_evolution.execution": "处决",
-  "entity.combat_evolution.shelmarow": "ShelMarow"
+  "entity.combat_evolution.shelmarow": "ShelMarow (测试用生物)",
+  "config.combat_evolution.client_config": "战斗进化 客户端配置",
+  "config.combat_evolution.play_music": "播放音乐:",
+  "config.combat_evolution.hud_type": "处决HUD类型:",
+  "config.combat_evolution.icon_display": "处决图标显示",
+  "config.combat_evolution.text_display": "处决文本提示:",
+  "hud.combat_evolution.execution_disabled": "处决功能未开启!"
 }

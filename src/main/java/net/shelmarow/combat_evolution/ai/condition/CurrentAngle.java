@@ -10,11 +10,11 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import java.util.List;
 
 public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
-    private String side;
+    private TargetSide side;
     private double degreeFirst;
     private double degreeSecond;
 
-    public CurrentAngle(String side, double degreeFirst, double degreeSecond) {
+    public CurrentAngle(TargetSide side, double degreeFirst, double degreeSecond) {
         this.side = side;
         this.degreeFirst = degreeFirst;
         this.degreeSecond = degreeSecond;
@@ -26,7 +26,7 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
 
     @Override
     public Condition<LivingEntityPatch<?>> read(CompoundTag tag){
-        this.side = tag.getString("side");
+        this.side = TargetSide.valueOf(tag.getString("side").toUpperCase());
         this.degreeFirst = tag.getDouble("first");
         this.degreeSecond = tag.getDouble("second");
         return this;
@@ -35,7 +35,7 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
     @Override
     public CompoundTag serializePredicate(){
         CompoundTag tag = new CompoundTag();
-        tag.putString("side", this.side);
+        tag.putString("side", this.side.toString().toUpperCase());
         tag.putDouble("first", this.degreeFirst);
         tag.putDouble("second", this.degreeSecond);
         return tag;
@@ -63,11 +63,7 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
         Vec3 lookVec = observer.getLookAngle().normalize();
         lookVec = new Vec3(lookVec.x, 0, lookVec.z).normalize(); // 只取水平分量
 
-        Vec3 toTarget = new Vec3(
-                target.getX() - observer.getX(),
-                0,
-                target.getZ() - observer.getZ()
-        ).normalize();
+        Vec3 toTarget = new Vec3(target.getX() - observer.getX(), 0, target.getZ() - observer.getZ()).normalize();
 
         // 计算夹角 (0~180)
         double dot = lookVec.dot(toTarget);
@@ -78,10 +74,15 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
         double crossY = lookVec.cross(toTarget).y;
         if (crossY > 0) {
             return -angle; // 左侧
-        } else if (crossY < 0) {
+        }
+        else if (crossY < 0) {
             return angle; // 右侧
-        } else {
-            return 0; // 正前/正后
+        }
+        else if (dot < 0) {
+            return 180;
+        }
+        else {
+            return 0; // 正前
         }
     }
 
@@ -93,14 +94,13 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
      * @param startAngle 区间起始角度（0~180）
      * @param endAngle 区间结束角度（0~180）
      */
-    public static boolean isInSideAngleRange(LivingEntity observer, LivingEntity target,
-                                             String side, double startAngle, double endAngle) {
+    public static boolean isInSideAngleRange(LivingEntity observer, LivingEntity target, TargetSide side, double startAngle, double endAngle) {
         double angle = getSideAngle(observer, target);
         double absAngle = Math.abs(angle);
 
-        if ("left".equalsIgnoreCase(side) && angle < 0) {
+        if (side == TargetSide.LEFT && angle < 0) {
             return isAngleInRange(absAngle, startAngle, endAngle);
-        } else if ("right".equalsIgnoreCase(side) && angle > 0) {
+        } else if (side == TargetSide.RIGHT && angle > 0) {
             return isAngleInRange(absAngle, startAngle, endAngle);
         }
         return false;
@@ -116,6 +116,11 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
             // 跨越的情况，例如 150~30（150→0→30）
             return angle >= start || angle <= end;
         }
+    }
+
+    public enum TargetSide{
+        LEFT,
+        RIGHT;
     }
 
 }

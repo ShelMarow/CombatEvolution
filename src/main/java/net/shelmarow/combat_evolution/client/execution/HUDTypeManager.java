@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.client.execution.types.HUDType;
-import net.shelmarow.combat_evolution.config.ClientConfig;
+import net.shelmarow.combat_evolution.config.CEClientConfig;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +20,8 @@ public class HUDTypeManager {
     }
 
     public static void setHUDType(String newType) {
-        ClientConfig.HUD_TYPE.set(newType);
-        ClientConfig.CLIENT_SPEC.save();
+        CEClientConfig.HUD_TYPE.set(newType);
+        CEClientConfig.CLIENT_SPEC.save();
     }
 
     public static HUDType getHUDType(String typeName) {

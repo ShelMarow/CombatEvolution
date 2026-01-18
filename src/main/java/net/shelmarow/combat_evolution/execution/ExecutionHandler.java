@@ -25,6 +25,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
+import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.mixins.GuardSkillInvoker;
 import net.shelmarow.combat_evolution.tickTask.TickTaskManager;
@@ -123,6 +124,11 @@ public class ExecutionHandler {
 
 
     public static boolean tryExecute(ServerPlayer player){
+        if(!CECommonConfig.ENABLED_EXECUTION.get()) {
+            //player.sendSystemMessage(Component.translatable("hud.combat_evolution.execution_disabled"));
+            return false;
+        }
+
         //获取视线上的第一个实体
         LivingEntity livingEntity = getEntityLookedAt(player,EXECUTION_DISTANCE);
 

@@ -1259,7 +1259,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
-            public Builder<T> withinCurrentAngle(String side,double degreeFirst, double degreeSecond) {
+            public Builder<T> withinCurrentAngle(CurrentAngle.TargetSide side, double degreeFirst, double degreeSecond) {
                 this.condition(new CurrentAngle(side,degreeFirst, degreeSecond));
                 return this;
             }

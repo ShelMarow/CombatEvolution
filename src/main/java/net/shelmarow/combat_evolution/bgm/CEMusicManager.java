@@ -5,6 +5,7 @@ import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.shelmarow.combat_evolution.config.CEClientConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,6 +113,9 @@ public class CEMusicManager {
             }
         }
 
+        if(!CEClientConfig.PLAY_CE_MUSIC.get()) {
+            currentPlay.getSound().adjustVolume(currentPlay.getSound().getVolume() * 0F);
+        }
     }
 
     protected static void clearAllMusic(){

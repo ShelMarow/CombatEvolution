@@ -154,6 +154,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 }
                 //恢复状态下，持续恢复耐力值，恢复满后切换至普通状态
                 else if (staminaStatus == StaminaStatus.RECOVER) {
+                    original.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 1, 0, false, false, false));
                     float progress = Mth.clamp((float) (recoverTickCount - breakTime) / recoverTime,0F,1F);
                     currentStamina = Mth.lerp(progress,0,maxStamina);
                     entityData.combat_evolution$setStamina(currentStamina);
@@ -266,6 +267,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
             CEPatchUtils.setStamina(this,stamina - amount);
             if (amount >= stamina) {
                 onBreak(damageSource);
+                CEPatchUtils.setStaminaStatus(this, StaminaStatus.BREAK);
                 return true;
             }
         }
@@ -284,7 +286,6 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         }
 
         //切换状态，并进入硬直
-        CEPatchUtils.setStaminaStatus(this, StaminaStatus.BREAK);
         if(this.applyStun(StunType.NEUTRALIZE, 0F)){
             original.forceAddEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 100), original);
 
@@ -539,7 +540,10 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
     @Override
     public boolean applyStun(StunType stunType, float stunTime) {
-        if(CEPatchUtils.getStaminaStatus(this) != StaminaStatus.BREAK && stunType == StunType.NEUTRALIZE){
+        if(CEPatchUtils.getStaminaStatus(this) == StaminaStatus.RECOVER){
+            return false;
+        }
+        if (stunType == StunType.NEUTRALIZE && (CEPatchUtils.getStamina(this) != 0 || CEPatchUtils.getStaminaStatus(this) != StaminaStatus.COMMON)) {
             stunType = StunType.LONG;
         }
         return super.applyStun(stunType, stunTime);

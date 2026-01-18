@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.client.gui;
+package net.shelmarow.combat_evolution.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.client.execution.HUDTypeManager;
-import net.shelmarow.combat_evolution.config.ClientConfig;
+import net.shelmarow.combat_evolution.config.CEClientConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -21,8 +21,8 @@ import java.util.Locale;
 public class CombatEvolutionConfigScreen extends Screen {
     private final Screen parent;
     private EditBox inputBox;
-    private Button textDisplayButton;
-    private boolean showTextDisplayState;
+    private Button playMusicButton, iconDisplayButton, textDisplayButton;
+    private boolean showPlayMusic, showIconDisplayState, showTextDisplayState;
 
     private final List<String> allHUDTypes = new ArrayList<>();
     private final List<String> suggestions = new ArrayList<>();
@@ -42,23 +42,36 @@ public class CombatEvolutionConfigScreen extends Screen {
     protected void init() {
         super.init();
 
+        showPlayMusic = CEClientConfig.PLAY_CE_MUSIC.get();
+        playMusicButton = Button.builder(Component.literal(showPlayMusic ? "on" : "off"), b -> {
+                    showPlayMusic = !showPlayMusic;
+                    playMusicButton.setMessage(Component.literal(showPlayMusic ? "on" : "off"));
+                })
+                .bounds(width / 2 - 100, 40, 200, 20)
+                .build();
+        addRenderableWidget(playMusicButton);
+
         // 加载所有HUD类型名称
         allHUDTypes.clear();
         allHUDTypes.addAll(HUDTypeManager.getAllHUDTypes().stream().map(ResourceLocation::toString).distinct().toList());
 
-
         inputBox = new EditBox(this.font, width / 2 - 100, 80, 200, 20, Component.literal("HUD Type"));
-        inputBox.setValue(ClientConfig.HUD_TYPE.get());
+        inputBox.setValue(CEClientConfig.HUD_TYPE.get());
         inputBox.setResponder(this::updateSuggestions);
         addRenderableWidget(inputBox);
 
-        showTextDisplayState = ClientConfig.SHOW_TEXT_DISPLAY.get();
+        showIconDisplayState = CEClientConfig.ICON_DISPLAY.get();
+        iconDisplayButton = Button.builder(Component.literal(showIconDisplayState ? "on" : "off"), b -> {
+                    showIconDisplayState = !showIconDisplayState;
+                    iconDisplayButton.setMessage(Component.literal(showIconDisplayState ? "on" : "off"));
+                }).bounds(width / 2 - 100, 120, 200, 20).build();
+        addRenderableWidget(iconDisplayButton);
+
+        showTextDisplayState = CEClientConfig.SHOW_TEXT_DISPLAY.get();
         textDisplayButton = Button.builder(Component.literal(showTextDisplayState ? "on" : "off"), b -> {
                     showTextDisplayState = !showTextDisplayState;
                     textDisplayButton.setMessage(Component.literal(showTextDisplayState ? "on" : "off"));
-                })
-                .bounds(width / 2 - 100, 120, 200, 20)
-                .build();
+                }).bounds(width / 2 - 100, 160, 200, 20).build();
         addRenderableWidget(textDisplayButton);
 
         Button saveButton = Button.builder(Component.literal("Save"), b -> saveAndClose())
@@ -80,9 +93,11 @@ public class CombatEvolutionConfigScreen extends Screen {
         } else {
             valueToSave = selected;
         }
-        ClientConfig.HUD_TYPE.set(valueToSave);
-        ClientConfig.SHOW_TEXT_DISPLAY.set(showTextDisplayState);
-        ClientConfig.CLIENT_SPEC.save();
+        CEClientConfig.PLAY_CE_MUSIC.set(showPlayMusic);
+        CEClientConfig.HUD_TYPE.set(valueToSave);
+        CEClientConfig.ICON_DISPLAY.set(showIconDisplayState);
+        CEClientConfig.SHOW_TEXT_DISPLAY.set(showTextDisplayState);
+        CEClientConfig.CLIENT_SPEC.save();
         if (minecraft != null) {
             minecraft.setScreen(parent);
         }
@@ -186,10 +201,19 @@ public class CombatEvolutionConfigScreen extends Screen {
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, delta);
 
-        guiGraphics.drawCenteredString(font, "Combat Evolution Config", width / 2, 30, 0xFFFFFF);
-        String hudType = "HUD Type:";
+        Component evolutionConfig = Component.translatable("config.combat_evolution.client_config");
+        guiGraphics.drawCenteredString(font, evolutionConfig, width / 2, 20, 0xFFFFFF);
+
+        Component music = Component.translatable("config.combat_evolution.play_music");
+        guiGraphics.drawString(font, music, inputBox.getX() - font.width(music) - 10, playMusicButton.getY() + 6, 0xA0A0A0);
+
+        Component hudType = Component.translatable("config.combat_evolution.hud_type");
         guiGraphics.drawString(font, hudType, inputBox.getX() - font.width(hudType) - 10, inputBox.getY() + 6, 0xA0A0A0);
-        String showTip = "Text Display:";
+
+        Component showIcon =  Component.translatable("config.combat_evolution.icon_display");
+        guiGraphics.drawString(font, showIcon, iconDisplayButton.getX() - font.width(showIcon) - 10, iconDisplayButton.getY() + 6, 0xA0A0A0);
+
+        Component showTip =  Component.translatable("config.combat_evolution.text_display");
         guiGraphics.drawString(font, showTip, textDisplayButton.getX() - font.width(showTip) - 10, textDisplayButton.getY() + 6, 0xA0A0A0);
 
         // 渲染建议框

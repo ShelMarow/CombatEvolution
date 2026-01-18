@@ -7,5 +7,11 @@
   "death.attack.execution": "%1&s was executed",
   "key.categories.combat_evolution": "Combat Evolution",
   "key.combat_evolution.execution": "Execution",
-  "entity.combat_evolution.shelmarow": "ShelMarow"
+  "entity.combat_evolution.shelmarow": "ShelMarow (Test Mob)",
+  "config.combat_evolution.client_config": "Combat Evolution Client Config",
+  "config.combat_evolution.play_music": "Play CE Music:",
+  "config.combat_evolution.hud_type": "HUD Type:",
+  "config.combat_evolution.icon_display": "Icon Display",
+  "config.combat_evolution.text_display": "Text Display:",
+  "hud.combat_evolution.execution_disabled": "Execution Disabled!"
 }

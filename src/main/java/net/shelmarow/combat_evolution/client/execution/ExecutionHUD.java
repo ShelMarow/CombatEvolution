@@ -17,7 +17,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.client.execution.types.HUDType;
-import net.shelmarow.combat_evolution.config.ClientConfig;
+import net.shelmarow.combat_evolution.config.CEClientConfig;
+import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 import net.shelmarow.combat_evolution.key.CEKeyMappings;
 import org.joml.Matrix4f;
@@ -43,7 +44,7 @@ public class ExecutionHUD {
     public static void onPlayerClientTick(TickEvent.PlayerTickEvent event) {
         if(event.player.level().isClientSide && event.player == mc.player && event.phase == TickEvent.Phase.END){
             //从配置文件读取当前图标类型
-            HUDType hudType = HUDTypeManager.getHUDType(ClientConfig.HUD_TYPE.get());
+            HUDType hudType = HUDTypeManager.getHUDType(CEClientConfig.HUD_TYPE.get());
 
             if(hudType != null && (currentHudType == null || !currentHudType.equals(hudType))){
                 currentHudType = hudType;
@@ -89,13 +90,15 @@ public class ExecutionHUD {
         int renderX = event.getWindow().getGuiScaledWidth() / 2 + 40;
         int renderY = event.getWindow().getGuiScaledHeight() / 2 + 40;
 
-        poseStack.pushPose();
-        poseStack.translate(renderX, renderY, 0);
-        poseStack.scale(1,1,1);
-        drawExecutionIcon(event.getGuiGraphics(), - 16, - 32,32);
-        poseStack.popPose();
+        if(CEClientConfig.ICON_DISPLAY.get()) {
+            poseStack.pushPose();
+            poseStack.translate(renderX, renderY, 0);
+            poseStack.scale(1, 1, 1);
+            drawExecutionIcon(event.getGuiGraphics(), -16, -32, 32);
+            poseStack.popPose();
+        }
 
-        if(ClientConfig.SHOW_TEXT_DISPLAY.get()) {
+        if(CEClientConfig.SHOW_TEXT_DISPLAY.get()) {
 
             Component text = Component.translatable("hud.combat_evolution.execution_tooltip", CEKeyMappings.EXECUTION.getTranslatedKeyMessage());
 

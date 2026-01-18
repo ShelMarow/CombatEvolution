@@ -24,10 +24,11 @@ import net.shelmarow.combat_evolution.bgm.network.S2CRequestMusicPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CRemoveBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateStaminaDataPacket;
-import net.shelmarow.combat_evolution.client.gui.CombatEvolutionConfigScreen;
+import net.shelmarow.combat_evolution.client.screen.CombatEvolutionConfigScreen;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.command.CEParticleCommand;
-import net.shelmarow.combat_evolution.config.ClientConfig;
+import net.shelmarow.combat_evolution.config.CEClientConfig;
+import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
@@ -57,8 +58,10 @@ public class CombatEvolution {
         CEParticles.PARTICLE_TYPES.register(modEventBus);
         CEEntities.ENTITY_TYPES.register(modEventBus);
 
+        context.registerConfig(ModConfig.Type.COMMON, CECommonConfig.COMMON_SPEC);
+
         if(FMLEnvironment.dist == Dist.CLIENT) {
-            context.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CLIENT_SPEC);
+            context.registerConfig(ModConfig.Type.CLIENT, CEClientConfig.CLIENT_SPEC);
         }
 
         context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> new ConfigScreenHandler.ConfigScreenFactory(CombatEvolutionConfigScreen::new));

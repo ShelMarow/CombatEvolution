@@ -9,6 +9,9 @@ import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.api.utils.AttackResult;
+import yesman.epicfight.world.damagesource.EpicFightDamageSource;
+import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
+import yesman.epicfight.world.damagesource.StunType;
 
 public class ExecutionHitAnimation extends ActionAnimation {
 
@@ -28,9 +31,14 @@ public class ExecutionHitAnimation extends ActionAnimation {
                 .addState(EntityState.CAN_SKILL_EXECUTION, false)
                 .addState(EntityState.INACTION, true)
                 .addState(EntityState.HURT_LEVEL,3)
-                .addState(EntityState.ATTACK_RESULT, damageSource ->
-                        damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) || damageSource.is(CEDamageTypeTags.EXECUTION) ?
-                                AttackResult.ResultType.SUCCESS : AttackResult.ResultType.MISSED);
+                .addState(EntityState.ATTACK_RESULT, damageSource ->{
+                    if(damageSource instanceof EpicFightDamageSource epicFightDamageSource){
+                        epicFightDamageSource.setStunType(StunType.NONE);
+                        epicFightDamageSource.addRuntimeTag(EpicFightDamageTypeTags.NO_STUN);
+                    }
+                    return damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) || damageSource.is(CEDamageTypeTags.EXECUTION) ?
+                            AttackResult.ResultType.SUCCESS : AttackResult.ResultType.MISSED;
+                });
     }
 
     public ExecutionHitAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature) {
