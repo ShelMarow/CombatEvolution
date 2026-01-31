@@ -16,7 +16,7 @@ public class CECommonEffect extends MobEffect {
     @Override
     public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
         if(this == CEMobEffects.FULL_STUN_IMMUNITY.get()){
-            pLivingEntity.addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(),5, 256, false, false, false));
+            pLivingEntity.addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(),2, 256, false, false, false));
         }
     }
 

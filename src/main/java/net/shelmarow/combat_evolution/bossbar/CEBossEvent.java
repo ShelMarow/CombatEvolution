@@ -1,10 +1,12 @@
 package net.shelmarow.combat_evolution.bossbar;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.bossbar.network.CEBossNetworkHandler;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 public class CEBossEvent extends ServerBossEvent {
@@ -36,7 +38,11 @@ public class CEBossEvent extends ServerBossEvent {
         bossData.displayType = pType;
     }
 
-    public void setStaminaStatus(StaminaStatus staminaStatus) {
+    public void setBossBarTexture(@NonNull ResourceLocation bossBarTexture) {
+        bossData.bossBarTexture = bossBarTexture;
+    }
+
+    public void setStaminaStatus(@NonNull StaminaStatus staminaStatus) {
         bossData.staminaStatus = staminaStatus;
     }
 

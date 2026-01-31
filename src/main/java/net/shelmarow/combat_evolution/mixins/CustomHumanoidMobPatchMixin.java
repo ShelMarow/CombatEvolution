@@ -35,6 +35,8 @@ public class CustomHumanoidMobPatchMixin {
         if(map != null){
             cir.setReturnValue(map.get(stunType));
         }
-        cir.setReturnValue(null);
+        else{
+            cir.setReturnValue(null);
+        }
     }
 }

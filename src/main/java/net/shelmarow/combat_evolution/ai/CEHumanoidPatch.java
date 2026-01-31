@@ -154,7 +154,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 }
                 //恢复状态下，持续恢复耐力值，恢复满后切换至普通状态
                 else if (staminaStatus == StaminaStatus.RECOVER) {
-                    original.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 1, 0, false, false, false));
+                    original.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 5, 0, false, false, false));
                     float progress = Mth.clamp((float) (recoverTickCount - breakTime) / recoverTime,0F,1F);
                     currentStamina = Mth.lerp(progress,0,maxStamina);
                     entityData.combat_evolution$setStamina(currentStamina);
@@ -218,6 +218,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
     public void onCommonHurt(DamageSource damageSource) {
         EpicFightDamageSource efSource = damageSource instanceof EpicFightDamageSource ? (EpicFightDamageSource) damageSource : null;
+
         if (!original.hasEffect(EpicFightMobEffects.STUN_IMMUNITY.get()) && !original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())) {
             //普通受击削减耐力
             float hurtImpactPercent = getHurtImpactPercent(damageSource);

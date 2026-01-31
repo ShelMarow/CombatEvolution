@@ -42,6 +42,9 @@ public class ExecutionHUD {
 
     @SubscribeEvent
     public static void onPlayerClientTick(TickEvent.PlayerTickEvent event) {
+        if(!CEClientConfig.ICON_DISPLAY.get()){
+            return;
+        }
         if(event.player.level().isClientSide && event.player == mc.player && event.phase == TickEvent.Phase.END){
             //从配置文件读取当前图标类型
             HUDType hudType = HUDTypeManager.getHUDType(CEClientConfig.HUD_TYPE.get());

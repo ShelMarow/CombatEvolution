@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.ai;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
@@ -19,11 +20,18 @@ public abstract class CEBossEntity extends PathfinderMob {
         super(pEntityType, pLevel);
     }
 
-
     @Override
     public void tick() {
         super.tick();
+        setBossBarHealth();
+        setBossBarStamina();
+    }
+
+    protected void setBossBarHealth() {
         this.ceBossEvent.setProgress(this.getHealth() / this.getMaxHealth());
+    }
+
+    protected void setBossBarStamina() {
         if(cePatch == null) {
             cePatch = EpicFightCapabilities.getEntityPatch(this, LivingEntityPatch.class);
         }

@@ -2,6 +2,7 @@ package net.shelmarow.combat_evolution.ai.condition;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import yesman.epicfight.data.conditions.Condition;
@@ -10,6 +11,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import java.util.List;
 
 public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
+    private static final double EPS = 1e-6;
     private TargetSide side;
     private double degreeFirst;
     private double degreeSecond;
@@ -45,7 +47,12 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
     public boolean predicate(LivingEntityPatch<?> livingEntityPatch){
         if(livingEntityPatch.getTarget() != null){
             LivingEntity target = livingEntityPatch.getTarget();
-            return isInSideAngleRange(livingEntityPatch.getOriginal(),target, this.side, this.degreeFirst, this.degreeSecond);
+            return switch (side) {
+                case LEFT,RIGHT ->
+                        isInSideAngle(livingEntityPatch.getOriginal(), target, side, degreeFirst, degreeSecond);
+                case ROUND ->
+                        isInWrappedAngle(livingEntityPatch.getOriginal(), target, degreeFirst, degreeSecond);
+            };
         }
         return false;
     }
@@ -56,69 +63,77 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
     }
 
     /**
-     * 计算目标相对于观察者的左右角度
-     * 左侧返回负值(绝对值 0~180)，右侧返回正值(0~180)，0 表示正前方
+     * 单侧检查（LEFT / RIGHT + 0~180）
      */
-    public static double getSideAngle(LivingEntity observer, LivingEntity target) {
-        Vec3 lookVec = observer.getLookAngle().normalize();
-        lookVec = new Vec3(lookVec.x, 0, lookVec.z).normalize(); // 只取水平分量
+    private static boolean isInSideAngle(LivingEntity observer, LivingEntity target, TargetSide side, double start, double end) {
+        if (side == null) return false;
+        if (start < 0 || end > 180 || start > end) return false;
 
-        Vec3 toTarget = new Vec3(target.getX() - observer.getX(), 0, target.getZ() - observer.getZ()).normalize();
+        double angle = getSignedAngle(observer, target);
+        double abs = Math.abs(angle);
 
-        // 计算夹角 (0~180)
-        double dot = lookVec.dot(toTarget);
-        dot = Math.max(-1.0, Math.min(1.0, dot)); // 防止浮点误差
-        double angle = Math.toDegrees(Math.acos(dot));
-
-        // 判断左右（叉积 y > 0 表示左侧）
-        double crossY = lookVec.cross(toTarget).y;
-        if (crossY > 0) {
-            return -angle; // 左侧
-        }
-        else if (crossY < 0) {
-            return angle; // 右侧
-        }
-        else if (dot < 0) {
-            return 180;
-        }
-        else {
-            return 0; // 正前
-        }
+        return switch (side) {
+            case LEFT  -> angle < 0 && abs >= start && abs <= end;
+            case RIGHT -> angle > 0 && abs >= start && abs <= end;
+            default -> false;
+        };
     }
 
     /**
-     * 检测目标是否在指定角度区间（可跨越区间起点）
-     * @param observer 观察者
-     * @param target 目标
-     * @param side "left" 或 "right"
-     * @param startAngle 区间起始角度（0~180）
-     * @param endAngle 区间结束角度（0~180）
+     * 跨 360° 扇形检查
+     * 示例：330 ~ 30
      */
-    public static boolean isInSideAngleRange(LivingEntity observer, LivingEntity target, TargetSide side, double startAngle, double endAngle) {
-        double angle = getSideAngle(observer, target);
-        double absAngle = Math.abs(angle);
+    private static boolean isInWrappedAngle(LivingEntity observer, LivingEntity target, double start, double end) {
+        double angle = getWrappedAngle(observer, target);
 
-        if (side == TargetSide.LEFT && angle < 0) {
-            return isAngleInRange(absAngle, startAngle, endAngle);
-        } else if (side == TargetSide.RIGHT && angle > 0) {
-            return isAngleInRange(absAngle, startAngle, endAngle);
-        }
-        return false;
-    }
+        start = (start % 360 + 360) % 360;
+        end   = (end   % 360 + 360) % 360;
 
-    /**
-     * 检查角度是否在给定范围（0~180，可跨越起点）
-     */
-    private static boolean isAngleInRange(double angle, double start, double end) {
         if (start <= end) {
             return angle >= start && angle <= end;
-        } else {
-            // 跨越的情况，例如 150~30（150→0→30）
+        }
+        else {
             return angle >= start || angle <= end;
         }
     }
 
+
+    /**
+     * 相对角度（-180 ~ +180）
+     * 左负右正，0 为正前，±180 为正后
+     */
+    private static double getSignedAngle(LivingEntity observer, LivingEntity target) {
+        Vec3 forward = observer.getLookAngle();
+        forward = new Vec3(forward.x, 0, forward.z);
+
+        Vec3 toTarget = target.position().subtract(observer.position());
+        toTarget = new Vec3(toTarget.x, 0, toTarget.z);
+
+        if (forward.lengthSqr() < EPS || toTarget.lengthSqr() < EPS) {
+            return 0;
+        }
+
+        forward = forward.normalize();
+        toTarget = toTarget.normalize();
+
+        double dot = Mth.clamp(forward.dot(toTarget), -1.0, 1.0);
+        double angle = Math.toDegrees(Math.acos(dot)); // 0~180
+
+        double crossY = forward.cross(toTarget).y;
+        return crossY < 0 ? angle : -angle;
+    }
+
+    /**
+     * 绝对角度（0 ~ 360）
+     * 0 = 正前方，顺时针
+     */
+    private static double getWrappedAngle(LivingEntity observer, LivingEntity target) {
+        double signed = getSignedAngle(observer, target);
+        return (signed + 360) % 360;
+    }
+
     public enum TargetSide{
+        ROUND,
         LEFT,
         RIGHT;
     }

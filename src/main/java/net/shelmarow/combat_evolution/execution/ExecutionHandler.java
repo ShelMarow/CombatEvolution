@@ -150,7 +150,8 @@ public class ExecutionHandler {
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     Level level = player.level();
                     Vec3 frontPos = calculateExecutionPosition(livingEntity, executionType.offset());
-                    if (canStandHere(level, frontPos,playerPatch.getOriginal())) {
+                    frontPos = canStandHere(level, frontPos,playerPatch.getOriginal());
+                    if (frontPos != null) {
                         player.teleportTo(frontPos.x, frontPos.y, frontPos.z);
                         TickTaskManager.addTask(livingEntity.getUUID(), new ExecutionTask(player, livingEntity,executionType, executionType.totalTick()));
                         return true;
@@ -336,7 +337,7 @@ public class ExecutionHandler {
         return angle <= maxAngleDegrees;
     }
 
-    public static boolean canStandHere(Level level, Vec3 pos, LivingEntity entity) {
+    public static Vec3 canStandHere(Level level, Vec3 pos, LivingEntity entity) {
 
         //根据实体的碰撞箱在目标位置重新构建碰撞检测AABB
         AABB entityBox = entity.getBoundingBox();
@@ -344,37 +345,37 @@ public class ExecutionHandler {
         double height = entityBox.getYsize();
 
         //检查脚下方块是否能够站立
-        boolean solidBelow = false;
-        BlockPos blockPosBelow = BlockPos.containing(pos.x, pos.y - 1, pos.z);
-        BlockState stateBelow = level.getBlockState(blockPosBelow);
-        VoxelShape shapeBelow = stateBelow.getCollisionShape(level, blockPosBelow);
-        if(!shapeBelow.isEmpty()) {
-            double surfaceY = shapeBelow.max(Direction.Axis.Y) + blockPosBelow.getY();
-            solidBelow =  Math.abs(pos.y - surfaceY) <= 0.5D;
-        }
-
-        //检测站立的位置是否存在方块
-        BlockPos blockPosStand = BlockPos.containing(pos.x, pos.y, pos.z);
-        BlockState stateStand = level.getBlockState(blockPosStand);
-        VoxelShape shapeStand = stateStand.getCollisionShape(level, blockPosStand);
-        //如果存在，检测高度是否小于0.5格，如果大于则不允许站立
-        double offsetY = 0;
-        if(!shapeStand.isEmpty()) {
-            double surfaceY = shapeStand.max(Direction.Axis.Y);
-            if(surfaceY <= 0.5D){
-                offsetY = surfaceY;
+        for (float i = 0.5F; i >= -0.5F; i -= 0.05F) {
+            BlockPos blockPosBelow = BlockPos.containing(pos.x, pos.y + i, pos.z);
+            BlockState stateBelow = level.getBlockState(blockPosBelow);
+            VoxelShape shapeBelow = stateBelow.getCollisionShape(level, blockPosBelow);
+            if(!shapeBelow.isEmpty()) {
+                double offsetY = shapeBelow.max(Direction.Axis.Y);
+                AABB checkBox = new AABB(
+                        pos.x - width / 2.0, blockPosBelow.getY() + offsetY, pos.z - width / 2.0,
+                        pos.x + width / 2.0,blockPosBelow.getY() + offsetY + height,pos.z + width / 2.0
+                );
+                //根据实体的碰撞箱检测是否有足够空间站立
+                if(level.noCollision(checkBox)){
+                    return pos.add(0, i + 0.05, 0);
+                }
             }
         }
 
-        AABB checkBox = new AABB(
-                pos.x - width / 2.0, pos.y + offsetY, pos.z - width / 2.0,
-                pos.x + width / 2.0,pos.y + offsetY + height,pos.z + width / 2.0
-        );
+//        //检测站立的位置是否存在方块
+//        BlockPos blockPosStand = BlockPos.containing(pos.x, pos.y, pos.z);
+//        BlockState stateStand = level.getBlockState(blockPosStand);
+//        VoxelShape shapeStand = stateStand.getCollisionShape(level, blockPosStand);
+//        //如果存在，检测高度是否小于0.5格，如果大于则不允许站立
+//        double offsetY = 0;
+//        if(!shapeStand.isEmpty()) {
+//            double surfaceY = shapeStand.max(Direction.Axis.Y);
+//            if(surfaceY <= 0.5D){
+//                offsetY = surfaceY;
+//            }
+//        }
 
-        //根据实体的碰撞箱检测是否有足够空间站立
-        boolean spaceFree = level.noCollision(checkBox);
-
-        return solidBelow && spaceFree;
+        return null;
     }
 
 }

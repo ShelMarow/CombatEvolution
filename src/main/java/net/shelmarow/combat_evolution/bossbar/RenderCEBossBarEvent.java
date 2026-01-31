@@ -19,8 +19,6 @@ import java.util.UUID;
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class RenderCEBossBarEvent {
 
-    private static final ResourceLocation BOSS_BAR = ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "textures/gui/bossbar/ce_boss_bar.png");
-
     @SubscribeEvent
     public static void onRenderCustomBossBar(CustomizeGuiOverlayEvent.BossEventProgress event) {
         LerpingBossEvent bossEvent = event.getBossEvent();
@@ -30,6 +28,8 @@ public class RenderCEBossBarEvent {
             BossData bossData = ClientBossData.getBossData(bossEventId);
             if (bossData.displayType.equals("[CE:DefaultType]")) {
                 event.setCanceled(true);
+
+                ResourceLocation bossBar = bossData.bossBarTexture;
 
                 Font font = Minecraft.getInstance().font;
                 GuiGraphics guiGraphics = event.getGuiGraphics();
@@ -42,18 +42,18 @@ public class RenderCEBossBarEvent {
 
                 //绘制背景
                 //血条 3 + 250 + 3
-                guiGraphics.blit(BOSS_BAR, x + 91 - 256 / 2, y, 0, 0, 256, 20, 256, 256);
+                guiGraphics.blit(bossBar, x + 91 - 256 / 2, y, 0, 0, 256, 20, 256, 256);
                 //耐力 6 + 244 + 6
-                guiGraphics.blit(BOSS_BAR, x + 91 - 256 / 2, y, 0, 42, 256, 20, 256, 256);
+                guiGraphics.blit(bossBar, x + 91 - 256 / 2, y, 0, 42, 256, 20, 256, 256);
 
                 //绘制血量进度
-                guiGraphics.blit(BOSS_BAR, x + 91 - 256 / 2 + 6, y, 6, 21, Math.round(244 * progress), 20, 256, 256);
+                guiGraphics.blit(bossBar, x + 91 - 256 / 2 + 6, y, 6, 21, Math.round(244 * progress), 20, 256, 256);
                 //绘制耐力进度
                 if (bossData.staminaStatus != StaminaStatus.BREAK) {
-                    guiGraphics.blit(BOSS_BAR, x + 91 - 256 / 2 + 9, y, 9, 63, Math.round(238 * stamina), 20, 256, 256);
+                    guiGraphics.blit(bossBar, x + 91 - 256 / 2 + 9, y, 9, 63, Math.round(238 * stamina), 20, 256, 256);
                 } else {
                     //破防红条
-                    guiGraphics.blit(BOSS_BAR, x + 91 - 256 / 2, y, 0, 84, 256, 20, 256, 256);
+                    guiGraphics.blit(bossBar, x + 91 - 256 / 2, y, 0, 84, 256, 20, 256, 256);
                 }
 
                 //绘制名称

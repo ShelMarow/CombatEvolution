@@ -24,7 +24,7 @@ public class CustomMobPatchMixin {
     @Inject(
             method = "getHitAnimation(Lyesman/epicfight/world/damagesource/StunType;)Lyesman/epicfight/api/animation/AnimationManager$AnimationAccessor;",
             at = @At(
-                    value = "HEAD"
+                    value = "RETURN"
             ),
             cancellable = true
     )
@@ -34,6 +34,8 @@ public class CustomMobPatchMixin {
         if(map != null){
             cir.setReturnValue(map.get(stunType));
         }
-        cir.setReturnValue(null);
+        else{
+            cir.setReturnValue(null);
+        }
     }
 }
