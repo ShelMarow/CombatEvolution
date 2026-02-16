@@ -13,5 +13,24 @@
   "config.combat_evolution.hud_type": "处决HUD类型:",
   "config.combat_evolution.icon_display": "处决图标显示",
   "config.combat_evolution.text_display": "处决文本提示:",
-  "hud.combat_evolution.execution_disabled": "处决功能未开启!"
+  "hud.combat_evolution.execution_disabled": "处决功能未开启!",
+  "command.combat_evolution.execution_failed": "处决执行失败！",
+  "skill.combat_evolution.shield_counter": "盾牌反击",
+  "skill.combat_evolution.shield_counter.tooltip": "当副手持有盾牌时\n按下 [防御 + 武器技能] 挥舞盾牌\n如果成功抵挡攻击能够使敌人眩晕，回复自身耐力并获得霸体、抗性提升、力量效果"
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

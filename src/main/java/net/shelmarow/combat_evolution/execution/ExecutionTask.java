@@ -29,22 +29,22 @@ public class ExecutionTask extends TickTask {
     public void onStart() {
         ExecutionHandler.addExecutingTarget(target, executor);
 
-        LivingEntityPatch<?> entityPatch = EpicFightCapabilities.getEntityPatch(executor, LivingEntityPatch.class);
+        LivingEntityPatch<?> executorPatch = EpicFightCapabilities.getEntityPatch(executor, LivingEntityPatch.class);
         LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
 
-        executor.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 100, 1, true, false));
-        target.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 100, 1, true, false));
+        executor.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
+        target.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
 
         //玩家回满耐力值，恢复生命值
-        if (entityPatch instanceof PlayerPatch<?> playerPatch) {
+        if (executorPatch instanceof PlayerPatch<?> playerPatch) {
             playerPatch.setStamina(playerPatch.getMaxStamina());
-            executor.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 4));
+            executor.addEffect(new MobEffectInstance(MobEffects.REGENERATION, maxTime, 4));
         }
 
-        //只有人形生物和自定义的生物能播放
-        if (entityPatch != null && targetPatch != null && ExecutionHandler.isTargetSupported(entityPatch) && ExecutionHandler.isTargetSupported(targetPatch)) {
+        //只有人形生物和自定义的生物能播放 && ExecutionHandler.isTargetSupported(executorPatch, executorPatch) && ExecutionHandler.isTargetSupported(executorPatch, targetPatch)
+        if (executorPatch != null && targetPatch != null) {
             //播放处决动画
-            entityPatch.playAnimationSynchronized(executionType.executionAnimation(), 0F);
+            executorPatch.playAnimationSynchronized(executionType.executionAnimation(), 0F);
             targetPatch.playAnimationSynchronized(executionType.executedAnimation(), 0F);
 
             //矫正处决者的模型朝向
@@ -54,10 +54,10 @@ public class ExecutionTask extends TickTask {
             double dz = to.z - from.z;
             float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0F) + executionType.rotationOffset();
 
-            if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+            if (executorPatch instanceof ServerPlayerPatch serverPlayerPatch) {
                 serverPlayerPatch.setModelYRot(yaw, true);
             } else {
-                entityPatch.setYRot(yaw);
+                executorPatch.setYRot(yaw);
             }
         }
     }

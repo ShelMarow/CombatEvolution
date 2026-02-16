@@ -56,7 +56,7 @@ public class ExecutionTypeManager {
             CapabilityItem.WeaponCategories.DAGGER, DAGGER_TYPE,
             CapabilityItem.WeaponCategories.SWORD, DEFAULT_TYPE,
             CapabilityItem.WeaponCategories.LONGSWORD, DEFAULT_TYPE,
-            CapabilityItem.WeaponCategories.UCHIGATANA, DEFAULT_TYPE,
+            CapabilityItem.WeaponCategories.UCHIGATANA, TACHI_TYPE,
             CapabilityItem.WeaponCategories.AXE, TACHI_TYPE,
             CapabilityItem.WeaponCategories.TACHI, TACHI_TYPE,
             CapabilityItem.WeaponCategories.SPEAR, GREATSWORD_TYPE,

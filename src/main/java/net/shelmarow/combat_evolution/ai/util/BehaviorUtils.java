@@ -24,16 +24,6 @@ public class BehaviorUtils {
     }
 
     public static CECombatBehaviors.Behavior<?> getCurrentBehavior(LivingEntityPatch<?> entityPatch) {
-//        if (entityPatch == null || entityPatch.getOriginal() == null) return null;
-//        if(entityPatch.isInitialized()) {
-//            if (entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
-//                return ceHumanoidPatch.getOriginal().goalSelector.getAvailableGoals().stream()
-//                        .filter(g -> g.getGoal() instanceof CEAnimationAttackGoal<?>)
-//                        .map(g -> ((CEAnimationAttackGoal<?>) g.getGoal()).getCombatBehaviors())
-//                        .filter(Objects::nonNull).map(CECombatBehaviors::getCurrentBehavior)
-//                        .filter(Objects::nonNull).findFirst().orElse(null);
-//            }
-//        }
         CECombatBehaviors<?> combatBehaviors = getCECombatBehaviors(entityPatch);
         if(combatBehaviors != null) {
             return combatBehaviors.getCurrentBehavior();

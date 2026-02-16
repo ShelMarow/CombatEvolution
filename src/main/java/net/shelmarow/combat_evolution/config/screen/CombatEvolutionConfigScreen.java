@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.client.screen;
+package net.shelmarow.combat_evolution.config.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;

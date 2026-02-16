@@ -12,10 +12,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class BypassDodgeParticle extends CEPosFollowBaseParticle {
 
+
+    protected BypassDodgeParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, int lifeTime,SpriteSet pSpriteSet)  {
+        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, lifeTime, pSpriteSet);
+    }
+
     protected BypassDodgeParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed,SpriteSet pSpriteSet)  {
-        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, pSpriteSet);
-        this.lifetime = 20;
-        this.quadSize = 1.0F;
+        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, 30, pSpriteSet);
     }
 
     @OnlyIn(Dist.CLIENT)

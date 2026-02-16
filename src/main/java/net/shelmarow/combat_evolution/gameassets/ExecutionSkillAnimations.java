@@ -22,7 +22,6 @@ import yesman.epicfight.world.damagesource.ExtraDamageInstance;
 
 import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ExecutionSkillAnimations {
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_SWORD;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_DAGGER;
@@ -30,10 +29,6 @@ public class ExecutionSkillAnimations {
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_GREATSWORD;
     public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL;
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void registerAnimations(AnimationManager.AnimationRegistryEvent event) {
-        event.newBuilder(CombatEvolution.MOD_ID, ExecutionSkillAnimations::build);
-    }
 
     private static final ExtraDamageInstance.ExtraDamage TARGET_MAX_HEALTH = new ExtraDamageInstance.ExtraDamage(
             (attacker, itemstack, target, baseDamage, params) -> {

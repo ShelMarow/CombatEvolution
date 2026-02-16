@@ -49,7 +49,7 @@ public class ShelMarowCombatBehaviors {
                 )
 
                 .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1).maxCooldown(20)
+                        .priority(1).weight(4).maxCooldown(20)
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
                                 .canInsertGlobalBehavior(true)
@@ -101,7 +101,7 @@ public class ShelMarowCombatBehaviors {
                 )
 
                 .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1).maxCooldown(20)
+                        .priority(1).weight(4).maxCooldown(20)
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
                                 .withinDistance(0,6)
@@ -175,7 +175,7 @@ public class ShelMarowCombatBehaviors {
                                 .counterType(CECombatBehaviors.CounterType.RANDOM)
                                 .counterChance(0.25)
                                 .onCounterStart(mobPatch -> {
-                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(),80));
+                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(),40));
                                 })
                         )
 
@@ -187,13 +187,13 @@ public class ShelMarowCombatBehaviors {
                                 .counterType(CECombatBehaviors.CounterType.END)
                                 .maxGuardHit(3)
                                 .onCounterStart(mobPatch -> {
-                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(),80));
+                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(),40));
                                 })
                         )
                 )
 
                 .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1).maxCooldown(20)
+                        .priority(1).weight(1).maxCooldown(200)
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
                                 .withinDistance(0,6)

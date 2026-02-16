@@ -62,7 +62,7 @@ public class CEFollowParticleOptions implements ParticleOptions {
 
     @Override
     public @NotNull String writeToString() {
-        return String.format("%d %.2f %.2f %.2f", entityID, offset.x, offset.y, offset.z);
+        return String.format("%d %.2f %.2f %.2f %d", entityID, offset.x, offset.y, offset.z);
     }
 
     public static Codec<CEFollowParticleOptions> codec(ParticleType<CEFollowParticleOptions> type) {

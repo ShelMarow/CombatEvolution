@@ -3,16 +3,19 @@ package net.shelmarow.combat_evolution.example.entity.shelmarow;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
+import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.example.entity.shelmarow.ai.ShelMarowCombatBehaviors;
+import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
 import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.entitypatch.Factions;
+import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 import java.util.List;
 import java.util.Set;
 
-public class ShelMarowPatch extends CEHumanoidPatch {
+public class ShelMarowPatch extends CEHumanoidPatch implements CustomExecuteEntity {
 
     public ShelMarowPatch() {
         super(Factions.NEUTRAL);
@@ -45,5 +48,20 @@ public class ShelMarowPatch extends CEHumanoidPatch {
                 CapabilityItem.WeaponCategories.LONGSWORD,
                 ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, ShelMarowCombatBehaviors.COMMON)
         );
+    }
+
+    @Override
+    public boolean canBeExecuted(LivingEntityPatch<?> executorPatch) {
+        return true;
+    }
+
+    @Override
+    public boolean canUseCustomType(LivingEntityPatch<?> executorPatch, ExecutionTypeManager.Type executionType) {
+        return false;
+    }
+
+    @Override
+    public ExecutionTypeManager.Type getExecutionType(LivingEntityPatch<?> executorPatch, ExecutionTypeManager.Type originalType) {
+        return originalType;
     }
 }

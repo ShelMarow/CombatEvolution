@@ -21,12 +21,12 @@ public class CEKeyMappings {
             "key.categories." + CombatEvolution.MOD_ID
     );
 
-    public static final List<KeyMapping> CE_KEYS = List.of(
-            EXECUTION
-    );
+//    public static final List<KeyMapping> CE_KEYS = List.of(
+//            EXECUTION
+//    );
 
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent event) {
-        CE_KEYS.forEach(event::register);
+        event.register(EXECUTION);
     }
 }

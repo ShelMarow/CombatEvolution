@@ -11,10 +11,13 @@ import net.shelmarow.combat_evolution.client.particle.follow.CEPosFollowBasePart
 import org.jetbrains.annotations.NotNull;
 
 public class BypassGuardParticle extends CEPosFollowBaseParticle {
+
+    protected BypassGuardParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, int lifeTime, SpriteSet pSpriteSet)  {
+        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, lifeTime, pSpriteSet);
+    }
+
     protected BypassGuardParticle(ClientLevel pLevel, double pX, double pY, double pZ, double pXSpeed, double pYSpeed, double pZSpeed, SpriteSet pSpriteSet)  {
-        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, pSpriteSet);
-        this.lifetime = 20;
-        this.quadSize = 1.0F;
+        super(pLevel, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed, 30, pSpriteSet);
     }
 
     @OnlyIn(Dist.CLIENT)

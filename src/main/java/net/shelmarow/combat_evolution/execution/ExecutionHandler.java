@@ -12,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -24,7 +25,9 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
+import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
+import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.mixins.GuardSkillInvoker;
@@ -45,6 +48,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCategory;
 import yesman.epicfight.world.damagesource.StunType;
+import yesman.epicfight.world.item.GloveItem;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -130,30 +134,30 @@ public class ExecutionHandler {
         }
 
         //获取视线上的第一个实体
-        LivingEntity livingEntity = getEntityLookedAt(player,EXECUTION_DISTANCE);
+        LivingEntity target = getEntityLookedAt(player,EXECUTION_DISTANCE);
 
-        if(livingEntity != null){
+        if(target != null){
 
             ServerPlayerPatch playerPatch = EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class);
-            LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(livingEntity, LivingEntityPatch.class);
+            LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
 
             //检测是否满足处决的条件
             if(targetPatch != null && playerPatch != null && playerPatch.isEpicFightMode() && playerPatch.getEntityState().canUseSkill()) {
 
                 //判断目标是否处于破防状态
                 AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(targetPatch.getAnimator().getPlayerFor(null)).getRealAnimation();
-                if (isTargetGuardBreak(currentAnimation, targetPatch) && canExecute(player, livingEntity, targetPatch)) {
+                if (isTargetGuardBreak(currentAnimation, targetPatch) && targetIsInRange(player, target,0, EXECUTION_DISTANCE,180) && canExecute(player, playerPatch, target, targetPatch)) {
 
                     //获取处决类型
                     ExecutionTypeManager.Type executionType = getExecutionType(playerPatch,targetPatch);
 
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     Level level = player.level();
-                    Vec3 frontPos = calculateExecutionPosition(livingEntity, executionType.offset());
-                    frontPos = canStandHere(level, frontPos,playerPatch.getOriginal());
+                    Vec3 frontPos = calculateExecutionPosition(target, executionType.offset());
+                    frontPos = canStandHere(level, frontPos, player);
                     if (frontPos != null) {
                         player.teleportTo(frontPos.x, frontPos.y, frontPos.z);
-                        TickTaskManager.addTask(livingEntity.getUUID(), new ExecutionTask(player, livingEntity,executionType, executionType.totalTick()));
+                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, executionType.totalTick()));
                         return true;
                     }
                     else{
@@ -164,6 +168,39 @@ public class ExecutionHandler {
         }
         return false;
     }
+
+    //用于生物/玩家的指令强制执行
+    public static boolean entityForceExecute(LivingEntity executor, LivingEntity target, boolean requireGuardBreak){
+        if(executor != null && target != null){
+            LivingEntityPatch<?> executorPatch = EpicFightCapabilities.getEntityPatch(executor, LivingEntityPatch.class);
+            LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
+
+            if(targetPatch != null && executorPatch != null) {
+                AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(targetPatch.getAnimator().getPlayerFor(null)).getRealAnimation();
+                if ((!requireGuardBreak || isTargetGuardBreak(currentAnimation, targetPatch)) && canExecute(executor, executorPatch, target, targetPatch)) {
+                    //获取处决类型
+                    ExecutionTypeManager.Type executionType = getExecutionType(executorPatch,targetPatch);
+                    //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
+                    Level level = executor.level();
+                    Vec3 frontPos = calculateExecutionPosition(target, executionType.offset());
+                    frontPos = canStandHere(level, frontPos, executor);
+                    if (frontPos != null) {
+
+                        BehaviorUtils.stopCurrentBehavior(executor);
+                        BehaviorUtils.stopCurrentBehavior(target);
+                        executor.setDeltaMovement(Vec3.ZERO);
+                        target.setDeltaMovement(Vec3.ZERO);
+
+                        executor.teleportTo(frontPos.x, frontPos.y, frontPos.z);
+                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(executor, target,executionType, executionType.totalTick()));
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 
     public static boolean isTargetGuardBreak(AssetAccessor<? extends StaticAnimation> currentAnimation, LivingEntityPatch<?> targetPatch) {
         return currentAnimation != null && currentAnimation != Animations.EMPTY_ANIMATION &&
@@ -182,23 +219,22 @@ public class ExecutionHandler {
         return null;
     }
 
-    public static ExecutionTypeManager.Type getExecutionType(LivingEntityPatch<?> executor, LivingEntityPatch<?> targetPatch) {
+    public static ExecutionTypeManager.Type getExecutionType(LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
         //寻找是否有对应武器的处决动画
-        CapabilityItem capabilityItem = executor.getHoldingItemCapability(InteractionHand.MAIN_HAND);
+        CapabilityItem capabilityItem = executorPatch.getHoldingItemCapability(InteractionHand.MAIN_HAND);
         WeaponCategory weaponCategory = capabilityItem.getWeaponCategory();
 
-        //先寻找物品
-        ExecutionTypeManager.Type executionType =
-                ExecutionTypeManager.getExecutionTypeByItem(executor.getOriginal().getItemInHand(InteractionHand.MAIN_HAND).getItem());
+        //优先寻找物品
+        ExecutionTypeManager.Type executionType = ExecutionTypeManager.getExecutionTypeByItem(executorPatch.getOriginal().getItemInHand(InteractionHand.MAIN_HAND).getItem());
 
-        //再寻找武器类型
+        //如果没有再寻找武器类型
         if(executionType == null){
             executionType = ExecutionTypeManager.getExecutionTypeByCategory(weaponCategory);
         }
 
         //优先使用自定义处决实体的动画
-        if (targetPatch instanceof CustomExecuteEntity customExecuteEntity && customExecuteEntity.canUseCustomType(targetPatch)) {
-            ExecutionTypeManager.Type customType = customExecuteEntity.getExecutionType();
+        if (targetPatch instanceof CustomExecuteEntity customExecuteEntity && customExecuteEntity.canUseCustomType(executorPatch, executionType)) {
+            ExecutionTypeManager.Type customType = customExecuteEntity.getExecutionType(executorPatch, executionType);
             if(customType != null){
                 executionType = customType;
             }
@@ -280,22 +316,22 @@ public class ExecutionHandler {
         return hitEntity == null ? null : new EntityHitResult(hitEntity, hitPos);
     }
 
-    public static boolean canExecute(Player player, LivingEntity entity, LivingEntityPatch<?> entityPatch) {
-        return player.isAlive() && entity.isAlive() && !isExecutingTarget(player, entity) && isTargetSupported(entityPatch) &&
-                isHoldingWeapon(player) && targetIsInRange(player, entity,0, EXECUTION_DISTANCE,180);
+    public static boolean canExecute(LivingEntity executor, LivingEntityPatch<?> executorPatch, LivingEntity entity, LivingEntityPatch<?> targetPatch) {
+        return executor.isAlive() && entity.isAlive() && !isExecutingTarget(executor, entity) && isTargetSupported(executorPatch, targetPatch) && isHoldingWeapon(executor);
     }
 
-    public static boolean isHoldingWeapon(Player player){
-        CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(player.getItemInHand(InteractionHand.MAIN_HAND));
-        return capabilityItem.getWeaponCategory() != CapabilityItem.WeaponCategories.NOT_WEAPON && capabilityItem.getWeaponCategory() != CapabilityItem.WeaponCategories.FIST;
+    public static boolean isHoldingWeapon(LivingEntity executor){
+        ItemStack itemInHand = executor.getItemInHand(InteractionHand.MAIN_HAND);
+        CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(itemInHand);
+        return capabilityItem.getWeaponCategory() != CapabilityItem.WeaponCategories.NOT_WEAPON && (capabilityItem.getWeaponCategory() != CapabilityItem.WeaponCategories.FIST || itemInHand.getItem() instanceof GloveItem);
     }
 
-    public static boolean isTargetSupported(LivingEntityPatch<?> entityPatch) {
-        if(entityPatch instanceof CustomExecuteEntity customExecuteEntity) {
-            return customExecuteEntity.canBeExecuted(entityPatch);
+    public static boolean isTargetSupported(LivingEntityPatch<?> executor, LivingEntityPatch<?> target) {
+        if(target instanceof CustomExecuteEntity customExecuteEntity) {
+            return customExecuteEntity.canBeExecuted(executor);
         }
         else {
-            return entityPatch.getArmature() instanceof HumanoidArmature;
+            return target.getArmature() instanceof HumanoidArmature;
         }
     }
 
@@ -319,9 +355,9 @@ public class ExecutionHandler {
         return target.position().add(offsetX, offsetY, offsetZ);
     }
 
-    public static boolean targetIsInRange(Player player, LivingEntity target, double minDist, double maxDist, double maxAngleDegrees) {
+    public static boolean targetIsInRange(LivingEntity executor, LivingEntity target, double minDist, double maxDist, double maxAngleDegrees) {
         Vec3 targetPos = target.position();
-        Vec3 playerPos = player.position();
+        Vec3 playerPos = executor.position();
 
         double distance = playerPos.distanceTo(targetPos);
         if (distance < minDist || distance > maxDist) return false;
@@ -361,19 +397,6 @@ public class ExecutionHandler {
                 }
             }
         }
-
-//        //检测站立的位置是否存在方块
-//        BlockPos blockPosStand = BlockPos.containing(pos.x, pos.y, pos.z);
-//        BlockState stateStand = level.getBlockState(blockPosStand);
-//        VoxelShape shapeStand = stateStand.getCollisionShape(level, blockPosStand);
-//        //如果存在，检测高度是否小于0.5格，如果大于则不允许站立
-//        double offsetY = 0;
-//        if(!shapeStand.isEmpty()) {
-//            double surfaceY = shapeStand.max(Direction.Axis.Y);
-//            if(surfaceY <= 0.5D){
-//                offsetY = surfaceY;
-//            }
-//        }
 
         return null;
     }

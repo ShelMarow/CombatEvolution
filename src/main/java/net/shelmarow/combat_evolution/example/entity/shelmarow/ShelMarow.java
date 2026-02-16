@@ -40,7 +40,7 @@ public class ShelMarow extends CEBossEntity {
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
 
                 .add(EpicFightAttributes.IMPACT.get(),1.0D)
-                .add(EpicFightAttributes.MAX_STAMINA.get(),15.0D)
+                .add(EpicFightAttributes.MAX_STAMINA.get(),40.0D)
                 .add(EpicFightAttributes.STAMINA_REGEN.get(),1.0D);
     }
 

@@ -24,7 +24,8 @@ import net.shelmarow.combat_evolution.bgm.network.S2CRequestMusicPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CRemoveBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateStaminaDataPacket;
-import net.shelmarow.combat_evolution.client.screen.CombatEvolutionConfigScreen;
+import net.shelmarow.combat_evolution.command.CEExecutionCommand;
+import net.shelmarow.combat_evolution.config.screen.CombatEvolutionConfigScreen;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.command.CEParticleCommand;
 import net.shelmarow.combat_evolution.config.CEClientConfig;
@@ -32,6 +33,7 @@ import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
+import net.shelmarow.combat_evolution.sounds.CESounds;
 import org.slf4j.Logger;
 import yesman.epicfight.gameasset.Armatures;
 
@@ -57,6 +59,7 @@ public class CombatEvolution {
         CEMobEffects.EFFECTS.register(modEventBus);
         CEParticles.PARTICLE_TYPES.register(modEventBus);
         CEEntities.ENTITY_TYPES.register(modEventBus);
+        CESounds.SOUNDS.register(modEventBus);
 
         context.registerConfig(ModConfig.Type.COMMON, CECommonConfig.COMMON_SPEC);
 
@@ -103,6 +106,7 @@ public class CombatEvolution {
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         CEParticleCommand.register(event.getDispatcher());
+        CEExecutionCommand.register(event.getDispatcher());
     }
 
 }

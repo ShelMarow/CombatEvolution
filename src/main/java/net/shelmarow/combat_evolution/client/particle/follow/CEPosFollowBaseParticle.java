@@ -22,7 +22,7 @@ public abstract class CEPosFollowBaseParticle extends TextureSheetParticle {
     protected Vec3 offset;
     protected int entityID;
 
-    protected CEPosFollowBaseParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, SpriteSet spriteSet) {
+    protected CEPosFollowBaseParticle(ClientLevel level, double x, double y, double z, double xd, double yd, double zd, int lifeTime, SpriteSet spriteSet) {
         super(level, x, y, z, xd, yd, zd);
         this.x = x;
         this.y = y;
@@ -33,6 +33,8 @@ public abstract class CEPosFollowBaseParticle extends TextureSheetParticle {
         this.xd = xd;
         this.yd = yd;
         this.zd = zd;
+        this.lifetime = lifeTime;
+        this.quadSize = 1.0F;
         this.sprites = spriteSet;
         this.setSpriteFromAge(spriteSet);
     }
@@ -54,6 +56,11 @@ public abstract class CEPosFollowBaseParticle extends TextureSheetParticle {
         } else {
             this.setSpriteFromAge(this.sprites);
         }
+    }
+
+    @Override
+    public boolean shouldCull() {
+        return false;
     }
 
 
@@ -93,15 +100,19 @@ public abstract class CEPosFollowBaseParticle extends TextureSheetParticle {
         }
 
         int light = this.getLightColor(partialTicks);
+
         buffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z())
                 .uv(this.getU1(), this.getV1())
                 .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+
         buffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z())
                 .uv(this.getU1(), this.getV0())
                 .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+
         buffer.vertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z())
                 .uv(this.getU0(), this.getV0())
                 .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+
         buffer.vertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z())
                 .uv(this.getU0(), this.getV1())
                 .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();

@@ -18,7 +18,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.client.execution.types.HUDType;
 import net.shelmarow.combat_evolution.config.CEClientConfig;
-import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 import net.shelmarow.combat_evolution.key.CEKeyMappings;
 import org.joml.Matrix4f;
@@ -66,7 +65,7 @@ public class ExecutionHUD {
                     if (animationPlayer != null) {
                         AssetAccessor<? extends StaticAnimation> currentAnimation = animationPlayer.getRealAnimation();
                         //检测可处决的条件
-                        if (ExecutionHandler.isTargetGuardBreak(currentAnimation, targetPatch) && ExecutionHandler.canExecute(mc.player, target, targetPatch)) {
+                        if (ExecutionHandler.isTargetGuardBreak(currentAnimation, targetPatch) && ExecutionHandler.canExecute(mc.player, localPlayerPatch, target, targetPatch)) {
                             //检测是否处于破防状态
                             float totalTime = currentAnimation.get().getTotalTime();
                             float currentTime = animationPlayer.getElapsedTime();

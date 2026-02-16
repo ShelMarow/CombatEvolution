@@ -4,5 +4,11 @@
     "sounds": [
       {"name": "combat_evolution:music/ce_test_bgm","stream":true}
     ]
+  },
+  "skill.counter": {
+    "category": "master",
+    "sounds": [
+      {"name": "combat_evolution:skill/counter","stream":false}
+    ]
   }
 }

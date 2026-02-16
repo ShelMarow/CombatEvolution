@@ -13,6 +13,15 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+build.dependsOn sourcesJar
+artifacts {
+    archives sourcesJar
+}
+
 jar {
     archiveFileName.set("CombatEvolution-${mod_version}.jar")
 }
@@ -72,8 +81,10 @@ mixin {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    implementation fg.deobf("curse.maven:epic-fight-mod-405076:7345468-sources-7345469")
+    implementation fg.deobf("curse.maven:epic-fight-mod-405076:7617763-sources-7617764")
+    //implementation fg.deobf("libs:impactful:20.14.1")
     compileOnly('libs:epic_fight_avalon:20.12.4')
+
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
