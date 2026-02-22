@@ -113,7 +113,7 @@ public class CEMusicManager {
             }
         }
 
-        if(!CEClientConfig.PLAY_CE_MUSIC.get()) {
+        if(!CEClientConfig.PLAY_CE_MUSIC.get() && currentPlay != null) {
             currentPlay.getSound().adjustVolume(currentPlay.getSound().getVolume() * 0F);
         }
     }

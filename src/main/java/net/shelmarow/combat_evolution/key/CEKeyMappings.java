@@ -9,8 +9,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.List;
-
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class CEKeyMappings {
 

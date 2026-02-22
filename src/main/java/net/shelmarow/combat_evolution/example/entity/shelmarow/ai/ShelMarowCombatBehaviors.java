@@ -28,6 +28,58 @@ public class ShelMarowCombatBehaviors {
     static{
         COMMON = CECombatBehaviors.builder()
 
+
+                .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
+                        .priority(1).weight(1).maxCooldown(100)
+                        .backAfterFinished(true).rootName("太刀技能1")
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .canInsertGlobalBehavior(true, "太刀技能1")
+                                .animationBehavior(Animations.RUSHING_TEMPO1, 0F)
+                        )
+                )
+
+                .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
+                        .priority(1).weight(1).maxCooldown(100)
+                        .backAfterFinished(true).rootName("太刀技能2")
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .animationBehavior(Animations.RUSHING_TEMPO2, 0F)
+                        )
+                )
+
+                .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
+                        .priority(1).weight(1).maxCooldown(100)
+                        .backAfterFinished(true).rootName("太刀技能3")
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .animationBehavior(Animations.RUSHING_TEMPO3, 0F)
+                        )
+                )
+
+                .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
+                        .priority(1).weight(1).maxCooldown(100)
+
+                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .canInsertGlobalBehavior(true, "太刀技能1")
+                                .animationBehavior(Animations.TACHI_AUTO1, 0F)
+
+                                .addNextBehavior(CECombatBehaviors.Behavior.builder()
+                                        .canInsertGlobalBehavior(true, "太刀技能2")
+                                        .animationBehavior(Animations.TACHI_AUTO2, 0F)
+
+                                        .addNextBehavior(CECombatBehaviors.Behavior.builder()
+                                                .canInsertGlobalBehavior(true, "太刀技能3")
+                                                .animationBehavior(Animations.TACHI_AUTO3, 0F)
+                                        )
+                                )
+                        )
+                )
+
+
+
+
+
                 .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
                         .priority(1).weight(1).maxCooldown(100)
                         .backAfterFinished(false).rootName("global_not_back")

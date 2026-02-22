@@ -36,10 +36,7 @@ public class CEPatchUtils {
 
     public static float getMaxStamina(LivingEntityPatch<?> entityPatch){
         AttributeInstance instance = entityPatch.getOriginal().getAttribute(EpicFightAttributes.MAX_STAMINA.get());
-        if(instance != null){
-            return (float) instance.getValue();
-        }
-        return 15F;
+        return instance != null ? (float) instance.getValue() : 15F;
     }
 
     public static float getStaminaPercent(LivingEntityPatch<?> entityPatch){

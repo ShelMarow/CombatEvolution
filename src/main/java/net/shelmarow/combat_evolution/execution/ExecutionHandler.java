@@ -12,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -25,7 +26,6 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
-import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
@@ -46,6 +46,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
+import yesman.epicfight.world.capabilities.item.Style;
 import yesman.epicfight.world.capabilities.item.WeaponCategory;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.item.GloveItem;
@@ -222,14 +223,16 @@ public class ExecutionHandler {
     public static ExecutionTypeManager.Type getExecutionType(LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
         //寻找是否有对应武器的处决动画
         CapabilityItem capabilityItem = executorPatch.getHoldingItemCapability(InteractionHand.MAIN_HAND);
+        Item item = executorPatch.getOriginal().getItemInHand(InteractionHand.MAIN_HAND).getItem();
         WeaponCategory weaponCategory = capabilityItem.getWeaponCategory();
+        Style style = capabilityItem.getStyle(executorPatch);
 
         //优先寻找物品
-        ExecutionTypeManager.Type executionType = ExecutionTypeManager.getExecutionTypeByItem(executorPatch.getOriginal().getItemInHand(InteractionHand.MAIN_HAND).getItem());
+        ExecutionTypeManager.Type executionType = ExecutionTypeManager.getExecutionTypeByItem(item, style, executorPatch);
 
         //如果没有再寻找武器类型
         if(executionType == null){
-            executionType = ExecutionTypeManager.getExecutionTypeByCategory(weaponCategory);
+            executionType = ExecutionTypeManager.getExecutionTypeByCategory(weaponCategory, style, item, executorPatch);
         }
 
         //优先使用自定义处决实体的动画

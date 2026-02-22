@@ -2,6 +2,7 @@ package net.shelmarow.combat_evolution.example.entity.shelmarow;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.world.damagesource.DamageSource;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.example.entity.shelmarow.ai.ShelMarowCombatBehaviors;
@@ -48,6 +49,11 @@ public class ShelMarowPatch extends CEHumanoidPatch implements CustomExecuteEnti
                 CapabilityItem.WeaponCategories.LONGSWORD,
                 ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, ShelMarowCombatBehaviors.COMMON)
         );
+    }
+
+    @Override
+    public void onAttackParried(DamageSource damageSource, LivingEntityPatch<?> blocker){
+        dealStaminaDamage(damageSource, 1F);
     }
 
     @Override

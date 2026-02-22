@@ -18,6 +18,7 @@ import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
 import net.shelmarow.combat_evolution.ai.goal.CommonChasingGoal;
@@ -25,6 +26,7 @@ import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
+import net.shelmarow.combat_evolution.gameassets.ShieldCounterAnimations;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.Animator;
 import yesman.epicfight.api.animation.LivingMotion;
@@ -32,9 +34,11 @@ import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
+import yesman.epicfight.api.forgeevent.EntityStunEvent;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.EpicFightSounds;
+import yesman.epicfight.model.armature.HumanoidArmature;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPChangeLivingMotion;
 import yesman.epicfight.particle.EpicFightParticles;
@@ -289,7 +293,6 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         //切换状态，并进入硬直
         if(this.applyStun(StunType.NEUTRALIZE, 0F)){
             original.forceAddEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 100), original);
-
             Vec3 eyePosition = this.original.getEyePosition();
             Vec3 viewVec = this.original.getLookAngle().scale(2.0F);
             Vec3 pos = new Vec3(eyePosition.x + viewVec.x, eyePosition.y + viewVec.y, eyePosition.z + viewVec.z);
@@ -305,6 +308,22 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
     public void onAttackParried(DamageSource damageSource, LivingEntityPatch<?> blocker) {
         //交给子类重写
+    }
+
+    public void onAttackCountered(DamageSource originalSource, float staminaDamage) {
+        if(!dealStaminaDamage(null, staminaDamage)){
+            EntityStunEvent entityStunEvent = new EntityStunEvent(null, this, StunType.HOLD);
+            if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {
+                BehaviorUtils.stopCurrentBehavior(getOriginal());
+                playCounteredAnimation();
+            }
+        }
+    }
+
+    private void playCounteredAnimation() {
+        if(getArmature() instanceof HumanoidArmature){
+            playAnimationSynchronized(ShieldCounterAnimations.COUNTERED,0F);
+        }
     }
 
     public void playGuardBreakSound(){
