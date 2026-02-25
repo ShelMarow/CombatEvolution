@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.mixins;
 
+import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
@@ -20,8 +21,8 @@ public class StaticAnimationsMixin {
             method = "end",
             at = @At(value = "HEAD")
     )
-    public void end(LivingEntityPatch<?> entitypatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
-        if(entitypatch instanceof CEHumanoidPatch ceHumanoidPatch){
+    public void end(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
+        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch){
 
             //动画结束时重置属性
             if(ceHumanoidPatch instanceof ILivingEntityData livingEntityData) {

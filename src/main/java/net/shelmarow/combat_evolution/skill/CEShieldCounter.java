@@ -13,6 +13,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
+import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
@@ -95,7 +96,7 @@ public class CEShieldCounter extends Skill {
 
                 //音效
                 spawnParryEffect(playerPatch.getOriginal());
-                playerPatch.playSound(CESounds.COUNTER.get(), 0.25F,0, 0);
+                playerPatch.playSound(CESounds.COUNTER.get(), 0.4F,0, 0);
 
                 //获得增益
                 playerPatch.setStamina(playerPatch.getStamina() + playerPatch.getMaxStamina() * 0.35F);
@@ -104,7 +105,6 @@ public class CEShieldCounter extends Skill {
                 playerPatch.getOriginal().addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 160, 1));
 
                 //对敌人造成耐力伤害和硬直
-
                 onCounterSucceed(attacker, damageSource);
 
             }

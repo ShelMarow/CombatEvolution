@@ -14,6 +14,7 @@ import net.shelmarow.combat_evolution.ai.params.PhaseParams;
 import net.shelmarow.combat_evolution.ai.util.CEParticleUtils;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
+import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
@@ -27,58 +28,6 @@ public class ShelMarowCombatBehaviors {
 
     static{
         COMMON = CECombatBehaviors.builder()
-
-
-                .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1).maxCooldown(100)
-                        .backAfterFinished(true).rootName("太刀技能1")
-
-                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
-                                .canInsertGlobalBehavior(true, "太刀技能1")
-                                .animationBehavior(Animations.RUSHING_TEMPO1, 0F)
-                        )
-                )
-
-                .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1).maxCooldown(100)
-                        .backAfterFinished(true).rootName("太刀技能2")
-
-                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
-                                .animationBehavior(Animations.RUSHING_TEMPO2, 0F)
-                        )
-                )
-
-                .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1).maxCooldown(100)
-                        .backAfterFinished(true).rootName("太刀技能3")
-
-                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
-                                .animationBehavior(Animations.RUSHING_TEMPO3, 0F)
-                        )
-                )
-
-                .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1).maxCooldown(100)
-
-                        .addFirstBehavior(CECombatBehaviors.Behavior.builder()
-                                .canInsertGlobalBehavior(true, "太刀技能1")
-                                .animationBehavior(Animations.TACHI_AUTO1, 0F)
-
-                                .addNextBehavior(CECombatBehaviors.Behavior.builder()
-                                        .canInsertGlobalBehavior(true, "太刀技能2")
-                                        .animationBehavior(Animations.TACHI_AUTO2, 0F)
-
-                                        .addNextBehavior(CECombatBehaviors.Behavior.builder()
-                                                .canInsertGlobalBehavior(true, "太刀技能3")
-                                                .animationBehavior(Animations.TACHI_AUTO3, 0F)
-                                        )
-                                )
-                        )
-                )
-
-
-
-
 
                 .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
                         .priority(1).weight(1).maxCooldown(100)

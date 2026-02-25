@@ -42,7 +42,6 @@ public class CEMusicNetworkHandler {
     }
 
     //移除请求
-
     public static void sendRemoveMusicPacket(ServerPlayer serverPlayer, UUID requestUUID, boolean forceRemove) {
         CombatEvolution.CHANNEL.send(PacketDistributor.PLAYER.with(() -> serverPlayer), new S2CRemoveMusicPacket(requestUUID, forceRemove));
     }

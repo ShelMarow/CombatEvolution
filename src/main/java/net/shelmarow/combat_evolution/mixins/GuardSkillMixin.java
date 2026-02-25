@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.mixins;
 
+import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,7 +20,7 @@ public class GuardSkillMixin {
     )
     private void ontDealEvent(PlayerPatch<?> playerpatch, TakeDamageEvent.Attack event, boolean advanced, CallbackInfo ci){
         if(event.isParried()){
-            LivingEntityPatch<?> livingEntityPatch = EpicFightCapabilities.getEntityPatch( event.getDamageSource().getDirectEntity(),LivingEntityPatch.class);
+            LivingEntityPatch<?> livingEntityPatch = EpicFightCapabilities.getEntityPatch(event.getDamageSource().getDirectEntity(),LivingEntityPatch.class);
             if(livingEntityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
                 ceHumanoidPatch.onAttackParried(event.getDamageSource(), playerpatch);
             }

@@ -5,6 +5,7 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
+import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.IDamageSourceData;
@@ -79,7 +80,6 @@ public abstract class EFAttackAnimation extends StaticAnimation {
 
         cir.setReturnValue(returnValue);
     }
-
 
     @Inject(
             method = "hurtCollidingEntities",

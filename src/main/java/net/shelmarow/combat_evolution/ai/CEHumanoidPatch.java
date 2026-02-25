@@ -284,14 +284,17 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         EpicFightDamageSource efSource = damageSource instanceof EpicFightDamageSource ? (EpicFightDamageSource) damageSource : null;
         if (efSource != null) {
             efSource.setStunType(StunType.NONE);
-            Vec3 sourcePosition = efSource.getInitialPosition();
-            if (sourcePosition != null) {
-                original.lookAt(EntityAnchorArgument.Anchor.FEET, sourcePosition);
-            }
+            efSource.addRuntimeTag(EpicFightDamageTypeTags.NO_STUN);
         }
 
         //切换状态，并进入硬直
         if(this.applyStun(StunType.NEUTRALIZE, 0F)){
+            if(damageSource != null){
+                Vec3 sourcePosition = damageSource.getSourcePosition();
+                if (sourcePosition != null) {
+                    original.lookAt(EntityAnchorArgument.Anchor.FEET, sourcePosition);
+                }
+            }
             original.forceAddEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 100), original);
             Vec3 eyePosition = this.original.getEyePosition();
             Vec3 viewVec = this.original.getLookAngle().scale(2.0F);
@@ -310,7 +313,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         //交给子类重写
     }
 
-    public void onAttackCountered(DamageSource originalSource, float staminaDamage) {
+    public void onAttackCountered(DamageSource damageSource, float staminaDamage) {
         if(!dealStaminaDamage(null, staminaDamage)){
             EntityStunEvent entityStunEvent = new EntityStunEvent(null, this, StunType.HOLD);
             if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {

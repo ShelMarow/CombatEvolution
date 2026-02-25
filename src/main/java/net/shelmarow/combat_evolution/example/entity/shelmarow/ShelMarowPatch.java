@@ -7,6 +7,7 @@ import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.example.entity.shelmarow.ai.ShelMarowCombatBehaviors;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
+import net.shelmarow.combat_evolution.gameassets.ShieldCounterAnimations;
 import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.entitypatch.Factions;
@@ -53,7 +54,7 @@ public class ShelMarowPatch extends CEHumanoidPatch implements CustomExecuteEnti
 
     @Override
     public void onAttackParried(DamageSource damageSource, LivingEntityPatch<?> blocker){
-        dealStaminaDamage(damageSource, 1F);
+        dealStaminaDamage(null, 10F);
     }
 
     @Override
