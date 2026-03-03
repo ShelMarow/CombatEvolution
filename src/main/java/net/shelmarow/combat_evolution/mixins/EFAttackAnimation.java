@@ -80,26 +80,4 @@ public abstract class EFAttackAnimation extends StaticAnimation {
 
         cir.setReturnValue(returnValue);
     }
-
-    @Inject(
-            method = "hurtCollidingEntities",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Ljava/util/List;add(Ljava/lang/Object;)Z",
-                    ordinal = 0
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD,
-            remap = false
-    )
-    private void onAttack(LivingEntityPatch<?> entityPatch, float prevElapsedTime, float elapsedTime, EntityState prevState, EntityState state, AttackAnimation.Phase phase, CallbackInfo ci,
-                          LivingEntity entity,float prevPoseTime, float poseTime, List<Entity> list, HitEntityList hitEntities, int maxStrikes, Entity target, LivingEntity trueEntity, AABB aabb,
-                          EpicFightDamageSource damagesource, int prevInvulTime, AttackResult attackResult){
-        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
-            CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(entityPatch);
-            if(current != null && current.shouldExecuteHitEvent()){
-                int currentPhase = List.of(this.phases).indexOf(phase);
-                current.executeHitEvent(currentPhase,attackResult.resultType,ceHumanoidPatch,target);
-            }
-        }
-    }
 }

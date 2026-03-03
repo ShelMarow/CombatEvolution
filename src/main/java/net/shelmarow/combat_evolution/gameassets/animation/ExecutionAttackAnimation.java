@@ -15,6 +15,7 @@ import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.collider.Collider;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.api.utils.math.ValueModifier;
+import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -85,6 +86,9 @@ public class ExecutionAttackAnimation extends AttackAnimation {
             super(start, antic, preDelay, contact, recovery, end, noStateBind, hand, colliders);
             Set<TagKey<DamageType>> tags = new HashSet<>();
             tags.add(CEDamageTypeTags.EXECUTION);
+            tags.add(EpicFightDamageTypeTags.BYPASS_DODGE);
+            tags.add(EpicFightDamageTypeTags.GUARD_PUNCTURE);
+            tags.add(EpicFightDamageTypeTags.UNBLOCKALBE);
             tags.add(DamageTypeTags.BYPASSES_ARMOR);
             tags.add(DamageTypeTags.BYPASSES_ENCHANTMENTS);
             tags.add(DamageTypeTags.BYPASSES_EFFECTS);

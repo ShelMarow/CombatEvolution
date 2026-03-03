@@ -6,6 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -65,7 +66,7 @@ public class ExecutionHandler {
     //Key：被处决的实体
     //value：处决者
     private static final Map<LivingEntity, LivingEntity> EXECUTION_TARGETS = new HashMap<>();
-    public static final float EXECUTION_DISTANCE = 3.5F;
+    public static final float EXECUTION_DISTANCE = 4F;
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingAttack(LivingAttackEvent event) {
@@ -103,6 +104,15 @@ public class ExecutionHandler {
                 event.setAmount(health - 0.01F);
             }
         }
+
+        if(damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)){
+            EpicFightCapabilities.getUnparameterizedEntityPatch(EXECUTION_TARGETS.get(target), ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
+                SkillContainer container = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
+                if(container != null && container.hasSkill()){
+                    container.getSkill().setStackSynchronize(container, container.getStack() + 1);
+                }
+            });
+        }
     }
 
     @SubscribeEvent
@@ -130,7 +140,6 @@ public class ExecutionHandler {
 
     public static boolean tryExecute(ServerPlayer player){
         if(!CECommonConfig.ENABLED_EXECUTION.get()) {
-            //player.sendSystemMessage(Component.translatable("hud.combat_evolution.execution_disabled"));
             return false;
         }
 
@@ -148,14 +157,10 @@ public class ExecutionHandler {
                 //判断目标是否处于破防状态
                 AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(targetPatch.getAnimator().getPlayerFor(null)).getRealAnimation();
                 if (isTargetGuardBreak(currentAnimation, targetPatch) && targetIsInRange(player, target,0, EXECUTION_DISTANCE,180) && canExecute(player, playerPatch, target, targetPatch)) {
-
                     //获取处决类型
                     ExecutionTypeManager.Type executionType = getExecutionType(playerPatch,targetPatch);
-
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
-                    Level level = player.level();
-                    Vec3 frontPos = calculateExecutionPosition(target, executionType.offset());
-                    frontPos = canStandHere(level, frontPos, player);
+                    Vec3 frontPos = calculateExecutionPosition(player.level(), player, target, executionType.offset());
                     if (frontPos != null) {
                         player.teleportTo(frontPos.x, frontPos.y, frontPos.z);
                         TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, executionType.totalTick()));
@@ -182,19 +187,18 @@ public class ExecutionHandler {
                     //获取处决类型
                     ExecutionTypeManager.Type executionType = getExecutionType(executorPatch,targetPatch);
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
-                    Level level = executor.level();
-                    Vec3 frontPos = calculateExecutionPosition(target, executionType.offset());
-                    frontPos = canStandHere(level, frontPos, executor);
+                    Vec3 frontPos = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
                     if (frontPos != null) {
-
                         BehaviorUtils.stopCurrentBehavior(executor);
                         BehaviorUtils.stopCurrentBehavior(target);
                         executor.setDeltaMovement(Vec3.ZERO);
                         target.setDeltaMovement(Vec3.ZERO);
-
                         executor.teleportTo(frontPos.x, frontPos.y, frontPos.z);
                         TickTaskManager.addTask(target.getUUID(), new ExecutionTask(executor, target,executionType, executionType.totalTick()));
                         return true;
+                    }
+                    else if(executor instanceof Player player) {
+                        player.displayClientMessage(Component.translatable("text.combat_evolution.not_available_pos").withStyle(ChatFormatting.RED),true);
                     }
                 }
             }
@@ -263,19 +267,24 @@ public class ExecutionHandler {
 
         //如果存在实体
         if (entityHit != null) {
-            //创建玩家到实体的向量，检测路径上是否存在遮挡
-            BlockHitResult blockHit = player.level().clip(new ClipContext(eyePos,entityHit.getEntity().getEyePosition(),ClipContext.Block.COLLIDER,ClipContext.Fluid.NONE,player));
-            //获取方块距离
-            double blockDistanceSqr = blockHit.getType() != HitResult.Type.MISS ? eyePos.distanceToSqr(blockHit.getLocation()) : Double.MAX_VALUE;
-            //获取实体距离
-            double entityDistanceSqr = eyePos.distanceToSqr(entityHit.getEntity().getEyePosition());
-            //如果实体距离比方块距离短，说明没有遮挡
-            if (entityDistanceSqr < blockDistanceSqr && blockDistanceSqr - entityDistanceSqr > entityHit.getEntity().getBoundingBox().minX) {
-                //返回获取的第一个实体
-                return (LivingEntity) entityHit.getEntity();
-            }
+            return getEntityInView(player, eyePos, entityHit.getEntity());
         }
 
+        return null;
+    }
+
+    private static LivingEntity getEntityInView(LivingEntity executor, Vec3 startPos, Entity target) {
+        //创建玩家到实体的向量，检测路径上是否存在遮挡
+        BlockHitResult blockHit = executor.level().clip(new ClipContext(startPos, target.getEyePosition(),ClipContext.Block.COLLIDER,ClipContext.Fluid.NONE, executor));
+        //获取方块距离
+        double blockDistanceSqr = blockHit.getType() != HitResult.Type.MISS ? startPos.distanceToSqr(blockHit.getLocation()) : Double.MAX_VALUE;
+        //获取实体距离
+        double entityDistanceSqr = startPos.distanceToSqr(target.getEyePosition());
+        //如果实体距离比方块距离短，说明没有遮挡
+        if (entityDistanceSqr < blockDistanceSqr && blockDistanceSqr - entityDistanceSqr > target.getBoundingBox().minX) {
+            //返回获取的第一个实体
+            return (LivingEntity) target;
+        }
         return null;
     }
 
@@ -338,26 +347,6 @@ public class ExecutionHandler {
         }
     }
 
-    private static Vec3 calculateExecutionPosition(LivingEntity target, Vec3 offset) {
-        float yaw = target.getYRot();
-        double rad = Math.toRadians(yaw);
-
-        // 朝向单位向量（前方）
-        double forwardX = -Math.sin(rad);
-        double forwardZ = Math.cos(rad);
-
-        // 右方单位向量（垂直于前方）
-        double rightX = Math.cos(rad);
-        double rightZ = Math.sin(rad);
-
-        // 组合偏移（x=前后, z=左右, y=上下）
-        double offsetX = forwardX * offset.x + rightX * offset.z;
-        double offsetY = offset.y;
-        double offsetZ = forwardZ * offset.x + rightZ * offset.z;
-
-        return target.position().add(offsetX, offsetY, offsetZ);
-    }
-
     public static boolean targetIsInRange(LivingEntity executor, LivingEntity target, double minDist, double maxDist, double maxAngleDegrees) {
         Vec3 targetPos = target.position();
         Vec3 playerPos = executor.position();
@@ -376,15 +365,97 @@ public class ExecutionHandler {
         return angle <= maxAngleDegrees;
     }
 
-    public static Vec3 canStandHere(Level level, Vec3 pos, LivingEntity entity) {
+    @Nullable
+    private static Vec3 calculateExecutionPosition(Level level, LivingEntity executor, LivingEntity target, Vec3 offset) {
+        //先查询目标正前方是否可以直接站立
+        float yaw = target.getYRot();
+        double rad = Math.toRadians(yaw);
+
+        // 朝向单位向量（前方）
+        double forwardX = -Math.sin(rad);
+        double forwardZ = Math.cos(rad);
+
+        // 右方单位向量（垂直于前方）
+        double rightX = Math.cos(rad);
+        double rightZ = Math.sin(rad);
+
+        // 组合偏移（x=前后, z=左右, y=上下）
+        double offsetX = forwardX * offset.x + rightX * offset.z;
+        double offsetY = offset.y;
+        double offsetZ = forwardZ * offset.x + rightZ * offset.z;
+
+        Vec3 testPos = target.position().add(offsetX, offsetY, offsetZ);
+        Vec3 executionPos = canStandHere(level, testPos, executor, target, 0.5F);
+
+        //如果没找到
+        //检测从目标朝向处决者的角度开始，周围360度是否存在可站立地面,先从Y轴相近的位置查询
+        if(executionPos == null) {
+            Vec3 executorPos = executor.position();
+            Vec3 targetPos = target.position();
+            Vec3 deltaVec = executorPos.subtract(targetPos);
+            float startAngle = (float) (Math.toDegrees(Mth.atan2(deltaVec.z, deltaVec.x)) - 90.0F);
+            float allowedY = 0.5F;
+            executionPos = findPosAround(level, executor, target, offset, executionPos, startAngle, allowedY);
+            if(executionPos == null) {
+                //如果还是没找到，扩大Y轴范围再次搜索
+                allowedY = 0.95F;
+                executionPos = findPosAround(level, executor, target, offset, executionPos, startAngle, allowedY);
+            }
+        }
+
+
+        return executionPos;
+    }
+
+    @Nullable
+    private static Vec3 findPosAround(Level level, LivingEntity executor, LivingEntity target, Vec3 offset, Vec3 executionPos, float startAngle, float allowedY) {
+        float yaw;
+        double rad;
+        double forwardX;
+        double forwardZ;
+        double rightX;
+        double rightZ;
+        double offsetX;
+        double offsetY;
+        double offsetZ;
+        Vec3 testPos;
+        for (float angleOffset = 0; angleOffset < 360F; angleOffset += 12F) {
+            yaw = startAngle + angleOffset;
+            rad = Math.toRadians(yaw);
+
+            // 朝向单位向量（前方）
+            forwardX = -Math.sin(rad);
+            forwardZ = Math.cos(rad);
+
+            // 右方单位向量（垂直于前方）
+            rightX = Math.cos(rad);
+            rightZ = Math.sin(rad);
+
+            // 组合偏移（x=前后, z=左右, y=上下）
+            offsetX = forwardX * offset.x + rightX * offset.z;
+            offsetY = offset.y;
+            offsetZ = forwardZ * offset.x + rightZ * offset.z;
+
+            testPos = target.position().add(offsetX, offsetY, offsetZ);
+            executionPos = canStandHere(level, testPos, executor, target, allowedY);
+            //查询到直接返回
+            if(executionPos != null) {
+                break;
+            }
+        }
+        return executionPos;
+    }
+
+    @Nullable
+    public static Vec3 canStandHere(Level level, Vec3 pos, LivingEntity executor, LivingEntity target, float allowedY) {
 
         //根据实体的碰撞箱在目标位置重新构建碰撞检测AABB
-        AABB entityBox = entity.getBoundingBox();
-        double width = entityBox.getXsize();
-        double height = entityBox.getYsize();
+        AABB entityBox = executor.getBoundingBox();
+        double width = entityBox.getXsize() * 1F;
+        double height = entityBox.getYsize() * 1F;
 
         //检查脚下方块是否能够站立
-        for (float i = 0.5F; i >= -0.5F; i -= 0.05F) {
+        for (float i = allowedY; i > -allowedY; i -= 0.05F) {
             BlockPos blockPosBelow = BlockPos.containing(pos.x, pos.y + i, pos.z);
             BlockState stateBelow = level.getBlockState(blockPosBelow);
             VoxelShape shapeBelow = stateBelow.getCollisionShape(level, blockPosBelow);
@@ -394,9 +465,11 @@ public class ExecutionHandler {
                         pos.x - width / 2.0, blockPosBelow.getY() + offsetY, pos.z - width / 2.0,
                         pos.x + width / 2.0,blockPosBelow.getY() + offsetY + height,pos.z + width / 2.0
                 );
+
                 //根据实体的碰撞箱检测是否有足够空间站立
-                if(level.noCollision(checkBox)){
-                    return pos.add(0, i + 0.05, 0);
+                Vec3 standPos = new Vec3(pos.x, blockPosBelow.getY() + offsetY, pos.z);
+                if(level.noCollision(checkBox) && getEntityInView(executor, new Vec3(standPos.x, executor.getEyePosition().y, standPos.z), target) != null){
+                    return standPos;
                 }
             }
         }

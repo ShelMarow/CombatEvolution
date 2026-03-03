@@ -41,23 +41,30 @@ public class ExecutionTask extends TickTask {
             executor.addEffect(new MobEffectInstance(MobEffects.REGENERATION, maxTime, 4));
         }
 
-        //只有人形生物和自定义的生物能播放 && ExecutionHandler.isTargetSupported(executorPatch, executorPatch) && ExecutionHandler.isTargetSupported(executorPatch, targetPatch)
         if (executorPatch != null && targetPatch != null) {
             //播放处决动画
             executorPatch.playAnimationSynchronized(executionType.executionAnimation(), 0F);
             targetPatch.playAnimationSynchronized(executionType.executedAnimation(), 0F);
 
-            //矫正处决者的模型朝向
+            //矫正处决者和被处决目标的模型朝向
             Vec3 from = executor.getEyePosition();
             Vec3 to = target.getEyePosition();
             double dx = to.x - from.x;
             double dz = to.z - from.z;
-            float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0F) + executionType.rotationOffset();
+            float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0F);
 
             if (executorPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-                serverPlayerPatch.setModelYRot(yaw, true);
-            } else {
-                executorPatch.setYRot(yaw);
+                serverPlayerPatch.setModelYRot(yaw + executionType.rotationOffset(), true);
+            }
+            else {
+                executorPatch.setYRot(yaw + executionType.rotationOffset());
+            }
+
+            if (targetPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+                serverPlayerPatch.setModelYRot(yaw + 180, true);
+            }
+            else {
+                targetPatch.setYRot(yaw + 180);
             }
         }
     }

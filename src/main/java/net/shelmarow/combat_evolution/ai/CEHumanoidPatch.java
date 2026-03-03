@@ -3,10 +3,12 @@ package net.shelmarow.combat_evolution.ai;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -22,9 +24,11 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
 import net.shelmarow.combat_evolution.ai.goal.CommonChasingGoal;
+import net.shelmarow.combat_evolution.ai.iml.IDamageSourceData;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
+import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.gameassets.ShieldCounterAnimations;
 import yesman.epicfight.api.animation.AnimationManager;
@@ -199,16 +203,28 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     public AttackResult tryHurt(DamageSource damageSource, float amount) {
         AttackResult result = super.tryHurt(damageSource, amount);
 
+        if(!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !damageSource.is(CEDamageTypeTags.EXECUTION)) {
+            CECombatBehaviors<?> combatBehavior = BehaviorUtils.getCECombatBehaviors(this);
+            if (combatBehavior != null) {
+                CECombatBehaviors.Behavior<?> current = combatBehavior.getCurrentBehavior();
+                if (current == null) {
+                    if (BehaviorUtils.getCEAnimationAttackGoal(original).canUse()) {
+                        result = combatBehavior.executeNoBehaviorOnHurt(this, damageSource, result);
+                    }
+                } else {
+                    result = current.executeOnHurtEvent(this, damageSource, result);
+                }
+            }
+        }
+
         if(damageSource.getDirectEntity() != null && result.resultType == AttackResult.ResultType.SUCCESS) {
-            ILivingEntityData entityData = (ILivingEntityData) this;
             //防御受击
-            if(entityData.combat_evolution$isGuard() && isBlockableSource(damageSource) && !isStunned()){
-                if(!entityData.combat_evolution$isInCounter()) {
+            if(CEPatchUtils.isGuard(this) && isBlockableSource(damageSource) && !isStunned()){
+                if(!CEPatchUtils.isInCounter(this)) {
                     onGuardHit(damageSource);
                 }
                 return AttackResult.blocked(0);
             }
-
             //正常受伤
             onCommonHurt(damageSource);
         }
@@ -216,8 +232,21 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         return result;
     }
 
+    @Override
+    public AttackResult attack(EpicFightDamageSource damageSource, Entity target, InteractionHand hand) {
+        AttackResult attackResult = super.attack(damageSource, target, hand);
+        int phase = damageSource instanceof IDamageSourceData sourceData ? sourceData.getSourcePhaseIndex() : -1;
+        CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
+        if (current != null && current.shouldExecuteHitEvent()) {
+            current.executeHitEvent(phase, attackResult.resultType, this, target);
+        }
+        return attackResult;
+    }
+
     public boolean isBlockableSource(DamageSource damageSource){
-        return !damageSource.is(EpicFightDamageTypeTags.UNBLOCKALBE) && !damageSource.is(EpicFightDamageTypeTags.GUARD_PUNCTURE);
+        return !damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) &&
+                !damageSource.is(EpicFightDamageTypeTags.UNBLOCKALBE) &&
+                !damageSource.is(EpicFightDamageTypeTags.GUARD_PUNCTURE);
     }
 
     public void onCommonHurt(DamageSource damageSource) {
@@ -306,11 +335,19 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
     @Override
     public void onAttackBlocked(DamageSource damageSource, LivingEntityPatch<?> blocker) {
-        //交给子类重写
+        int phase = (damageSource instanceof IDamageSourceData sourceData) ? sourceData.getSourcePhaseIndex() : -1;
+        CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
+        if(current != null){
+            current.executeBlockedEvent(phase, this, blocker, false);
+        }
     }
 
     public void onAttackParried(DamageSource damageSource, LivingEntityPatch<?> blocker) {
-        //交给子类重写
+        int phase = (damageSource instanceof IDamageSourceData sourceData) ? sourceData.getSourcePhaseIndex() : -1;
+        CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
+        if(current != null){
+            current.executeBlockedEvent(phase, this, blocker, true);
+        }
     }
 
     public void onAttackCountered(DamageSource damageSource, float staminaDamage) {

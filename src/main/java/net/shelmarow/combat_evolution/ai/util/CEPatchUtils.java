@@ -68,4 +68,24 @@ public class CEPatchUtils {
         ILivingEntityData entityData = (ILivingEntityData) entityPatch;
         entityData.combat_evolution$setStaminaStatus(staminaStatus);
     }
+
+    public static boolean isGuard(LivingEntityPatch<?> entityPatch){
+        ILivingEntityData entityData = (ILivingEntityData) entityPatch;
+        return entityData.combat_evolution$isGuard();
+    }
+
+    public static void setGuard(LivingEntityPatch<?> entityPatch, boolean guard){
+        ILivingEntityData entityData = (ILivingEntityData) entityPatch;
+        entityData.combat_evolution$setGuard(guard);
+    }
+
+    public static boolean isInCounter(LivingEntityPatch<?> entityPatch){
+        ILivingEntityData entityData = (ILivingEntityData) entityPatch;
+        return entityData.combat_evolution$isInCounter();
+    }
+
+    public static void setInCounter(LivingEntityPatch<?> entityPatch, boolean inCounter){
+        ILivingEntityData entityData = (ILivingEntityData) entityPatch;
+        entityData.combat_evolution$setInCounter(inCounter);
+    }
 }

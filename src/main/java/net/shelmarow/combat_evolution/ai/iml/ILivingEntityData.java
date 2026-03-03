@@ -10,18 +10,6 @@ public interface ILivingEntityData {
     float combat_evolution$getAttackSpeed();
     void combat_evolution$setAttackSpeed(float attackSpeed);
 
-//    float combat_evolution$getDamageMultiplier(LivingEntity entity);
-//    void combat_evolution$setDamageMultiplier( float multiplier);
-//
-//    float combat_evolution$getImpactMultiplier(LivingEntity entity);
-//    void combat_evolution$setImpactMultiplier( float multiplier);
-//
-//    float combat_evolution$getArmorNegationMultiplier(LivingEntity entity);
-//    void combat_evolution$setArmorNegationMultiplier( float multiplier);
-//
-//    int combat_evolution$getStunType(LivingEntity entity);
-//    void combat_evolution$setStunType( StunType stunType);
-//    void combat_evolution$setStunType( int stunType);
     float combat_evolution$getStamina();
     float combat_evolution$getStamina(LivingEntity entity);
     void combat_evolution$setStamina(float stamina);

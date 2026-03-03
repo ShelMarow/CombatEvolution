@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.damagesource.DamageSource;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
+import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.example.entity.shelmarow.ai.ShelMarowCombatBehaviors;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
 import net.shelmarow.combat_evolution.gameassets.ShieldCounterAnimations;
@@ -26,7 +27,7 @@ public class ShelMarowPatch extends CEHumanoidPatch implements CustomExecuteEnti
     @Override
     protected void setWeaponMotions() {
         this.weaponLivingMotions.put(CapabilityItem.WeaponCategories.LONGSWORD,
-                ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, Set.of(
+                ImmutableMap.of(CapabilityItem.Styles.COMMON, Set.of(
                         Pair.of(LivingMotions.BLOCK, Animations.LONGSWORD_GUARD),
                         Pair.of(LivingMotions.IDLE, Animations.BIPED_HOLD_SPEAR),
                         Pair.of(LivingMotions.WALK, Animations.BIPED_WALK_SPEAR),
@@ -37,7 +38,7 @@ public class ShelMarowPatch extends CEHumanoidPatch implements CustomExecuteEnti
         );
 
         this.guardHitMotions.put(CapabilityItem.WeaponCategories.LONGSWORD,
-                ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, List.of(
+                ImmutableMap.of(CapabilityItem.Styles.COMMON, List.of(
                         Animations.LONGSWORD_GUARD_ACTIVE_HIT1,
                         Animations.LONGSWORD_GUARD_ACTIVE_HIT2,
                         Animations.SWORD_GUARD_ACTIVE_HIT1,
@@ -48,13 +49,14 @@ public class ShelMarowPatch extends CEHumanoidPatch implements CustomExecuteEnti
 
         this.weaponAttackMotions.put(
                 CapabilityItem.WeaponCategories.LONGSWORD,
-                ImmutableMap.of(CapabilityItem.Styles.TWO_HAND, ShelMarowCombatBehaviors.COMMON)
+                ImmutableMap.of(CapabilityItem.Styles.COMMON, ShelMarowCombatBehaviors.COMMON)
         );
     }
 
     @Override
     public void onAttackParried(DamageSource damageSource, LivingEntityPatch<?> blocker){
-        dealStaminaDamage(null, 10F);
+        super.onAttackParried(damageSource, blocker);
+        dealStaminaDamage(null, CEPatchUtils.getMaxStamina(this) * 0.05F);
     }
 
     @Override

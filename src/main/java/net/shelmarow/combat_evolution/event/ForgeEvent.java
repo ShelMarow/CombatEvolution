@@ -55,21 +55,4 @@ public class ForgeEvent {
             }
         }
     }
-
-    @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent event){
-        DamageSource source = event.getSource();
-        Entity attacker = source.getEntity();
-        Entity target = event.getEntity();
-
-        if(source instanceof IDamageSourceData damageSourceData){
-            CEHumanoidPatch ceHumanoidPatch = EpicFightCapabilities.getEntityPatch(attacker, CEHumanoidPatch.class);
-            if(ceHumanoidPatch != null){
-                CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(ceHumanoidPatch);
-                if(current != null && current.shouldExecuteHitEvent()){
-                    current.executeHitEvent(damageSourceData.getSourcePhaseIndex(), ceHumanoidPatch, target);
-                }
-            }
-        }
-    }
 }
