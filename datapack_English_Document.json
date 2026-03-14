@@ -1,0 +1,256 @@
+{
+  // The file path should be placed in datapack/[datapack name]/data/[mod ID]/ce_mobpatch/entity ID.json
+
+  "faction": "neutral",   // <Required> Faction, used to prevent attacking entities of the same faction.
+  "renderer": "player",   // <Required> Renderer type. Common options: player, zombie, skeleton, epicfight:custom, etc.
+  "model": "player",      // <Required> Entity model. Common options: player, zombie, skeleton, epicfight:custom, etc.
+  "humanoid": true,       // [Optional] Whether to use a humanoid model. If true and renderer is epicfight:custom, the default human model will be used.
+  "scale": 1.0,           // [Optional] Render scale. Does not affect the actual collision box.
+  "breakTime": 40,        // [Optional] Duration (in ticks) of the stagger/break state after stamina is depleted (independent of animations).
+  "recoverTime": 60,      // [Optional] Time (in ticks) needed for stamina to fully recover after the break state ends.
+  "staminaRegenDelay":60, // [Optional] Delay (in ticks) before natural stamina regeneration begins when idle and not performing actions.
+  "beParriedDamage": 1,   // [Optional] Stamina damage taken by the entity when its own attack is parried.
+  "guardHitImpact": 1,    // [Optional] Percentage of stamina damage taken when blocking an enemy attack. (e.g., enemy impact=3, multiplier=0.5 -> stamina damage=1.5)
+  "hurtImpact": 0.35,     // [Optional] Percentage of stamina damage taken when receiving damage. (e.g., enemy impact=10, multiplier=0.35 -> stamina damage=3.5)
+  "attributes": [         // [Optional] Attribute modifications. Adds or modifies attributes for the entity.
+    {
+      "attribute": "minecraft:generic.attack_damage",
+      "value": 10.0
+    },
+    {
+      "attribute": "epicfight:staminar", // If the entity lacks this attribute, default stamina is 15.
+      "value": 30
+    },
+    {
+      "attribute": "epicfight:staminar_regen", // If the entity lacks this attribute, stamina will not regenerate naturally.
+      "value": 1
+    }
+  ],
+  "weaponLivingMotions": [  // [Optional] Weapon-specific living animations. If omitted, default living animations for the weapon type are used.
+    {
+      "weaponCategories": ["longsword"],
+      "style": "common",
+      "livingMotions": {
+        "idle": "epicfight:biped/living/hold_longsword",
+        "walk": "epicfight:biped/living/walk_longsword",
+        "run": "epicfight:biped/living/run_longsword",
+        "chase": "epicfight:biped/living/run_longsword",
+        "death": "epicfight:biped/living/death",
+        "block": "epicfight:biped/skill/guard_longsword"  // Weapon block animation
+      }
+    }
+  ],
+  "guardHitAnimation": [  // [Optional] Animations played when hit while blocking. No animation plays if omitted.
+    {
+      "weaponCategories": ["longsword"],
+      "style": "common",
+      "animations": [ // Randomly selects an animation from the list to play.
+        "epicfight:biped/skill/guard_longsword_hit_active1",
+        "epicfight:biped/skill/guard_longsword_hit_active2"
+      ]
+    },
+    {
+      "weaponCategories": ["sword"],
+      "style": "common",
+      "animations": [
+        "epicfight:biped/skill/guard_sword_hit_active1",
+        "epicfight:biped/skill/guard_sword_hit_active2",
+        "epicfight:biped/skill/guard_sword_hit_active3"
+      ]
+    }
+  ],
+  "stunAnimations": {     // [Optional] Stun animations. No animation plays if omitted.
+    "short": "epicfight:biped/combat/hit_short",
+    "long": "epicfight:biped/combat/hit_long",
+    "hold": "epicfight:biped/combat/hit_short",
+    "fall": "epicfight:biped/living/landing",
+    "knockdown": "epicfight:biped/combat/knockdown",
+    "neutralize":"epicfight:biped/skill/guard_break1" // Guard break animation
+  },
+  "combatBehaviors":[     // <Required> Collection of behavior sets that control the entity's actions.
+    {
+      "weaponCategories": ["sword", "longsword"], // <Required> Weapon categories this behavior set applies to.
+      "style": "common",    // <Required> Corresponding weapon style. 'common' is the default fallback if other styles (one_hand, two_hand) are not found.
+      "stunEvents": {       // [Optional] Events triggered upon receiving a stun. 'onTarget' specifies if the target executes the command.
+        "short": [{"onTarget": false, "command": "/say short"}],
+        "long": [{"onTarget": false, "command": "/say long"}],
+        "fall": [{"onTarget": false, "command": "/say fall"}],
+        "knockdown": [{"onTarget": false, "command": "/say knockdown"}],
+        "neutralize":[{"onTarget": false, "command": "/say neutralize"}]
+      },
+      "behaviorRoots": [  // <Required> Collection of root behavior nodes. Each AI is composed of multiple root nodes. The entity selects an available root node to execute.
+        {
+          "rootName": "Root Behavior Node", // [Optional] Name. Can be arbitrary for non-global nodes; must be unique for global nodes.
+          "priority": 2,           // [Optional] Priority. The AI always selects the node with the highest priority (if cooldown is finished and child behaviors are available). Default 1.
+          "weight": 10,            // [Optional] Weight. If priorities are equal, one is chosen randomly based on weight (higher weight = higher probability). Default 1.
+          "maxCooldown": 10,       // [Optional] Maximum cooldown time. The node enters cooldown after execution or interruption and cannot be selected during cooldown. Default 0.
+          "cooldown": 10,          // [Optional] Initial cooldown. Applies only once when the AI is first enabled for the enemy. Default 0.
+          "isGlobal": false,       // [Optional] Whether this is a global behavior. Global nodes cannot execute independently and must be chained after other behaviors. Default false.
+          "backAfterFinished": true, // [Optional] For global behaviors: if true, returns to the parent node after completion; if false, all associated behaviors end. Default false.
+          "firstBehaviors": [     // <Required> Collection of child behavior nodes for this root. All child nodes share the root node's cooldown.
+            {
+              "behaviorName": "Animation Behavior A1", // [Optional] Name for the child behavior. No restrictions.
+              "priority": 1,             // [Optional] Priority among multiple available child nodes. Default 1.
+              "weight": 4,              // [Optional] Weight for random selection when priorities are equal. Default 1.
+              "stopByStun": 1,          // [Optional] Determines if stuns interrupt the behavior. 1 (default): Interrupted by all stuns. 2: Not interrupted by short stun. 3: Not interrupted by short/long. 4: Not interrupted by short/long/hold. 5: Not interrupted by short/long/hold/fall. 6: Not interrupted by short/long/hold/knockdown. 7: Not interrupted by short/long/hold/fall/knockdown.
+              "interruptType": "level", // [Optional] Type for interruption by special child behaviors. Omit to disable. If 'level' and the animation is an attack, it can be interrupted when the entity's level matches; if 'time', it can be interrupted based on animation playback time.
+              "interruptedWindow": [2, 3], // [Optional] Required if "interruptType" is set. For 'level' mode, any integer(s). For 'time' mode, two floats defining the interruption time window.
+              "canInterruptParent": false,  // [Optional] Whether this behavior can interrupt its parent. True if the parent has "interruptType" set, parent conditions are met, and this behavior's own conditions are met.
+              "canInsertGlobalBehavior": false,// [Optional] Whether global behaviors can be inserted as children of this behavior. Default false.
+              "allowedGlobalNameList": ["Global Behavior Name 1","Global Behavior Name 2"],// [Optional] Names of global nodes allowed to be inserted. If omitted, any global node can be inserted.
+              "addCoolDown": 10,  // [Optional] Adds to / subtracts from the root node's cooldown time.
+              "setCoolDown": 0,   // [Optional] Directly sets additional cooldown time (added to the root node's cooldown timer after the behavior ends).
+              "waitTime": 10,     // [Optional] If no child behavior is available, the node waits. If a child becomes available during the wait, it executes; otherwise, it ends.
+              "addStamina": 5,    // [Optional] Modifies stamina (adds/subtracts).
+              "setStamina": 10,   // [Optional] Sets stamina (setting to 0 does not trigger the guard break animation but can change stamina state).
+              "setPhase": 0,      // [Optional] Sets a special condition phase.
+              "addPhase": 0,      // [Optional] Adds to a special condition phase.
+              "conditions": [     // [Optional] Conditions required for the behavior to execute. If omitted, defaults to true. Multiple conditions must all be met.
+                {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4},
+                {"type": "combat_evolution:phase_between", "min": 0, "max": 2},
+                {"type": "combat_evolution:phase_contain", "phases": [0, 1, 2]},
+                {"type": "combat_evolution:entity_tag", "tag": "tagName"},
+                {"type": "combat_evolution:current_angle", "side": "left", "first": 0, "second": 180},
+                {"type": "combat_evolution:health_check", "health": 0.75, "comparator": "greater_ratio_contain"}, //comparator ：greater_absolute, greater_absolute_contain, greater_ratio, greater_ratio_contain,
+                {"type": "combat_evolution:stamina_check", "stamina": 0.75, "comparator": "greater_ratio_contain"}, //less_absolute, less_absolute_contain,less_ratio, less_ratio_contain,
+                {"type": "combat_evolution:attack_level", "min": 1, "max": 2},
+                {"type": "combat_evolution:attack_level_contain", "levels": [1,2]},
+                {"type": "combat_evolution:target_guard_break"}
+              ],
+              "animation": "epicfight:biped/combat/longsword_auto1",  // <Required for animation behavior> The animation to play. Cannot be used with guard or wander behaviors.
+              "animationParams": {    // [Optional] Parameters for the animation.
+                "transitionTime": 0,  // [Optional] Transition time.
+                "playSpeed": 1,       // [Optional] Playback speed.
+                "phaseParams": [      // [Optional] Parameters specific to attack animations.
+                  {
+                    "phase": 0,      // [Optional] For multi-hit attacks, specifies which phase/hit to modify (0 for first, 1 for second, -1 for all). Default -1.
+                    "damageMultiplier": 1,  // [Optional] Damage multiplier for this phase.
+                    "impactMultiplier": 1,  // [Optional] Impact multiplier.
+                    "armorNegationMultiplier": 1,  // [Optional] Armor negation multiplier.
+                    "stunType": "default",  // [Optional] Stun type. If omitted or "default", uses the animation's original stun. Otherwise, overrides it.
+                    "damage_tags": [      // [Optional] Additional tags for the damage source, e.g., EF's armor bypass, dodge bypass.
+                      "epicfight:bypass_dodge",
+                      "epicfight:guard_puncture"
+                    ]
+                  },
+                  {
+                    "phase": 1,
+                    "damageMultiplier": 1,
+                    "impactMultiplier": 1.25,
+                    "armorNegationMultiplier": 1,
+                    "stunType": "long",
+                    "damage_tags": [
+                      "epicfight:guard_puncture"
+                    ]
+                  }
+                ]
+              },
+              "exBehavior": [ // [Optional] Events executed synchronously at the start of the behavior. Can be used for all behavior types.
+                {"onTarget": false, "command": "/say Command executed at behavior start"}
+              ],
+              "timeEvents": [ // [Optional] Timestamp events. Only usable in animation behaviors.
+                {"type": "tick", "onTarget": false, "command": "/say This event runs every tick during the animation. onTarget: false means self executes."},
+                {"type": "in_time", "timeStart": 0.25, "onTarget": false, "command": "/say This is a timestamp event."},
+                {"type": "between_times", "timeStart": 0.25, "timeEnd": 0.35,"onTarget": true, "command": "/say This is a time interval event."}
+              ],
+              "hitEvents": [ // [Optional] Attack hit events. Only usable in animation behaviors.
+                {"type": "success", "phase": -1, "onTarget": false, "command": "/say Attack successfully hit the enemy. Applies to all phases."},
+                {"type": "blocked", "phase": 0, "onTarget": false, "command": "/say First phase hit the enemy but was blocked."},
+                {"type": "missed", "phase": 1, "onTarget": false, "command": "/say Second phase hit the enemy but dealt no damage."}
+              ],
+              "blockedEvents": [ // [Optional] Events when an attack is blocked. Only usable in animation behaviors.
+                {"parried": false, "phase": -1, "onTarget": false, "command": "/say Attack hit a player or CE entity and was blocked. Applies to all phases."},
+                {"parried": true, "phase": 0, "onTarget": false, "command": "/say Attack hit a player or CE entity and was parried. Applies to first phase."}
+              ],
+              "onHurtEvent":{   // [Optional] Triggered when the entity takes damage during this behavior. Can modify returnResult and damage to cancel damage. returnResult="default" leaves result unchanged (options: success, blocked, missed). damage=-1 uses original damage.
+                "returnResult":"default" , "damage": -1, "onTarget": false, "command": "/say Command triggered when taking damage during this behavior. Can cancel damage by modifying returnResult/damage. True damage and executions cannot trigger this event."
+              },
+              "nextBehaviors": [  // [Optional] Collection of child behaviors. Parameters are the same as this behavior. Allows creating tree-like structures.
+                {
+                  "behaviorName": "Animation Behavior A2",
+                  "conditions": [
+                    {"type": "epicfight:within_distance", "min": 0, "max": 4}
+                  ],
+                  "animation": "epicfight:biped/combat/longsword_auto2",
+                  "nextBehaviors": [
+                    {
+                      "behaviorName": "Animation Behavior A3",
+                      "conditions": [
+                        {"type": "epicfight:within_distance", "min": 0, "max": 4}
+                      ],
+                      "animation": "epicfight:biped/combat/longsword_auto3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "behaviorName": "Guard Behavior A",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "counterAnimation": "combat_evolution:biped/skill/shield_counter/shield_counter", // <Required> The animation for the guard counter.
+              "animationParams": {    // [Optional] Parameters for the counter animation, same as for animation behaviors.
+                "transitionTime" : 0,
+                "phaseParams": [
+                  {
+                    "damageMultiplier": 1,
+                    "impactMultiplier": 1,
+                    "armorNegationMultiplier": 1
+                  }
+                ]
+              },
+              "guardTime": 60,    // <Required> Total guard duration in ticks. Cannot be used with animation or wander behaviors.
+              "resetGuardTime": false,  // [Optional] Whether to reset the guard timer upon a successful block. Default false.
+              "counterType": "random",  // <Required> Counter type: 'random' (probabilistic), 'end' (fixed number of blocks), 'never' (no counter).
+              "counterChance": 0.25,    // <Required> Required if counterType is 'random'. The probability of countering.
+              "onCounterStart": [       // [Optional] Events executed when the counter starts. Can include commands for stagger immunity, etc.
+                {"onTarget": false, "command": "/say Content executed together with the counter animation"}
+              ]
+            },
+            {
+              "behaviorName": "Guard Behavior B",
+              "behaviorType": "guard",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "counterAnimation": "combat_evolution:biped/skill/shield_counter/shield_counter",
+              "guardTime": 60,
+              "resetGuardTime": true,
+              "counterType": "end", // <Required> Counter type: 'random', 'end', 'never'.
+              "maxGuardHit": 3,    // <Required> Required if counterType is 'end'. Number of blocks before countering.
+              "beforeCounter": {  // [Optional] Event triggered during the last block before the counter.
+                "cancelHitAnimation": false, "onTarget": false, "command": "/say Content executed at the start of the last block before the counter"
+              },
+              "onCounterStart": [
+                {"onTarget": false, "command": "/say Content executed together with the counter animation"}
+              ]
+            },
+            {
+              "behaviorName": "Wander Behavior",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "wanderTime": 60, // <Required> Wander duration in ticks. Cannot be used with animation or guard behaviors.
+              "forward": 0.25,  // Forward/backward movement amount while wandering.
+              "strafe": 1     // Left/right movement amount while wandering.
+            },
+            {
+              "behaviorName": "Guard with Wander",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "guardWithWander": 100,  // <Required> Duration for combined guard and wander behavior. Cannot be used with animation, guard, or wander behaviors alone. The entity wanders while guarding.
+              "guardAnimation": false, // [Optional] Whether to play the guard animation while wandering. Default false.
+              "counterAnimation": "epicfight:biped/combat/tachi_auto3",
+              "counterType": "random",
+              "counterChance": 0.15,
+              "forward": 0,
+              "strafe": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

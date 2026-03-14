@@ -160,10 +160,11 @@ public class ExecutionHandler {
                     //获取处决类型
                     ExecutionTypeManager.Type executionType = getExecutionType(playerPatch,targetPatch);
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
-                    Vec3 frontPos = calculateExecutionPosition(player.level(), player, target, executionType.offset());
-                    if (frontPos != null) {
-                        player.teleportTo(frontPos.x, frontPos.y, frontPos.z);
-                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, executionType.totalTick()));
+                    ExecutionTransform transform = calculateExecutionPosition(player.level(), player, target, executionType.offset());
+                    if (transform != null) {
+                        Vec3 executionPos = transform.position();
+                        player.teleportTo(executionPos.x, executionPos.y, executionPos.z);
+                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, transform, executionType.totalTick()));
                         return true;
                     }
                     else{
@@ -187,14 +188,15 @@ public class ExecutionHandler {
                     //获取处决类型
                     ExecutionTypeManager.Type executionType = getExecutionType(executorPatch,targetPatch);
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
-                    Vec3 frontPos = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
-                    if (frontPos != null) {
+                    ExecutionTransform transform = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
+                    if (transform != null) {
                         BehaviorUtils.stopCurrentBehavior(executor);
                         BehaviorUtils.stopCurrentBehavior(target);
                         executor.setDeltaMovement(Vec3.ZERO);
                         target.setDeltaMovement(Vec3.ZERO);
-                        executor.teleportTo(frontPos.x, frontPos.y, frontPos.z);
-                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(executor, target,executionType, executionType.totalTick()));
+                        Vec3 executionPos = transform.position();
+                        executor.teleportTo(executionPos.x, executionPos.y, executionPos.z);
+                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(executor, target,executionType, transform, executionType.totalTick()));
                         return true;
                     }
                     else if(executor instanceof Player player) {
@@ -366,49 +368,32 @@ public class ExecutionHandler {
     }
 
     @Nullable
-    private static Vec3 calculateExecutionPosition(Level level, LivingEntity executor, LivingEntity target, Vec3 offset) {
+    private static ExecutionTransform calculateExecutionPosition(Level level, LivingEntity executor, LivingEntity target, Vec3 offset) {
         //先查询目标正前方是否可以直接站立
         float yaw = target.getYRot();
-        double rad = Math.toRadians(yaw);
-
-        // 朝向单位向量（前方）
-        double forwardX = -Math.sin(rad);
-        double forwardZ = Math.cos(rad);
-
-        // 右方单位向量（垂直于前方）
-        double rightX = Math.cos(rad);
-        double rightZ = Math.sin(rad);
-
-        // 组合偏移（x=前后, z=左右, y=上下）
-        double offsetX = forwardX * offset.x + rightX * offset.z;
-        double offsetY = offset.y;
-        double offsetZ = forwardZ * offset.x + rightZ * offset.z;
-
-        Vec3 testPos = target.position().add(offsetX, offsetY, offsetZ);
-        Vec3 executionPos = canStandHere(level, testPos, executor, target, 0.5F);
+        ExecutionTransform executionTransform = findPosAround(level, executor, target, offset, yaw, 360F, 0.5F);
 
         //如果没找到
         //检测从目标朝向处决者的角度开始，周围360度是否存在可站立地面,先从Y轴相近的位置查询
-        if(executionPos == null) {
+        if(executionTransform == null) {
             Vec3 executorPos = executor.position();
             Vec3 targetPos = target.position();
             Vec3 deltaVec = executorPos.subtract(targetPos);
             float startAngle = (float) (Math.toDegrees(Mth.atan2(deltaVec.z, deltaVec.x)) - 90.0F);
             float allowedY = 0.5F;
-            executionPos = findPosAround(level, executor, target, offset, executionPos, startAngle, allowedY);
-            if(executionPos == null) {
+            executionTransform = findPosAround(level, executor, target, offset, startAngle, 12F, allowedY);
+            if(executionTransform == null) {
                 //如果还是没找到，扩大Y轴范围再次搜索
                 allowedY = 0.95F;
-                executionPos = findPosAround(level, executor, target, offset, executionPos, startAngle, allowedY);
+                executionTransform = findPosAround(level, executor, target, offset, startAngle, 12F, allowedY);
             }
         }
 
-
-        return executionPos;
+        return executionTransform;
     }
 
     @Nullable
-    private static Vec3 findPosAround(Level level, LivingEntity executor, LivingEntity target, Vec3 offset, Vec3 executionPos, float startAngle, float allowedY) {
+    private static ExecutionTransform findPosAround(Level level, LivingEntity executor, LivingEntity target, Vec3 offset, float startAngle, float angleStep, float allowedY) {
         float yaw;
         double rad;
         double forwardX;
@@ -419,31 +404,32 @@ public class ExecutionHandler {
         double offsetY;
         double offsetZ;
         Vec3 testPos;
-        for (float angleOffset = 0; angleOffset < 360F; angleOffset += 12F) {
+        for (float angleOffset = 0; angleOffset < 360F; angleOffset += angleStep) {
+            //目标角度
             yaw = startAngle + angleOffset;
             rad = Math.toRadians(yaw);
 
-            // 朝向单位向量（前方）
+            //朝向单位向量
             forwardX = -Math.sin(rad);
             forwardZ = Math.cos(rad);
 
-            // 右方单位向量（垂直于前方）
+            //右方单位向量
             rightX = Math.cos(rad);
             rightZ = Math.sin(rad);
 
-            // 组合偏移（x=前后, z=左右, y=上下）
+            //组合偏移（x=前后, z=左右, y=上下）
             offsetX = forwardX * offset.x + rightX * offset.z;
             offsetY = offset.y;
             offsetZ = forwardZ * offset.x + rightZ * offset.z;
 
             testPos = target.position().add(offsetX, offsetY, offsetZ);
-            executionPos = canStandHere(level, testPos, executor, target, allowedY);
+            Vec3 executionPos = canStandHere(level, testPos, executor, target, allowedY);
             //查询到直接返回
             if(executionPos != null) {
-                break;
+                return new ExecutionTransform(executionPos, yaw);
             }
         }
-        return executionPos;
+        return null;
     }
 
     @Nullable
@@ -451,8 +437,8 @@ public class ExecutionHandler {
 
         //根据实体的碰撞箱在目标位置重新构建碰撞检测AABB
         AABB entityBox = executor.getBoundingBox();
-        double width = entityBox.getXsize() * 1F;
-        double height = entityBox.getYsize() * 1F;
+        double width = entityBox.getXsize();
+        double height = entityBox.getYsize();
 
         //检查脚下方块是否能够站立
         for (float i = allowedY; i > -allowedY; i -= 0.05F) {
@@ -477,4 +463,5 @@ public class ExecutionHandler {
         return null;
     }
 
+    public record ExecutionTransform(Vec3 position, float yaw){}
 }

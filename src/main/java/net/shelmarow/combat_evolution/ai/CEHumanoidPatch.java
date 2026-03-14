@@ -46,6 +46,7 @@ import yesman.epicfight.model.armature.HumanoidArmature;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPChangeLivingMotion;
 import yesman.epicfight.particle.EpicFightParticles;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.Factions;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
@@ -223,6 +224,14 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 if(!CEPatchUtils.isInCounter(this)) {
                     onGuardHit(damageSource);
                 }
+                Entity target = damageSource.getDirectEntity() == null ? (damageSource.getEntity() == null ? null : damageSource.getEntity()) : damageSource.getDirectEntity();
+                LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
+                if(targetPatch != null){
+                    targetPatch.onAttackBlocked(damageSource, this);
+                    if(targetPatch instanceof CEHumanoidPatch ceHumanoidPatch){
+                        ceHumanoidPatch.onAttackParried(damageSource, this);
+                    }
+                }
                 return AttackResult.blocked(0);
             }
             //正常受伤
@@ -279,7 +288,17 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
 
             //是否能进行反击
             boolean canCounter = BehaviorUtils.onGuardHit(this);
-            playGuardHitAnimation(damageSource,canCounter);
+            boolean cancelHitAnimation = false;
+            if (canCounter) {
+                CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
+                if (current != null) {
+                    cancelHitAnimation = current.executeBeforeCounterEvent(this);
+                }
+            }
+
+            if(!cancelHitAnimation){
+                playGuardHitAnimation(damageSource,canCounter);
+            }
         }
     }
 
@@ -384,12 +403,13 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         WeaponCategory category = capabilityItem.getWeaponCategory();
         Style style = capabilityItem.getStyle(this);
 
-        List<AnimationManager.AnimationAccessor<? extends StaticAnimation>> list =
-                guardHitMotions.getOrDefault(category, new HashMap<>()).getOrDefault(style, new ArrayList<>());
-
-        if(list != null && !list.isEmpty()){
-            int index = original.getRandom().nextInt(0, list.size());
-            return list.get(index);
+        if(this.guardHitMotions.containsKey(category)){
+            Map<Style, List<AnimationManager.AnimationAccessor<? extends StaticAnimation>>> styleListMap = this.guardHitMotions.get(category);
+            if(styleListMap.containsKey(style) || styleListMap.containsKey(CapabilityItem.Styles.COMMON)){
+                List<AnimationManager.AnimationAccessor<? extends StaticAnimation>> list = styleListMap.getOrDefault(style, styleListMap.get(CapabilityItem.Styles.COMMON));
+                int index = original.getRandom().nextInt(0, list.size());
+                return list.get(index);
+            }
         }
 
         return Animations.EMPTY_ANIMATION;
@@ -606,7 +626,14 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         if (stunType == StunType.NEUTRALIZE && (CEPatchUtils.getStamina(this) != 0 || CEPatchUtils.getStaminaStatus(this) != StaminaStatus.COMMON)) {
             stunType = StunType.LONG;
         }
-        return super.applyStun(stunType, stunTime);
+        boolean applied = super.applyStun(stunType, stunTime);
+        if (applied) {
+            CECombatBehaviors<?> combatBehaviors = BehaviorUtils.getCECombatBehaviors(this);
+            if(combatBehaviors != null){
+                combatBehaviors.executeGlobeStunEvent(this, stunType);
+            }
+        }
+        return applied;
     }
 
     @Override

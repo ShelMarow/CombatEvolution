@@ -1,7 +1,6 @@
 package net.shelmarow.combat_evolution.execution;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -38,6 +37,11 @@ public class ExecutionTypeManager {
     public static final Type GREATSWORD_TYPE = new Type(
             ExecutionSkillAnimations.EXECUTION_GREATSWORD, ExecutionSkillAnimations.EXECUTED_FULL,
             new Vec3(1.35,0,-0.4),-23F,100
+    );
+
+    public static final Type COLOSSALSWORD_TYPE = new Type(
+            ExecutionSkillAnimations.EXECUTION_COLOSSALSWORD, ExecutionSkillAnimations.EXECUTED_FULL,
+            new Vec3(1.35,0,0),0F,100
     );
 
     //最高优先级为自定义实体的动画

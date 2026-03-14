@@ -24,15 +24,6 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private static EntityDataAccessor<Boolean> combat_evolution$CAN_MODIFY_SPEED;
     @Unique
     private static EntityDataAccessor<Float> combat_evolution$ATTACK_SPEED;
-//    @Unique
-//    private static EntityDataAccessor<Float> combat_evolution$DAMAGE_MULTIPLIER;
-//    @Unique
-//    private static EntityDataAccessor<Float> combat_evolution$IMPACT_MULTIPLIER;
-//    @Unique
-//    private static EntityDataAccessor<Float> combat_evolution$ARMOR_NEGATION_MULTIPLIER;
-//    @Unique
-//    private static EntityDataAccessor<Integer> combat_evolution$STUN_TYPE;
-
 
     //耐力修改
     @Unique

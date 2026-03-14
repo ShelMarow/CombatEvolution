@@ -10,5 +10,11 @@
     "sounds": [
       {"name": "combat_evolution:skill/counter","stream":false}
     ]
+  },
+  "misc.silence": {
+    "category": "master",
+    "sounds": [
+      {"name": "combat_evolution:misc/silence","stream":false}
+    ]
   }
 }

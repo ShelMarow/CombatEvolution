@@ -2,43 +2,46 @@ package net.shelmarow.combat_evolution.ai.condition;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class EntityTag implements Condition<LivingEntityPatch<?>> {
-    private String entity_tag;
+public class PhaseContain implements Condition<LivingEntityPatch<?>> {
+    private final List<Integer> phaseList = new ArrayList<>();
 
-    public EntityTag(String entity_tag) {
-        this.entity_tag = entity_tag;
+    public PhaseContain(Integer... phases) {
+        this.phaseList.addAll(List.of(phases));
     }
 
-    public EntityTag() {
+    public PhaseContain() {
 
     }
 
     @Override
     public Condition<LivingEntityPatch<?>> read(CompoundTag compoundTag){
-        entity_tag = compoundTag.getString("tag");
+        phaseList.clear();
+        ListTag list = compoundTag.getList("phases", Tag.TAG_INT);
+        for (int i = 0; i < list.size(); i++) {
+            phaseList.add(list.getInt(i));
+        }
         return this;
     }
     @Override
     public CompoundTag serializePredicate(){
         CompoundTag tag = new CompoundTag();
-        tag.putString("tag", this.entity_tag);
+        tag.putIntArray("phases", phaseList);
         return tag;
     }
 
     @Override
     public boolean predicate(LivingEntityPatch<?> livingEntityPatch){
-        if(livingEntityPatch.getOriginal() instanceof Mob mob){
-            if(mob.getTarget()!=null) {
-                return mob.getTarget().getTags().contains(this.entity_tag);
-            }
-        }
-        return false;
+        int phase = CEPatchUtils.getPhase(livingEntityPatch);
+        return phaseList.contains(phase);
     }
     @Override
     public List<ParameterEditor> getAcceptingParameters(Screen screen){

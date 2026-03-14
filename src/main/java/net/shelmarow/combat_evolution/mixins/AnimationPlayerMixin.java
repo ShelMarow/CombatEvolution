@@ -1,6 +1,5 @@
 package net.shelmarow.combat_evolution.mixins;
 
-import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;

@@ -1,21 +1,17 @@
 package net.shelmarow.combat_evolution.example.entity.shelmarow.ai;
 
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
-import net.shelmarow.combat_evolution.ai.event.BlockedEvent;
-import net.shelmarow.combat_evolution.ai.event.HitEvent;
-import net.shelmarow.combat_evolution.ai.event.OnHurtEvent;
-import net.shelmarow.combat_evolution.ai.event.TimeEvent;
+import net.shelmarow.combat_evolution.ai.StaminaStatus;
+import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.params.AnimationParams;
+import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.util.CEParticleUtils;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
@@ -25,6 +21,7 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
+import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.particle.HitParticleType;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
@@ -39,6 +36,19 @@ public class ShelMarowCombatBehaviors {
 
     static{
         COMMON = CECombatBehaviors.builder()
+
+                .addStunEvent(StunType.SHORT, mobPatch -> {
+                    //mobPatch.playAnimationSynchronized(Animations.BIPED_ROLL_BACKWARD, 0F);
+                })
+
+                .setNoBehaviorHurt((mobPatch, damageSource, attackResult) -> {
+                    if(CEPatchUtils.getStaminaStatus(mobPatch) == StaminaStatus.COMMON && mobPatch.getEntityState().hurtLevel() > 0){
+                        mobPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0F);
+                        BehaviorUtils.changeCurrentBehavior(mobPatch, "Guard", "Guard" ,true);
+                        return new AttackResult(AttackResult.ResultType.MISSED, 0);
+                    }
+                    return attackResult;
+                })
 
                 //Global Behavior
                 .newGlobalBehavior(CECombatBehaviors.BehaviorRoot.builder()
@@ -182,6 +192,7 @@ public class ShelMarowCombatBehaviors {
                         .maxCooldown(200).cooldown(100)
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .stopByStun(4)
                                 .withinDistance(0, 10)
                                 .interruptedByTime(40 * 0.05F, 80 * 0.05F)
                                 .wander(80, 0, 1)
@@ -208,10 +219,13 @@ public class ShelMarowCombatBehaviors {
                 )
 
                 .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
+                        .rootName("Guard")
                         .priority(1).weight(1)
                         .maxCooldown(100)
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("Guard")
+                                .stopByStun(7)
                                 .withinDistance(0, 4)
                                 .guard(60)
                                 .counterAnimation(Animations.THE_GUILLOTINE, 0.15F)
@@ -221,9 +235,15 @@ public class ShelMarowCombatBehaviors {
                                 .onCounterStart(mobPatch -> {
                                     mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
                                 })
+                                .setBeforeCounterEvent(new BeforeCounterEvent(mobPatch -> {
+                                    mobPatch.playSound(EpicFightSounds.NEUTRALIZE_MOBS.get(), 0,0);
+                                    return false;
+                                }))
                         )
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
+                                .name("Guard")
+                                .stopByStun(7)
                                 .withinDistance(0, 4)
                                 .guard(60)
                                 .counterAnimation(Animations.SWEEPING_EDGE, new AnimationParams()
@@ -239,6 +259,10 @@ public class ShelMarowCombatBehaviors {
                                         CEParticleUtils.spawnWarningParticle(CEParticles.BYPASS_DODGE_WARNING.get(), mobPatch.getTarget(), new Vec3(0,1.25,0));
                                     }
                                 })
+                                .setBeforeCounterEvent(new BeforeCounterEvent(mobPatch -> {
+                                    mobPatch.playSound(EpicFightSounds.NEUTRALIZE_MOBS.get(), 0,0);
+                                    return false;
+                                }))
                         )
                 )
 

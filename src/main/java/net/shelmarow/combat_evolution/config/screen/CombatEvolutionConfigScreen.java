@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.shelmarow.combat_evolution.client.execution.HUDTypeManager;
+import net.shelmarow.combat_evolution.client.hud.execution.HUDTypeManager;
 import net.shelmarow.combat_evolution.config.CEClientConfig;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +55,7 @@ public class CombatEvolutionConfigScreen extends Screen {
         allHUDTypes.clear();
         allHUDTypes.addAll(HUDTypeManager.getAllHUDTypes().stream().map(ResourceLocation::toString).distinct().toList());
 
-        inputBox = new EditBox(this.font, width / 2 - 100, 80, 200, 20, Component.literal("HUD Type"));
+        inputBox = new EditBox(this.font, width / 2 - 100, 70, 200, 20, Component.literal("HUD Type"));
         inputBox.setValue(CEClientConfig.HUD_TYPE.get());
         inputBox.setResponder(this::updateSuggestions);
         addRenderableWidget(inputBox);
@@ -64,15 +64,22 @@ public class CombatEvolutionConfigScreen extends Screen {
         iconDisplayButton = Button.builder(Component.literal(showIconDisplayState ? "on" : "off"), b -> {
                     showIconDisplayState = !showIconDisplayState;
                     iconDisplayButton.setMessage(Component.literal(showIconDisplayState ? "on" : "off"));
-                }).bounds(width / 2 - 100, 120, 200, 20).build();
+                }).bounds(width / 2 - 100, 100, 200, 20).build();
         addRenderableWidget(iconDisplayButton);
 
         showTextDisplayState = CEClientConfig.SHOW_TEXT_DISPLAY.get();
         textDisplayButton = Button.builder(Component.literal(showTextDisplayState ? "on" : "off"), b -> {
                     showTextDisplayState = !showTextDisplayState;
                     textDisplayButton.setMessage(Component.literal(showTextDisplayState ? "on" : "off"));
-                }).bounds(width / 2 - 100, 160, 200, 20).build();
+                }).bounds(width / 2 - 100, 130, 200, 20).build();
         addRenderableWidget(textDisplayButton);
+
+        Button iconSetting = Button.builder(Component.translatable("config.combat_evolution.icon_position"), b->{
+            if (minecraft != null) {
+                minecraft.setScreen(new HUDConfigScreen(this));
+            }
+        }).bounds(width / 2 - 100, 160, 200, 20).build();
+        addRenderableWidget(iconSetting);
 
         Button saveButton = Button.builder(Component.literal("Save"), b -> saveAndClose())
                 .bounds(width / 2 - 40, height - 40, 80, 20).build();
@@ -242,6 +249,9 @@ public class CombatEvolutionConfigScreen extends Screen {
     public void onClose() {
         if (this.minecraft != null) {
             this.minecraft.setScreen(parent);
+        }
+        else {
+            super.onClose();
         }
     }
 }

@@ -1,0 +1,256 @@
+{
+  //文件路径需要放在 datapack/[数据包名称]/data/[模组ID]/ce_mobpatch/实体ID.json
+
+  "faction": "neutral",   //<必填>  阵营，用于防止攻击命中同阵营的实体
+  "renderer": "player",   //<必填>  渲染类型，常用的有player, zombie, skeleton, epicfight:custom等
+  "model": "player",      //<必填>  实体模型，常用的有player, zombie, skeleton, epicfight:custom等
+  "humanoid": true,       //[可选]  是否使用人形模型，在渲染类型为epicfight:custom时如果该选项为true，会使用默认人模
+  "scale": 1.0,           //[可选]  渲染大小，不影响实际碰撞箱
+  "breakTime": 40,        //[可选]  耐力清空的破防持续时间（和动画无关）Tick
+  "recoverTime": 60,      //[可选]  耐力从破防结束到完全恢复所需要的时间 Tick
+  "staminaRegenDelay":60, //[可选]  正常状态且没有行动的情况下，需要多久才会开始自然恢复耐力值
+  "beParriedDamage": 1,   //[可选]  攻击被招架时，自身损耗的耐力值
+  "guardHitImpact": 1,    //[可选]  防御敌人攻击时，损耗的耐力百分比（如果敌人攻击3冲击，为0.5就是3*0.5，最终受到1.5的耐力伤害）
+  "hurtImpact": 0.35,     //[可选]  受到伤害时，耐力损耗的百分比（如果敌人攻击10冲击，为0.35就是10*0.35，最终受到3.5的耐力伤害）
+  "attributes": [         //[可选]  属性修改，可以为实体添加和修改属性
+    {
+      "attribute": "minecraft:generic.attack_damage",
+      "value": 10.0
+    },
+    {
+      "attribute": "epicfight:staminar",//如果实体没有耐力属性，默认15耐力
+      "value": 30
+    },
+    {
+      "attribute": "epicfight:staminar_regen",//如果实体没有耐力回复属性，那么不会自然恢复耐力
+      "value": 1
+    }
+  ],
+  "weaponLivingMotions": [  //[可选]  武器特殊living动画，不写的话使用武器默认的living
+    {
+      "weaponCategories": ["longsword"],
+      "style": "common",
+      "livingMotions": {
+        "idle": "epicfight:biped/living/hold_longsword",
+        "walk": "epicfight:biped/living/walk_longsword",
+        "run": "epicfight:biped/living/run_longsword",
+        "chase": "epicfight:biped/living/run_longsword",
+        "death": "epicfight:biped/living/death",
+        "block": "epicfight:biped/skill/guard_longsword"  //武器防御动画
+      }
+    }
+  ],
+  "guardHitAnimation": [  //[可选]  防御受击动画，如果不写不会播放任何动画
+    {
+      "weaponCategories": ["longsword"],
+      "style": "common",
+      "animations": [ //随机播放列表中的动画
+        "epicfight:biped/skill/guard_longsword_hit_active1",
+        "epicfight:biped/skill/guard_longsword_hit_active2"
+      ]
+    },
+    {
+      "weaponCategories": ["sword"],
+      "style": "common",
+      "animations": [
+        "epicfight:biped/skill/guard_sword_hit_active1",
+        "epicfight:biped/skill/guard_sword_hit_active2",
+        "epicfight:biped/skill/guard_sword_hit_active3"
+      ]
+    }
+  ],
+  "stunAnimations": {     //[可选]  眩晕动画，如果不写不会播放任何动画
+    "short": "epicfight:biped/combat/hit_short",
+    "long": "epicfight:biped/combat/hit_long",
+    "hold": "epicfight:biped/combat/hit_short",
+    "fall": "epicfight:biped/living/landing",
+    "knockdown": "epicfight:biped/combat/knockdown",
+    "neutralize":"epicfight:biped/skill/guard_break1" //破防动画
+  },
+  "combatBehaviors":[     //<必填>  行为集，控制生物行为的内容
+    {
+      "weaponCategories": ["sword", "longsword"], //<必填>  该行为所适配的武器类型
+      "style": "common",    //<必填>  对应的武器风格，common为通用，在找不到其他风格(one_hand,two_hand)的情况下会使用common
+      "stunEvents": {       //[可选]  眩晕事件，会在收到眩晕后触发，onTarget为是否让目标执行指令
+        "short": [{"onTarget": false, "command": "/say short"}],
+        "long": [{"onTarget": false, "command": "/say long"}],
+        "fall": [{"onTarget": false, "command": "/say fall"}],
+        "knockdown": [{"onTarget": false, "command": "/say knockdown"}],
+        "neutralize":[{"onTarget": false, "command": "/say neutralize"}]
+      },
+      "behaviorRoots": [  //<必填>  根行为节点合集，每个AI都是由多个根节点行为构成的，实体在无行为时从下面挑选可用行为执行
+        {
+          "rootName": "根行为节点",  //[可选]  名字，在非全局模式下可以随意命名，全局模式下不要重名
+          "priority": 2,           //[可选]  优先级，AI总会选择优先级最高的节点执行（如果冷却完毕且有可用的子行为），默认1
+          "weight": 10,            //[可选]  权重，优先级相等时会根据权重随机选择，权重越大概率越高，默认1
+          "maxCooldown": 10,       //[可选]  最大冷却时间，行为执行完毕或被打断时会进入冷却状态，冷却状态下无法被选中，默认0
+          "cooldown": 10,          //[可选]  初始冷却，敌人首次启用AI时的冷却时间，仅生效一次，默认0
+          "isGlobal": false,       //[可选]  是否为全局行为，如果该节点是全局行为，那么无法单独执行，需要衔接在其他行为之后，默认false
+          "backAfterFinished": true, //[可选]  如果是全局行为，且全局行为在执行完毕后是否返回父节点，如果不返回则所有关联行为全部结束，默认false
+          "firstBehaviors": [     //<必填>  根节点的子行为节点合集，所有的子行为共享根节点的冷却时间
+            {
+              "behaviorName": "动画行为A1", //[可选]  子行为的名称，无限制，可以自由命名
+              "priority": 1,             //[可选]  优先级，在有多个可用的子节点时，根据优先级选择，默认1
+              "weight": 4,              //[可选]  权重，优先级相等时会根据权重随机选择，权重越大概率越高，默认1
+              "stopByStun": 1,          //[可选]  眩晕打断，是否会被眩晕打断整个行为，其他 不会被眩晕打断  (默认)1会被所有眩晕打断  2不会被short打断  3不会被short long打断 4不会被short long hold打断  5不会被short long hold fall打断 6不会被short long hold knockdown打断  7不会被short long hold fall knockdown打断
+              "interruptType": "level", //[可选]  被特殊子行为打断的类型，不填为关闭。当类型为level时且动画为攻击动画时，在实体的Level为对应值时，会被特殊子行为打断;类型为time时，会根据动画播放时间打断
+              "interruptedWindow": [2, 3], //[可选]  如果写了"interruptType"则为必填项，Level模式下可以填写任意整数；Time模式下为两个浮点数，表示可打断的时间窗口
+              "canInterruptParent": false,  //[可选]  是否能打断父行为，如果父行为填写了"interruptType"，那么该选项为true且父行为满足打断条件，自身也满足执行条件时，可以打断父行为
+              "canInsertGlobalBehavior": false,//[可选]  是否能插入全局行为，当存在全局行为且该选项为true时，能够将全局行为视作自身的子节点，默认false
+              "allowedGlobalNameList": ["全局行为名称1","全局行为名称2"],//[可选]  可以插入的全局节点名称，如果不写就是所有全局节点都可以接入
+              "addCoolDown": 10,  //[可选]  额外增加/减少根节点的冷却时间
+              "setCoolDown": 0,   //[可选]  直接设置额外的冷却时间（额外冷却时间会在行为结束后，在根节点的冷却计时器上额外增加/减少冷却时间）
+              "waitTime": 10,     //[可选]  如果子行为没有可用的行为，会进行等待，等待期间如果有子行为满足则继续执行，否则直接结束
+              "addStamina": 5,    //[可选]  修改耐力
+              "setStamina": 10,   //[可选]  设置耐力（修改和设置耐力为0无法使实体播放破防动画，但是可以切换耐力状态）
+              "setPhase": 0,      //[可选]  设置特殊的条件Phase
+              "addPhase": 0,      //[可选]  设置特殊的条件Phase
+              "conditions": [     //[可选]  设置执行行为所需要满足的条件，如果不填则默认满足，当有多个条件时需要全部满足才能执行
+                {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4},
+                {"type": "combat_evolution:phase_between", "min": 0, "max": 2},
+                {"type": "combat_evolution:phase_contain", "phases": [0, 1, 2]},
+                {"type": "combat_evolution:entity_tag", "tag": "tagName"},
+                {"type": "combat_evolution:current_angle", "side": "left", "first": 0, "second": 180},
+                {"type": "combat_evolution:health_check", "health": 0.75, "comparator": "greater_ratio_contain"}, //可用的比较器：greater_absolute, greater_absolute_contain, greater_ratio, greater_ratio_contain,
+                {"type": "combat_evolution:stamina_check", "stamina": 0.75, "comparator": "greater_ratio_contain"}, //less_absolute, less_absolute_contain,less_ratio, less_ratio_contain,
+                {"type": "combat_evolution:attack_level", "min": 1, "max": 2},
+                {"type": "combat_evolution:attack_level_contain", "levels": [1,2]},
+                {"type": "combat_evolution:target_guard_break"}
+              ],
+              "animation": "epicfight:biped/combat/longsword_auto1",  //<必填>  动画行为，执行后播放动画，不允许和防御、游荡行为同时书写
+              "animationParams": {    //[可选]  动画参数
+                "transitionTime": 0,  //[可选]  过渡时间
+                "playSpeed": 1,       //[可选]  播放速度
+                "phaseParams": [      //[可选]  攻击动画专属参数
+                  {
+                    "phase": 0,      //[可选]  如果攻击动画有多段伤害，Phase表示修改哪一段攻击（修改第一段攻击为0，第二段为1，修改所有攻击为-1），默认-1
+                    "damageMultiplier": 1,  //[可选]  伤害倍率
+                    "impactMultiplier": 1,  //[可选]  冲击力倍率
+                    "armorNegationMultiplier": 1,  //[可选]  穿甲倍率
+                    "stunType": "default",  //[可选]  眩晕类型，如果不填或default则使用动画原眩晕，如果填写了则改为修改后的眩晕类型
+                    "damage_tags": [      //[可选]  伤害源附加，可以为攻击附加多个额外的伤害源标签，例如EF的无视防御、无视闪避等
+                      "epicfight:bypass_dodge",
+                      "epicfight:guard_puncture"
+                    ]
+                  },
+                  {
+                    "phase": 1,
+                    "damageMultiplier": 1,
+                    "impactMultiplier": 1.25,
+                    "armorNegationMultiplier": 1,
+                    "stunType": "long",
+                    "damage_tags": [
+                      "epicfight:guard_puncture"
+                    ]
+                  }
+                ]
+              },
+              "exBehavior": [ //[可选]  额外事件，在行为开始时同步执行的内容，可以用于全类型行为
+                {"onTarget": false, "command": "/say 行为开始时额外执行的指令"}
+              ],
+              "timeEvents": [ //[可选]  时间戳事件，只能用于动画行为
+                {"type": "tick", "onTarget": false, "command": "/say 这是动画期间每Tick执行的事件，onTarget表示是否让索敌目标执行命令，false为自身执行"},
+                {"type": "in_time", "timeStart": 0.25, "onTarget": false, "command": "/say 这是时间戳事件"},
+                {"type": "between_times", "timeStart": 0.25, "timeEnd": 0.35,"onTarget": true, "command": "/say 这是时间区间事件"}
+              ],
+              "hitEvents": [ //[可选]  攻击命中事件，只能用于动画行为
+                {"type": "success", "phase": -1, "onTarget": false, "command": "/say 攻击成功命中敌人，所有Phase均生效"},
+                {"type": "blocked", "phase": 0, "onTarget": false, "command": "/say 第一段攻击命中敌人，但是被格挡"},
+                {"type": "missed", "phase": 1, "onTarget": false, "command": "/say 第二段攻击命中敌人，但是未造成伤害"}
+              ],
+              "blockedEvents": [ //[可选]  攻击被格挡事件，只能用于动画行为
+                {"parried": false, "phase": -1, "onTarget": false, "command": "/say 攻击命中 玩家 或 CE实体 被格挡，所有Phase均生效"},
+                {"parried": true, "phase": 0, "onTarget": false, "command": "/say 攻击命中 玩家 或 CE实体 被招架，第一段攻击生效"}
+              ],
+              "onHurtEvent":{   //[可选]  行为内受到伤害时触发，可以修改returnResult和damage取消伤害，returnResult为default时不修改命中结果（可用 success blocked missed）、damage为-1时使用原伤害
+                "returnResult":"default" , "damage": -1, "onTarget": false, "command": "/say 在行为内受到攻击时触发的指令，可以通过修改returnResult和damage取消伤害，真实伤害和处决无法触发该事件"
+              },
+              "nextBehaviors": [  //[可选]  子行为合集，可用参数同自身一样，可以添加多个子节点实现树状分支
+                {
+                  "behaviorName": "动画行为A2",
+                  "conditions": [
+                    {"type": "epicfight:within_distance", "min": 0, "max": 4}
+                  ],
+                  "animation": "epicfight:biped/combat/longsword_auto2",
+                  "nextBehaviors": [
+                    {
+                      "behaviorName": "动画行为A3",
+                      "conditions": [
+                        {"type": "epicfight:within_distance", "min": 0, "max": 4}
+                      ],
+                      "animation": "epicfight:biped/combat/longsword_auto3"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "behaviorName": "防御行为A",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "counterAnimation": "combat_evolution:biped/skill/shield_counter/shield_counter", //<必填>  防御反击的动画
+              "animationParams": {    //[可选]  防御反击的动画参数，使用方法和动画行为一致
+                "transitionTime" : 0,
+                "phaseParams": [
+                  {
+                    "damageMultiplier": 1,
+                    "impactMultiplier": 1,
+                    "armorNegationMultiplier": 1
+                  }
+                ]
+              },
+              "guardTime": 60,    //<必填>  防御的总时长Tick，无法和动画行为、游荡行为一起出现
+              "resetGuardTime": false,  //[可选]  成功防御后是否重置防御时间，默认false
+              "counterType": "random",  //<必填>  反击类型，random随机 end固定次数 never不反击
+              "counterChance": 0.25,    //<必填>  当反击类型为random时必填，表示反击概率
+              "onCounterStart": [       //[可选]  当反击开始时执行的内容，可以添加硬直免疫等指令
+                {"onTarget": false, "command": "/say 和反击动画一起执行的内容"}
+              ]
+            },
+            {
+              "behaviorName": "防御行为B",
+              "behaviorType": "guard",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "counterAnimation": "combat_evolution:biped/skill/shield_counter/shield_counter",
+              "guardTime": 60,
+              "resetGuardTime": true,
+              "counterType": "end", //<必填>  反击类型，可选 random随机 end固定次数 never不反击
+              "maxGuardHit": 3,    //<必填>  当反击类型为end时必填，表示防御多少次后开始反击
+              "beforeCounter": {  //[可选]  反击前最后一次防御执行时，会触发的事件
+                "cancelHitAnimation": false, "onTarget": false, "command": "/say 反击前最后一次防御开始时执行的内容"
+              },
+              "onCounterStart": [
+                {"onTarget": false, "command": "/say 和反击动画一起执行的内容"}
+              ]
+            },
+            {
+              "behaviorName": "游荡行为",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "wanderTime": 60, //<必填>  游荡时间，无法和动画行为、防御行为同时出现
+              "forward": 0.25,  //游荡前后位移
+              "strafe": 1     //游荡左右位移
+            },
+            {
+              "behaviorName": "防御与游荡",
+              "conditions": [
+                {"type": "epicfight:within_distance", "min": 0, "max": 4}
+              ],
+              "guardWithWander": 100,  //<必填>  游荡时间，无法和动画行为、防御行为、游荡同时出现，该行为是防御和游荡的合并类型，会在游荡的同时进行防御
+              "guardAnimation": false, //[可选]  游荡时是否播放防御动画，默认false
+              "counterAnimation": "epicfight:biped/combat/tachi_auto3",
+              "counterType": "random",
+              "counterChance": 0.15,
+              "forward": 0,
+              "strafe": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

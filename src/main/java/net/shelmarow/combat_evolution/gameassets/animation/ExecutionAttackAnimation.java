@@ -85,13 +85,13 @@ public class ExecutionAttackAnimation extends AttackAnimation {
         public ExecutionPhase(boolean isFinished, float start, float antic, float preDelay, float contact, float recovery, float end, boolean noStateBind, InteractionHand hand, JointColliderPair... colliders) {
             super(start, antic, preDelay, contact, recovery, end, noStateBind, hand, colliders);
             Set<TagKey<DamageType>> tags = new HashSet<>();
-            tags.add(CEDamageTypeTags.EXECUTION);
             tags.add(EpicFightDamageTypeTags.BYPASS_DODGE);
             tags.add(EpicFightDamageTypeTags.GUARD_PUNCTURE);
             tags.add(EpicFightDamageTypeTags.UNBLOCKALBE);
             tags.add(DamageTypeTags.BYPASSES_ARMOR);
             tags.add(DamageTypeTags.BYPASSES_ENCHANTMENTS);
             tags.add(DamageTypeTags.BYPASSES_EFFECTS);
+            tags.add(CEDamageTypeTags.EXECUTION);
             if (isFinished) {
                 tags.add(CEDamageTypeTags.EXECUTION_FINISHED);
             }

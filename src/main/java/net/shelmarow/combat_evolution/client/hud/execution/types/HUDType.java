@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.client.execution.types;
+package net.shelmarow.combat_evolution.client.hud.execution.types;
 
 import net.minecraft.resources.ResourceLocation;
 

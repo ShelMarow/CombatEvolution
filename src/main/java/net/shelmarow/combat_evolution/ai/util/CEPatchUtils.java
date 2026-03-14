@@ -88,4 +88,14 @@ public class CEPatchUtils {
         ILivingEntityData entityData = (ILivingEntityData) entityPatch;
         entityData.combat_evolution$setInCounter(inCounter);
     }
+
+    public static boolean isWander(LivingEntityPatch<?> entityPatch){
+        ILivingEntityData entityData = (ILivingEntityData) entityPatch;
+        return entityData.combat_evolution$isWander();
+    }
+
+    public static void setWander(LivingEntityPatch<?> entityPatch, boolean wander){
+        ILivingEntityData entityData = (ILivingEntityData) entityPatch;
+        entityData.combat_evolution$setWander(wander);
+    }
 }

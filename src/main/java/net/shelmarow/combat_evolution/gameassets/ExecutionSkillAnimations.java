@@ -19,11 +19,12 @@ import yesman.epicfight.world.damagesource.ExtraDamageInstance;
 import java.util.Set;
 
 public class ExecutionSkillAnimations {
+    public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_SWORD;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_DAGGER;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_TACHI;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_GREATSWORD;
-    public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL;
+    public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_COLOSSALSWORD;
 
 
     private static final ExtraDamageInstance.ExtraDamage TARGET_MAX_HEALTH = new ExtraDamageInstance.ExtraDamage(
@@ -45,6 +46,12 @@ public class ExecutionSkillAnimations {
         AnimationProperty.PlaybackSpeedModifier CONSTANT_EXECUTED =
                 (self, entitypatch, speed, prevElapsedTime, elapsedTime) -> 1.0F/1.2F;
 
+
+        EXECUTED_FULL = builder.nextAccessor("biped/skill/execution/executed_full", accessor ->
+                new ExecutionHitAnimation(0.01F, accessor, Armatures.BIPED)
+                        .addProperty(AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER, CONSTANT_EXECUTED)
+        );
+
         EXECUTION_SWORD = builder.nextAccessor("biped/skill/execution/execution_sword", accessor ->
                 getExecutionAttackAnimation(accessor, executionCollider, CONSTANT_EXECUTION)
         );
@@ -61,14 +68,13 @@ public class ExecutionSkillAnimations {
                 getExecutionAttackAnimation(accessor, executionCollider, CONSTANT_EXECUTION)
         );
 
-
-        EXECUTED_FULL = builder.nextAccessor("biped/skill/execution/executed_full", accessor ->
-                new ExecutionHitAnimation(0.01F, accessor, Armatures.BIPED)
-                        .addProperty(AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER, CONSTANT_EXECUTED)
+        EXECUTION_COLOSSALSWORD = builder.nextAccessor("biped/skill/execution/execution_colossalsword", accessor ->
+                getExecutionAttackAnimation(accessor, executionCollider, CONSTANT_EXECUTION)
         );
     }
 
     private static ExecutionAttackAnimation getExecutionAttackAnimation(AnimationManager.AnimationAccessor<ExecutionAttackAnimation> accessor, MultiCollider<OBBCollider> executionCollider, AnimationProperty.PlaybackSpeedModifier CONSTANT_EXECUTION) {
+
         return new ExecutionAttackAnimation(0.01F, accessor, Armatures.BIPED,
 
                 new ExecutionAttackAnimation.ExecutionPhase(false,0.0F, 0.0F, 0.76F, 0.93F, 0.93F, 0.93F, Armatures.BIPED.get().rootJoint, executionCollider)

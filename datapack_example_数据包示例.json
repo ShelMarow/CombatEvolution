@@ -1,0 +1,276 @@
+{
+  "faction": "undead",
+  "renderer": "zombie",
+  "model": "zombie",
+  "humanoid": true,
+  "scale": 1.0,
+  "breakTime": 40,
+  "recoverTime": 60,
+  "staminaRegenDelay":60,
+  "beParriedDamage": 1,
+  "guardHitImpact": 1,
+  "hurtImpact": 0.35,
+  "attributes": [
+    {
+      "attribute": "minecraft:generic.attack_damage",
+      "value": 10.0
+    },
+    {
+      "attribute": "epicfight:staminar",
+      "value": 40
+    }
+  ],
+  "weaponLivingMotions": [
+    {
+      "weaponCategories": ["longsword"],
+      "style": "common",
+      "livingMotions": {
+        "idle": "epicfight:biped/living/hold_longsword",
+        "walk": "epicfight:biped/living/walk_longsword",
+        "run": "epicfight:biped/living/run_longsword",
+        "chase": "epicfight:biped/living/run_longsword",
+        "death": "epicfight:biped/living/death",
+        "block": "epicfight:biped/skill/guard_longsword"
+      }
+    }
+  ],
+  "guardHitAnimation": [
+    {
+      "weaponCategories": ["longsword"],
+      "style": "common",
+      "animations": [
+        "epicfight:biped/skill/guard_longsword_hit_active1",
+        "epicfight:biped/skill/guard_longsword_hit_active2"
+      ]
+    },
+    {
+      "weaponCategories": ["sword"],
+      "style": "common",
+      "animations": [
+        "epicfight:biped/skill/guard_sword_hit_active1",
+        "epicfight:biped/skill/guard_sword_hit_active2",
+        "epicfight:biped/skill/guard_sword_hit_active3"
+      ]
+    }
+  ],
+  "stunAnimations": {
+    "short": "epicfight:biped/combat/hit_short",
+    "long": "epicfight:biped/combat/hit_long",
+    "hold": "epicfight:biped/combat/hit_short",
+    "fall": "epicfight:biped/living/landing",
+    "knockdown": "epicfight:biped/combat/knockdown",
+    "neutralize":"epicfight:biped/skill/guard_break1"
+  },
+  "combatBehaviors":[
+    {
+      "weaponCategories": ["fist"],
+      "style": "common",
+      "behaviorRoots": [
+        {
+          "rootName": "没武器时执行的内容",
+          "firstBehaviors": [
+            {
+              "behaviorName": "初始武器切换",
+              "wanderTime": 0,
+              "exBehavior": [
+                {"onTarget": false, "command": "/item replace entity @s weapon.mainhand with epicfight:diamond_longsword"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "weaponCategories": ["sword","longsword"],
+      "style": "common",
+      "stunEvents": {
+        "short": [{"onTarget": false, "command": "/say short"}],
+        "long": [{"onTarget": false, "command": "/say long"}],
+        "fall": [{"onTarget": false, "command": "/say fall"}],
+        "knockdown": [{"onTarget": false, "command": "/say knockdown"}],
+        "neutralize":[{"onTarget": false, "command": "/say neutralize"}]
+      },
+      "behaviorRoots": [
+        {
+          "rootName": "全局行为-太刀技能",
+          "isGlobal": true,
+          "backAfterFinished": true,
+          "firstBehaviors": [
+            {
+              "conditions": [
+                {"type": "combat_evolution:phase_contain", "phases": [1]}
+              ],
+              "animation": "epicfight:biped/skill/rushing_tempo1",
+              "setPhase": 0
+            },
+            {
+              "conditions": [
+                {"type": "combat_evolution:phase_contain", "phases": [2]}
+              ],
+              "animation": "epicfight:biped/skill/rushing_tempo2",
+              "setPhase": 0
+            },
+            {
+              "conditions": [
+                {"type": "combat_evolution:phase_contain", "phases": [3]}
+              ],
+              "animation": "epicfight:biped/skill/rushing_tempo3",
+              "setPhase": 0
+            }
+          ]
+        },
+        {
+          "rootName": "普通行为-长剑普攻",
+          "priority": 1,
+          "weight": 1,
+          "maxCooldown": 100,
+          "firstBehaviors": [
+            {
+              "interruptType": "level",
+              "interruptedWindow": [3],
+              "conditions": [
+                {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4}
+              ],
+              "animation": "epicfight:biped/combat/longsword_auto1",
+              "animationParams": {
+                "transitionTime": 0.15,
+                "playSpeed": 1.25,
+                "phaseParams": [
+                  {
+                    "damageMultiplier": 2,
+                    "impactMultiplier": 3,
+                    "armorNegationMultiplier": 10,
+                    "stunType": "knockdown",
+                    "damage_tags": [
+                      "epicfight:bypass_dodge"
+                    ]
+                  }
+                ]
+              },
+              "nextBehaviors": [
+                {
+                  "interruptType": "level",
+                  "interruptedWindow": [3],
+                  "canInterruptParent": true,
+                  "conditions": [
+                    {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4}
+                  ],
+                  "animation": "epicfight:biped/combat/longsword_auto2",
+                  "animationParams": {
+                    "transitionTime": 0.15,
+                    "playSpeed": 0.5,
+                    "phaseParams": [{"stunType": "long"}]
+                  },
+                  "nextBehaviors": [
+                    {
+                      "canInterruptParent": true,
+                      "conditions": [
+                        {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4}
+                      ],
+                      "animation": "epicfight:biped/combat/longsword_auto3"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "rootName": "普通行为-太刀普攻",
+          "priority": 1,
+          "weight": 1,
+          "maxCooldown": 100,
+
+          "firstBehaviors": [
+            {
+              "interruptType": "level",
+              "interruptedWindow": [3],
+              "canInsertGlobalBehavior": true,
+              "allowedGlobalNameList": ["全局行为-太刀技能"],
+              "conditions": [
+                {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4}
+              ],
+              "animation": "epicfight:biped/combat/tachi_auto1",
+              "animationParams": {
+                "transitionTime": 0.15,
+                "playSpeed": 0.75
+              },
+              "hitEvents": [
+                {"type": "success", "phase": -1, "onTarget": false, "command": "/combat_evolution entity @s phase set 1"}
+              ],
+
+              "nextBehaviors": [
+                {
+                  "interruptType": "level",
+                  "interruptedWindow": [3],
+                  "canInsertGlobalBehavior": true,
+                  "allowedGlobalNameList": ["全局行为-太刀技能"],
+                  "conditions": [
+                    {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4}
+                  ],
+                  "animation": "epicfight:biped/combat/tachi_auto2",
+                  "animationParams": {
+                    "transitionTime": 0.15,
+                    "playSpeed": 0.75
+                  },
+                  "hitEvents": [
+                    {"type": "success", "phase": -1, "onTarget": false, "command": "/combat_evolution entity @s phase set 2"}
+                  ],
+
+                  "nextBehaviors": [
+                    {
+                      "interruptType": "level",
+                      "interruptedWindow": [3],
+                      "canInsertGlobalBehavior": true,
+                      "allowedGlobalNameList": ["全局行为-太刀技能"],
+                      "conditions": [
+                        {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4}
+                      ],
+                      "animation": "epicfight:biped/combat/tachi_auto3",
+                      "animationParams": {
+                        "transitionTime": 0.15,
+                        "playSpeed": 0.75
+                      },
+                      "hitEvents": [
+                        {"type": "success", "phase": -1, "onTarget": false, "command": "/combat_evolution entity @s phase set 3"}
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "priority": 2,
+          "weight": 1,
+          "maxCooldown": 100,
+          "firstBehaviors": [
+            {
+              "conditions": [
+                {"type": "combat_evolution:attack_level", "min": 1, "max": 2}
+              ],
+              "guardTime": 60,
+              "counterAnimation": "epicfight:biped/combat/tachi_auto3",
+              "counterType": "end",
+              "maxGuardHit": 3
+            }
+          ]
+        },
+        {
+          "priority": 0.5,
+          "firstBehaviors": [
+            {
+              "guardWithWander": 60,
+              "counterAnimation": "epicfight:biped/combat/tachi_auto3",
+              "counterType": "random",
+              "counterChance": 0.15,
+              "forward": 0,
+              "strafe": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

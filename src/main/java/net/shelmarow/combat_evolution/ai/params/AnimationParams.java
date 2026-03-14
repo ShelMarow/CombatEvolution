@@ -11,7 +11,7 @@ import java.util.Set;
 public class AnimationParams {
     private float transitionTime = 0f;
     private boolean shouldChangeSpeed = false;
-    private float attackSpeed = 1f;
+    private float playSpeed = 1f;
     private final Map<Integer,PhaseParams> phaseParams = new HashMap<>();
 
     public AnimationParams transitionTime(float t) {
@@ -24,7 +24,7 @@ public class AnimationParams {
     }
 
     public AnimationParams playSpeed(float attackSpeed) {
-        this.attackSpeed = attackSpeed;
+        this.playSpeed = attackSpeed;
         this.shouldChangeSpeed = true;
         return this;
     }
@@ -73,8 +73,8 @@ public class AnimationParams {
         return transitionTime;
     }
 
-    public float getAttackSpeed() {
-        return attackSpeed;
+    public float getPlaySpeed() {
+        return playSpeed;
     }
 
     public Map<Integer,PhaseParams> getPhaseParams() {

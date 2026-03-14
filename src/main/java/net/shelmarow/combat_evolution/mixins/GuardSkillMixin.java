@@ -1,6 +1,5 @@
 package net.shelmarow.combat_evolution.mixins;
 
-import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,7 +15,7 @@ import yesman.epicfight.world.entity.eventlistener.TakeDamageEvent;
 public class GuardSkillMixin {
     @Inject(
             method = "dealEvent",
-            at = @At("HEAD")
+            at = @At("TAIL")
     )
     private void ontDealEvent(PlayerPatch<?> playerpatch, TakeDamageEvent.Attack event, boolean advanced, CallbackInfo ci){
         if(event.isParried()){

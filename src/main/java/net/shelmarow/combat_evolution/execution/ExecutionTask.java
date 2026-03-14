@@ -15,13 +15,15 @@ public class ExecutionTask extends TickTask {
     private final LivingEntity executor;
     private final LivingEntity target;
     private final ExecutionTypeManager.Type executionType;
+    private final ExecutionHandler.ExecutionTransform transform;
 
 
-    public ExecutionTask(LivingEntity executor, LivingEntity target,ExecutionTypeManager.Type executionType, int durationTicks) {
+    public ExecutionTask(LivingEntity executor, LivingEntity target, ExecutionTypeManager.Type executionType, ExecutionHandler.ExecutionTransform transform, int durationTicks) {
         super(durationTicks);
         this.executor = executor;
         this.target = target;
         this.executionType = executionType;
+        this.transform = transform;
     }
 
 
@@ -42,9 +44,6 @@ public class ExecutionTask extends TickTask {
         }
 
         if (executorPatch != null && targetPatch != null) {
-            //播放处决动画
-            executorPatch.playAnimationSynchronized(executionType.executionAnimation(), 0F);
-            targetPatch.playAnimationSynchronized(executionType.executedAnimation(), 0F);
 
             //矫正处决者和被处决目标的模型朝向
             Vec3 from = executor.getEyePosition();
@@ -53,6 +52,7 @@ public class ExecutionTask extends TickTask {
             double dz = to.z - from.z;
             float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0F);
 
+            //看向目标+偏移量
             if (executorPatch instanceof ServerPlayerPatch serverPlayerPatch) {
                 serverPlayerPatch.setModelYRot(yaw + executionType.rotationOffset(), true);
             }
@@ -60,12 +60,33 @@ public class ExecutionTask extends TickTask {
                 executorPatch.setYRot(yaw + executionType.rotationOffset());
             }
 
+            //旋转角度
             if (targetPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-                serverPlayerPatch.setModelYRot(yaw + 180, true);
+                serverPlayerPatch.setModelYRot(transform.yaw(), true);
             }
             else {
-                targetPatch.setYRot(yaw + 180);
+                targetPatch.setYRot(transform.yaw());
             }
+
+
+            //播放处决动画
+            executorPatch.playAnimationSynchronized(executionType.executionAnimation(), 0F);
+            targetPatch.playAnimationSynchronized(executionType.executedAnimation(), 0F);
+
+
+            //是的孩子们还得二次矫正，不然位置对不上
+//            if (executorPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+//                serverPlayerPatch.setModelYRot(yaw + executionType.rotationOffset(), true);
+//            }
+//            else {
+//                executorPatch.setYRot(yaw + executionType.rotationOffset());
+//            }
+//            if (targetPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+//                serverPlayerPatch.setModelYRot(transform.yaw(), true);
+//            }
+//            else {
+//                targetPatch.setYRot(transform.yaw());
+//            }
         }
     }
 

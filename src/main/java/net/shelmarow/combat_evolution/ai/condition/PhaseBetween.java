@@ -2,43 +2,43 @@ package net.shelmarow.combat_evolution.ai.condition;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Mob;
+import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 import java.util.List;
 
-public class EntityTag implements Condition<LivingEntityPatch<?>> {
-    private String entity_tag;
+public class PhaseBetween implements Condition<LivingEntityPatch<?>> {
+    private int phaseMin;
+    private int phaseMax;
 
-    public EntityTag(String entity_tag) {
-        this.entity_tag = entity_tag;
+    public PhaseBetween(int min, int max) {
+        this.phaseMin = min;
+        this.phaseMax = max;
     }
 
-    public EntityTag() {
+    public PhaseBetween() {
 
     }
 
     @Override
     public Condition<LivingEntityPatch<?>> read(CompoundTag compoundTag){
-        entity_tag = compoundTag.getString("tag");
+        phaseMin = compoundTag.getInt("min");
+        phaseMax = compoundTag.getInt("max");
         return this;
     }
     @Override
     public CompoundTag serializePredicate(){
         CompoundTag tag = new CompoundTag();
-        tag.putString("tag", this.entity_tag);
+        tag.putInt("min", phaseMin);
+        tag.putInt("max", phaseMax);
         return tag;
     }
 
     @Override
     public boolean predicate(LivingEntityPatch<?> livingEntityPatch){
-        if(livingEntityPatch.getOriginal() instanceof Mob mob){
-            if(mob.getTarget()!=null) {
-                return mob.getTarget().getTags().contains(this.entity_tag);
-            }
-        }
-        return false;
+        int phase = CEPatchUtils.getPhase(livingEntityPatch);
+        return phaseMin <= phase && phase <= phaseMax;
     }
     @Override
     public List<ParameterEditor> getAcceptingParameters(Screen screen){

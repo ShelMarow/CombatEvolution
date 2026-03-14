@@ -5,10 +5,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.ai.condition.*;
-import net.shelmarow.combat_evolution.ai.event.BlockedEvent;
-import net.shelmarow.combat_evolution.ai.event.HitEvent;
-import net.shelmarow.combat_evolution.ai.event.OnHurtEvent;
-import net.shelmarow.combat_evolution.ai.event.TimeEvent;
+import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import net.shelmarow.combat_evolution.ai.params.AnimationParams;
 import net.shelmarow.combat_evolution.ai.params.PhaseParams;
@@ -45,6 +42,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
     private final Consumer<MobPatch<?>> noBehaviorTick;
     private final TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> noBehaviorOnHurt;
+    private final Map<StunType, List<Consumer<MobPatch<?>>>> globeStunEvents;
 
 
     //AI决策树
@@ -53,6 +51,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         this.globalBehaviors = builder.globalBehaviors.stream().map(BehaviorRoot.Builder::build).toList();
         this.noBehaviorTick = builder.noBehaviorTick;
         this.noBehaviorOnHurt = builder.noBehaviorOnHurt;
+        this.globeStunEvents = builder.stunEvents;
     }
 
     /*
@@ -402,6 +401,16 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         return attackResult;
     }
 
+    public void executeGlobeStunEvent(MobPatch<?> mobPatch, StunType stunType) {
+        for (Map.Entry<StunType, List<Consumer<MobPatch<?>>>> entries : this.globeStunEvents.entrySet()) {
+            if(entries.getKey() == stunType){
+                for (Consumer<MobPatch<?>> consumer : entries.getValue()) {
+                    consumer.accept(mobPatch);
+                }
+            }
+        }
+    }
+
     public Behavior<T> getCurrentBehavior() {
         return this.currentBehavior;
     }
@@ -431,9 +440,10 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
     public static class Builder<T extends MobPatch<?>>{
         private final List<BehaviorRoot.Builder<T>> behaviorRoots = new ArrayList<>();
         private final List<BehaviorRoot.Builder<T>> globalBehaviors = new ArrayList<>();
-        public Consumer<MobPatch<?>> noBehaviorTick = (mobPatch) -> {};
-        public TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> noBehaviorOnHurt =
+        private Consumer<MobPatch<?>> noBehaviorTick = (mobPatch) -> {};
+        private TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> noBehaviorOnHurt =
                 (mobPatch, damageSource, attackResult) -> attackResult;
+        private final Map<StunType, List<Consumer<MobPatch<?>>>> stunEvents = new HashMap<>();
 
         public Builder<T> newBehaviorRoot(BehaviorRoot.Builder<T> behaviors) {
             behaviors.isGlobal = false;
@@ -454,6 +464,12 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
         public Builder<T> setNoBehaviorHurt(TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> noActionOnHurt){
             this.noBehaviorOnHurt = noActionOnHurt;
+            return this;
+        }
+
+        @SafeVarargs
+        public final Builder<T> addStunEvent(StunType stunType, Consumer<MobPatch<?>>... consumers){
+            stunEvents.computeIfAbsent(stunType, k -> new ArrayList<>()).addAll(Arrays.asList(consumers));
             return this;
         }
 
@@ -573,6 +589,11 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
+            public Builder<T> isGlobal(boolean isGlobal) {
+                this.isGlobal = isGlobal;
+                return this;
+            }
+
             public BehaviorRoot<T> build() {
                 return new BehaviorRoot<>(this);
             }
@@ -620,6 +641,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         private final List<HitEvent> hitEventList;                                  //攻击命中事件列表
         private final OnHurtEvent onHurtEvent;
         private final List<BlockedEvent> blockedEventList;
+        private final BeforeCounterEvent beforeCounter;
         private final Map<Integer, PhaseParams> phaseParams;                         //攻击Phase参数
         private boolean canApplyPhaseParams = false;                                //Phase参数锁
         private boolean shouldExecuteTimeEvent = false;                             //时间事件锁
@@ -659,6 +681,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             this.hitEventList = builder.hitEventList;
             this.onHurtEvent = builder.onHurtEvent;
             this.blockedEventList = builder.blockedEventList;
+            this.beforeCounter = builder.beforeCounter;
             this.phaseParams = builder.phaseParams;
         }
 
@@ -725,6 +748,12 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 blockedEvent.executeBlockedEvent(phase, mobPatch, blocker, parried);
             }
         }
+
+
+        public boolean executeBeforeCounterEvent(MobPatch<?> mobPatch) {
+            return beforeCounter.executeBeforeCounterEvent(mobPatch);
+        }
+
 
         public boolean canBeInterrupted(T mobPatch) {
             /*
@@ -814,7 +843,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         public void running(T mobPatch) {
             if(type == BehaviorType.WANDER || type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) {
                 if (timeCount > 0) {
-                    ILivingEntityData entityData = (ILivingEntityData) mobPatch;
                     //索敌朝向
                     if(mobPatch.getTarget()!=null) {
                         mobPatch.rotateTo(mobPatch.getTarget(),360F,true);
@@ -823,12 +851,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     //设置游荡
                     if(type == BehaviorType.WANDER || type == BehaviorType.GUARD_WANDER){
                         this.behavior.accept(mobPatch);
-
-                        if(timeCount >= behaviorTime - 1) {
-                            entityData.combat_evolution$setWander(true);
-                        }
                         //如果游荡被取消，直接进入等待
-                        if(!entityData.combat_evolution$isWander()) {
+                        if(!CEPatchUtils.isWander(mobPatch)) {
                             behaviorWaiting();
                         }
                     }
@@ -836,18 +860,15 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     //设置防御
                     if(type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER){
                         this.behavior.accept(mobPatch);
-//                        if(timeCount >= behaviorTime - 1) {
-//                            entityData.combat_evolution$setGuard(true);
-//                        }
                         //如果防御被取消，直接进入等待
-                        if(!entityData.combat_evolution$isGuard() && !canCounter) {
+                        if(!CEPatchUtils.isGuard(mobPatch) && !canCounter) {
                             behaviorWaiting();
                         }
                     }
 
 
                     if((type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) && canCounter){
-                        entityData.combat_evolution$setInCounter(true);
+                        CEPatchUtils.setInCounter(mobPatch, true);
                         if (mobPatch.getEntityState().canBasicAttack()) {
                             canCounter = false;
                             stopGuardAndWander(mobPatch);
@@ -863,7 +884,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
                     timeCount--;
                 }
-                else if (timeCount == 0 && mobPatch.getEntityState().canBasicAttack()) {
+                else if (mobPatch.getEntityState().canBasicAttack()) {
                     stopGuardAndWander(mobPatch);
                     behaviorWaiting();
                 }
@@ -880,16 +901,15 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         }
 
         public void stopGuardAndWander(T mobPatch) {
-            ILivingEntityData entityData = (ILivingEntityData) mobPatch;
             //结束游荡
             if(type == BehaviorType.WANDER || type == BehaviorType.GUARD_WANDER) {
-                entityData.combat_evolution$setWander(false);
+                CEPatchUtils.setWander(mobPatch, false);
                 mobPatch.getOriginal().getMoveControl().strafe(0,0);
             }
             //结束防御
             if(type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) {
-                entityData.combat_evolution$setGuard(false);
-                entityData.combat_evolution$setInCounter(false);
+                CEPatchUtils.setGuard(mobPatch, false);
+                CEPatchUtils.setInCounter(mobPatch, false);
                 AssetAccessor<? extends StaticAnimation> guardAnimation = mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
                 if (mobPatch.isLogicalClient()) {
                     mobPatch.getAnimator().stopPlaying(guardAnimation);
@@ -1046,6 +1066,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             private final List<HitEvent> hitEventList = new ArrayList<>();
             private OnHurtEvent onHurtEvent;
             private final List<BlockedEvent> blockedEventList= new ArrayList<>();
+            private BeforeCounterEvent beforeCounter = new BeforeCounterEvent(mobPatch -> false);
             private final Map<Integer,PhaseParams> phaseParams = new HashMap<>();
 
             public Builder<T> canInsertGlobalBehavior(boolean canInsertGlobalBehavior,String... allowedGlobalNames) {
@@ -1054,18 +1075,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
-            public Builder<T> addTimeEvent(TimeEvent timeEvent) {
-                this.timeEventList.add(timeEvent);
-                return this;
-            }
-
             public Builder<T> addTimeEvent(TimeEvent... timeEvents) {
                 this.timeEventList.addAll(List.of(timeEvents));
-                return this;
-            }
-
-            public Builder<T> addHitEvent(HitEvent hitEvent) {
-                this.hitEventList.add(hitEvent);
                 return this;
             }
 
@@ -1079,13 +1090,14 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
-            public Builder<T> addBlockedEvent(BlockedEvent blockedEvent) {
-                this.blockedEventList.add(blockedEvent);
+            public Builder<T> addBlockedEvent(BlockedEvent... blockedEvent) {
+                this.blockedEventList.addAll(List.of(blockedEvent));
                 return this;
             }
 
-            public Builder<T> addBlockedEvent(BlockedEvent... blockedEvent) {
-                this.blockedEventList.addAll(List.of(blockedEvent));
+
+            public Builder<T> setBeforeCounterEvent(BeforeCounterEvent event){
+                this.beforeCounter = event;
                 return this;
             }
 
@@ -1206,6 +1218,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.behaviorTime = totalTime;
                 this.type = BehaviorType.WANDER;
                 this.behavior = (mobPatch)->{
+                    CEPatchUtils.setWander(mobPatch, true);
                     mobPatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
                 };
                 return this;
@@ -1216,6 +1229,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.behaviorTime = totalTime;
                 this.type = BehaviorType.WANDER;
                 this.behavior = (mobPatch)->{
+                    CEPatchUtils.setWander(mobPatch, true);
                     AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
                     if(currentAnimation != animation) {
                         mobPatch.playAnimationSynchronized(animation, 0F, this.packetProvider);
@@ -1248,9 +1262,10 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 behaviorTime = totalTime;
                 this.type = BehaviorType.GUARD_WANDER;
                 this.behavior = (mobPatch)->{
+                    CEPatchUtils.setGuard(mobPatch, true);
+                    CEPatchUtils.setWander(mobPatch, true);
                     mobPatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
                     if(playGuardAnimation){
-                        CEPatchUtils.setGuard(mobPatch, true);
                         AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
                         AssetAccessor<? extends StaticAnimation> guardAnimation = mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
                         if(currentAnimation != guardAnimation && !mobPatch.getEntityState().inaction()) {
@@ -1285,13 +1300,13 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
                     if(mobPatch instanceof ILivingEntityData livingEntityData) {
                         livingEntityData.combat_evolution$setCanModifySpeed(params.shouldChangeSpeed());
-                        livingEntityData.combat_evolution$setAttackSpeed(params.getAttackSpeed());
+                        livingEntityData.combat_evolution$setAttackSpeed(params.getPlaySpeed());
                     }
                 };
                 return this;
             }
 
-            public Builder<T> animationBehavior(AnimationManager.AnimationAccessor<? extends StaticAnimation> motion,AnimationParams params) {
+            public Builder<T> animationBehavior(AnimationManager.AnimationAccessor<? extends StaticAnimation> motion, AnimationParams params) {
                 this.type = BehaviorType.ANIMATION;
                 this.phaseParams.clear();
                 this.phaseParams.putAll(params.getPhaseParams());
@@ -1299,7 +1314,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     mobPatch.playAnimationSynchronized(motion, params.getTransitionTime(), this.packetProvider);
                     if (mobPatch instanceof ILivingEntityData livingEntityData) {
                         livingEntityData.combat_evolution$setCanModifySpeed(params.shouldChangeSpeed());
-                        livingEntityData.combat_evolution$setAttackSpeed(params.getAttackSpeed());
+                        livingEntityData.combat_evolution$setAttackSpeed(params.getPlaySpeed());
                     }
                 };
                 return this;
@@ -1348,7 +1363,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> withinCurrentAngle(CurrentAngle.TargetSide side, double degreeFirst, double degreeSecond) {
-                this.condition(new CurrentAngle(side,degreeFirst, degreeSecond));
+                this.condition(new CurrentAngle(side, degreeFirst, degreeSecond));
                 return this;
             }
 
@@ -1358,44 +1373,23 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> attackLevel(int min, int max) {
-                return custom((patch) -> {
-                    LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(patch.getTarget(), LivingEntityPatch.class);
-                    if (targetPatch == null) {
-                        return false;
-                    }
-                    else {
-                        int level = targetPatch.getEntityState().getLevel();
-                        return min <= level && level <= max;
-                    }
-                });
+                this.condition(new AttackLevel(min, max));
+                return this;
             }
 
             public Builder<T> attackLevelContain(Integer... levels) {
-                return custom((patch) -> {
-                    LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(patch.getTarget(), LivingEntityPatch.class);
-                    if (targetPatch == null) {
-                        return false;
-                    }
-                    else {
-                        int level = targetPatch.getEntityState().getLevel();
-                        return Arrays.stream(levels).toList().contains(level);
-                    }
-                });
+                this.condition(new AttackLevelContain(levels));
+                return this;
             }
 
             public Builder<T> phaseBetween(int min, int max) {
-                return custom((mobPatch) -> {
-                    int phase = CEPatchUtils.getPhase(mobPatch);
-                    return min <= phase && phase <= max;
-                });
+                this.condition(new PhaseBetween(min, max));
+                return this;
             }
 
             public Builder<T> phaseContain(Integer... phases) {
-                return custom((mobPatch) -> {
-                    List<Integer> list = new ArrayList<>(List.of(phases));
-                    int phase = CEPatchUtils.getPhase(mobPatch);
-                    return list.contains(phase);
-                });
+                this.condition(new PhaseContain(phases));
+                return this;
             }
 
             public Builder<T> targetAnimation(AssetAccessor<? extends StaticAnimation> animation){
@@ -1410,6 +1404,11 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     }
                     return false;
                 });
+            }
+
+            public Builder<T> targetGuardBreak(){
+                this.condition(new TargetGuardBreak());
+                return this;
             }
 
             public Builder<T> withinAngleHorizontal(double minDegree, double maxDegree) {

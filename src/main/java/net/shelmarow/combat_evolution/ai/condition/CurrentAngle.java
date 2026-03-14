@@ -123,10 +123,6 @@ public class CurrentAngle implements Condition<LivingEntityPatch<?>> {
         return crossY < 0 ? angle : -angle;
     }
 
-    /**
-     * 绝对角度（0 ~ 360）
-     * 0 = 正前方，顺时针
-     */
     private static double getWrappedAngle(LivingEntity observer, LivingEntity target) {
         double signed = getSignedAngle(observer, target);
         return (signed + 360) % 360;

@@ -17,6 +17,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.shelmarow.combat_evolution.ai.CEConditions;
 import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
 import net.shelmarow.combat_evolution.bgm.network.S2CRemoveMusicPacket;
@@ -25,6 +26,7 @@ import net.shelmarow.combat_evolution.bossbar.network.packet.S2CRemoveBossDataPa
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateStaminaDataPacket;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
+import net.shelmarow.combat_evolution.command.CEEntityCommand;
 import net.shelmarow.combat_evolution.command.CEExecutionCommand;
 import net.shelmarow.combat_evolution.command.CEParticleCommand;
 import net.shelmarow.combat_evolution.config.CEClientConfig;
@@ -60,6 +62,7 @@ public class CombatEvolution {
         CEParticles.PARTICLE_TYPES.register(modEventBus);
         CEEntities.ENTITY_TYPES.register(modEventBus);
         CESounds.SOUNDS.register(modEventBus);
+        CEConditions.CONDITIONS.register(modEventBus);
 
         context.registerConfig(ModConfig.Type.COMMON, CECommonConfig.COMMON_SPEC);
 
@@ -94,8 +97,8 @@ public class CombatEvolution {
         int packetId = 0;
 
         CHANNEL.registerMessage(packetId++, S2CUpdateBossDataPacket.class, S2CUpdateBossDataPacket::encode, S2CUpdateBossDataPacket::decode, S2CUpdateBossDataPacket::handle);
-        CHANNEL.registerMessage(packetId++, S2CUpdateStaminaDataPacket.class, S2CUpdateStaminaDataPacket::encode, S2CUpdateStaminaDataPacket::decode, S2CUpdateStaminaDataPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRemoveBossDataPacket.class, S2CRemoveBossDataPacket::encode, S2CRemoveBossDataPacket::decode, S2CRemoveBossDataPacket::handle);
+        CHANNEL.registerMessage(packetId++, S2CUpdateStaminaDataPacket.class, S2CUpdateStaminaDataPacket::encode, S2CUpdateStaminaDataPacket::decode, S2CUpdateStaminaDataPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRequestMusicPacket.class, S2CRequestMusicPacket::encode, S2CRequestMusicPacket::decode, S2CRequestMusicPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRemoveMusicPacket.class, S2CRemoveMusicPacket::encode, S2CRemoveMusicPacket::decode, S2CRemoveMusicPacket::handle);
 
@@ -107,6 +110,7 @@ public class CombatEvolution {
     public void onRegisterCommands(RegisterCommandsEvent event) {
         CEParticleCommand.register(event.getDispatcher());
         CEExecutionCommand.register(event.getDispatcher());
+        CEEntityCommand.register(event.getDispatcher());
     }
 
 }

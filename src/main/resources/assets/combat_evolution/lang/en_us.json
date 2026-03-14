@@ -11,6 +11,7 @@
   "config.combat_evolution.client_config": "Combat Evolution Client Config",
   "config.combat_evolution.play_music": "Play CE Music:",
   "config.combat_evolution.hud_type": "HUD Type:",
+  "config.combat_evolution.icon_position": "Icon Position",
   "config.combat_evolution.icon_display": "Icon Display",
   "config.combat_evolution.text_display": "Text Display:",
   "hud.combat_evolution.execution_disabled": "Execution Disabled!",

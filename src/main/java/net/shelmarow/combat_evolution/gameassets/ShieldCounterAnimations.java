@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.gameassets;
 
+import net.shelmarow.combat_evolution.gameassets.animation.MutiPhaseAttackAnimation;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationEvent;
 import yesman.epicfight.api.animation.types.ActionAnimation;
@@ -9,15 +10,17 @@ import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Armatures;
 import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
-import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 
 public class ShieldCounterAnimations {
 
+    public static AnimationManager.AnimationAccessor<MutiPhaseAttackAnimation> SPINNING_SLASH_COLOSSAL_DUAL_1;
     public static AnimationManager.AnimationAccessor<ActionAnimation> SHIELD_COUNTER;
     public static AnimationManager.AnimationAccessor<LongHitAnimation> COUNTERED;
 
     public static void build(AnimationManager.AnimationBuilder builder) {
+
+
         SHIELD_COUNTER = builder.nextAccessor("biped/skill/shield_counter/shield_counter", accessor->
                 new ActionAnimation(0.05F, accessor, Armatures.BIPED)
                         .newTimePair(0.15F,0.35F)

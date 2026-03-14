@@ -3,6 +3,7 @@ package net.shelmarow.combat_evolution.config;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.shelmarow.combat_evolution.client.hud.execution.HUDAlignment;
 
 @OnlyIn(Dist.CLIENT)
 public class CEClientConfig {
@@ -11,6 +12,10 @@ public class CEClientConfig {
     public static final ForgeConfigSpec.ConfigValue<String> HUD_TYPE;
     public static final ForgeConfigSpec.BooleanValue ICON_DISPLAY;
     public static final ForgeConfigSpec.BooleanValue SHOW_TEXT_DISPLAY;
+
+    public static final ForgeConfigSpec.EnumValue<HUDAlignment> ICON_ALIGNMENT;
+    public static final ForgeConfigSpec.DoubleValue ICON_X;
+    public static final ForgeConfigSpec.DoubleValue ICON_Y;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -36,6 +41,18 @@ public class CEClientConfig {
         SHOW_TEXT_DISPLAY = builder
                 .comment("Whether to show text display in the execution HUD")
                 .define("showTextDisplay", true);
+
+        ICON_ALIGNMENT = builder
+                .comment("Icon Alignment")
+                .defineEnum("iconAlignment", HUDAlignment.CENTER);
+
+        ICON_X = builder
+                .comment("Position X of Execution Icon")
+                        .defineInRange("iconX", 30D, -Double.MAX_VALUE, Double.MAX_VALUE);
+
+        ICON_Y = builder
+                .comment("Position Y of Execution Icon")
+                .defineInRange("iconY", 30D, -Double.MAX_VALUE, Double.MAX_VALUE);
 
         builder.pop();
 
