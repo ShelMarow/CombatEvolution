@@ -1,6 +1,6 @@
 package net.shelmarow.combat_evolution.gameassets;
 
-import net.shelmarow.combat_evolution.gameassets.animation.MutiPhaseAttackAnimation;
+import net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationEvent;
 import yesman.epicfight.api.animation.types.ActionAnimation;
@@ -14,7 +14,6 @@ import yesman.epicfight.world.damagesource.StunType;
 
 public class ShieldCounterAnimations {
 
-    public static AnimationManager.AnimationAccessor<MutiPhaseAttackAnimation> SPINNING_SLASH_COLOSSAL_DUAL_1;
     public static AnimationManager.AnimationAccessor<ActionAnimation> SHIELD_COUNTER;
     public static AnimationManager.AnimationAccessor<LongHitAnimation> COUNTERED;
 

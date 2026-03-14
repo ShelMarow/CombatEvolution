@@ -2,7 +2,7 @@ package net.shelmarow.combat_evolution.mixins;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
-import net.shelmarow.combat_evolution.gameassets.animation.MutiPhaseAttackAnimation;
+import net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,8 +21,8 @@ public abstract class LivingEntityPatchMixin<T extends LivingEntity> extends Hur
             at = @At(value = "HEAD")
     )
     protected void initAnimator(Animator animator, CallbackInfo ci){
-        animator.getVariables().putDefaultSharedVariable(MutiPhaseAttackAnimation.CE_PHASE_ATTACK_TRIED);
-        animator.getVariables().putDefaultSharedVariable(MutiPhaseAttackAnimation.CE_PHASE_ACTUALLY_HIT);
+        animator.getVariables().putDefaultSharedVariable(MultiPhaseAttackAnimation.CE_PHASE_ATTACK_TRIED);
+        animator.getVariables().putDefaultSharedVariable(MultiPhaseAttackAnimation.CE_PHASE_ACTUALLY_HIT);
     }
 
     @Inject(

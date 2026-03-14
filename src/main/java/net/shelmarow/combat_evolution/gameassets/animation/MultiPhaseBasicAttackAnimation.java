@@ -35,28 +35,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static net.shelmarow.combat_evolution.gameassets.animation.MutiPhaseAttackAnimation.CE_PHASE_ACTUALLY_HIT;
-import static net.shelmarow.combat_evolution.gameassets.animation.MutiPhaseAttackAnimation.CE_PHASE_ATTACK_TRIED;
+import static net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation.CE_PHASE_ACTUALLY_HIT;
+import static net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation.CE_PHASE_ATTACK_TRIED;
 
-public class MutiPhaseBasicAttackAnimation extends BasicAttackAnimation {
+public class MultiPhaseBasicAttackAnimation extends BasicAttackAnimation {
 
-    public MutiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, contact, recovery, collider, colliderJoint, accessor, armature);
     }
 
-    public MutiPhaseBasicAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature);
     }
 
-    public MutiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, contact, recovery, hand, collider, colliderJoint, accessor, armature);
     }
 
-    public MutiPhaseBasicAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(transitionTime, accessor, armature, phases);
     }
 
-    public MutiPhaseBasicAttackAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(transitionTime, path, armature, phases);
     }
 

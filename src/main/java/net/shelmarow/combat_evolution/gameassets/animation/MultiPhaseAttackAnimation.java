@@ -33,7 +33,7 @@ import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
 import java.util.*;
 
-public class MutiPhaseAttackAnimation extends AttackAnimation {
+public class MultiPhaseAttackAnimation extends AttackAnimation {
     //碰撞箱命中的实体
     public static final AnimationVariables.SharedAnimationVariableKey<Map<Phase, List<Entity>>> CE_PHASE_ATTACK_TRIED =
             AnimationVariables.shared((animator) -> new HashMap<>(), false);
@@ -42,23 +42,23 @@ public class MutiPhaseAttackAnimation extends AttackAnimation {
             AnimationVariables.shared((animator) -> new HashMap<>(), false);
 
 
-    public MutiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature);
     }
 
-    public MutiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, preDelay, contact, recovery, hand, collider, colliderJoint, accessor, armature);
     }
 
-    public MutiPhaseAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(transitionTime, accessor, armature, phases);
     }
 
-    public MutiPhaseAttackAnimation(float convertTime, float antic, float preDelay, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, String path, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseAttackAnimation(float convertTime, float antic, float preDelay, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, String path, AssetAccessor<? extends Armature> armature) {
         super(convertTime, antic, preDelay, contact, recovery, hand, collider, colliderJoint, path, armature);
     }
 
-    public MutiPhaseAttackAnimation(float convertTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseAttackAnimation(float convertTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(convertTime, path, armature, phases);
     }
 
