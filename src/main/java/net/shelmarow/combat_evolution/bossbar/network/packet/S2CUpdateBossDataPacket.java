@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.bossbar.network.packet;
 
 import com.google.gson.Gson;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
@@ -11,7 +12,6 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public class S2CUpdateBossDataPacket {
-    private static final Gson GSON = new Gson();
     private final UUID uuid;
     private final BossData bossData;
 
@@ -22,13 +22,15 @@ public class S2CUpdateBossDataPacket {
 
     public static void encode(S2CUpdateBossDataPacket msg, FriendlyByteBuf buffer){
         buffer.writeUUID(msg.uuid);
-        buffer.writeUtf(GSON.toJson(msg.bossData, BossData.class));
+        buffer.writeNbt(msg.bossData.toTag());
+
     }
 
     public static S2CUpdateBossDataPacket decode(FriendlyByteBuf buffer){
         UUID uuid = buffer.readUUID();
-        String json = buffer.readUtf();
-        BossData bossData = GSON.fromJson(json, BossData.class);
+        CompoundTag tag = buffer.readNbt();
+        BossData bossData = new BossData();
+        bossData.fromTag(tag);
         return new S2CUpdateBossDataPacket(uuid, bossData);
     }
 

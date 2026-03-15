@@ -18,6 +18,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.shelmarow.combat_evolution.ai.CEConditions;
+import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
 import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
 import net.shelmarow.combat_evolution.bgm.network.S2CRemoveMusicPacket;
@@ -90,7 +91,7 @@ public class CombatEvolution {
     }
 
     public static void registerArmatures() {
-        Armatures.registerEntityTypeArmature(CEEntities.SHELMAROW.get(),Armatures.BIPED);
+        //Armatures.registerEntityTypeArmature(CEEntities.SHELMAROW.get(),Armatures.BIPED);
     }
 
     private void registerPackets() {
@@ -101,6 +102,7 @@ public class CombatEvolution {
         CHANNEL.registerMessage(packetId++, S2CUpdateStaminaDataPacket.class, S2CUpdateStaminaDataPacket::encode, S2CUpdateStaminaDataPacket::decode, S2CUpdateStaminaDataPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRequestMusicPacket.class, S2CRequestMusicPacket::encode, S2CRequestMusicPacket::decode, S2CRequestMusicPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRemoveMusicPacket.class, S2CRemoveMusicPacket::encode, S2CRemoveMusicPacket::decode, S2CRemoveMusicPacket::handle);
+        CHANNEL.registerMessage(packetId++, SPCEDataPacket.class, SPCEDataPacket::encode, SPCEDataPacket::decode, SPCEDataPacket::handle);
 
         CHANNEL.registerMessage(packetId++, C2STryExecutionPacket.class, C2STryExecutionPacket::encode,C2STryExecutionPacket::decode, C2STryExecutionPacket::handle);
     }

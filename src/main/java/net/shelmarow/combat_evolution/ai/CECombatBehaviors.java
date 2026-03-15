@@ -1075,8 +1075,18 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
+            public Builder<T> addTimeEvent(TimeEvent timeEvents) {
+                this.timeEventList.add(timeEvents);
+                return this;
+            }
+
             public Builder<T> addTimeEvent(TimeEvent... timeEvents) {
                 this.timeEventList.addAll(List.of(timeEvents));
+                return this;
+            }
+
+            public Builder<T> addHitEvent(HitEvent hitEvents) {
+                this.hitEventList.add(hitEvents);
                 return this;
             }
 

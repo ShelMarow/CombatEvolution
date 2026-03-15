@@ -2,8 +2,9 @@
   //文件路径需要放在 datapack/[数据包名称]/data/[模组ID]/ce_mobpatch/实体ID.json
 
   "faction": "neutral",   //<必填>  阵营，用于防止攻击命中同阵营的实体
-  "renderer": "player",   //<必填>  渲染类型，常用的有player, zombie, skeleton, epicfight:custom等
-  "model": "player",      //<必填>  实体模型，常用的有player, zombie, skeleton, epicfight:custom等
+  "renderer": "player",   //<必填>  渲染类型，常用的有player, zombie, skeleton等
+  "model": "player",      //<必填>  实体模型，常用的有player, zombie, skeleton等
+  "armature": "epicfight:entity/biped",//<必填>  实体骨架，可用类型请查阅epicfight/animmodels/entity/下的文件
   "humanoid": true,       //[可选]  是否使用人形模型，在渲染类型为epicfight:custom时如果该选项为true，会使用默认人模
   "scale": 1.0,           //[可选]  渲染大小，不影响实际碰撞箱
   "breakTime": 40,        //[可选]  耐力清空的破防持续时间（和动画无关）Tick

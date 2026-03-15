@@ -4,6 +4,7 @@
   "faction": "neutral",   // <Required> Faction, used to prevent attacking entities of the same faction.
   "renderer": "player",   // <Required> Renderer type. Common options: player, zombie, skeleton, epicfight:custom, etc.
   "model": "player",      // <Required> Entity model. Common options: player, zombie, skeleton, epicfight:custom, etc.
+  "armature": "epicfight:entity/biped",//<Required>  armature，for more info  please refer to the json file under epicfight/animmodels/entity/
   "humanoid": true,       // [Optional] Whether to use a humanoid model. If true and renderer is epicfight:custom, the default human model will be used.
   "scale": 1.0,           // [Optional] Render scale. Does not affect the actual collision box.
   "breakTime": 40,        // [Optional] Duration (in ticks) of the stagger/break state after stamina is depleted (independent of animations).

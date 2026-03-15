@@ -2,6 +2,7 @@
   "faction": "undead",
   "renderer": "zombie",
   "model": "zombie",
+  "armature": "epicfight:entity/biped",
   "humanoid": true,
   "scale": 1.0,
   "breakTime": 40,

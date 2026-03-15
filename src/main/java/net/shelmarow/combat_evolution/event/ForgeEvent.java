@@ -4,20 +4,39 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
+import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import yesman.epicfight.api.forgeevent.EntityStunEvent;
+import yesman.epicfight.events.WorldEvents;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeEvent {
+
+
+    @SubscribeEvent
+    public static void onDatapackSync(final OnDatapackSyncEvent event) {
+        if (event.getPlayer() != null) {
+            if(!event.getPlayer().getServer().isSingleplayerOwner(event.getPlayer().getGameProfile())) {
+                CombatEvolution.CHANNEL.send(PacketDistributor.PLAYER.with(event::getPlayer), new SPCEDataPacket(CEPatchReloadListener.getSize(), CEPatchReloadListener.getTags()));
+            }
+        }
+        else{
+            event.getPlayerList().getPlayers().forEach(serverPlayer -> {
+                CombatEvolution.CHANNEL.send(PacketDistributor.PLAYER.with(()->serverPlayer), new SPCEDataPacket(CEPatchReloadListener.getSize(), CEPatchReloadListener.getTags()));
+            });
+        }
+    }
 
     @SubscribeEvent
     public static void onReload(AddReloadListenerEvent event) {
