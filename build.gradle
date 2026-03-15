@@ -85,9 +85,9 @@ dependencies {
     implementation fg.deobf("curse.maven:epic-fight-mod-405076:7617763-sources-7617764")
     implementation fg.deobf("curse.maven:selene-499980:7072721")
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:6860192")
-    implementation fg.deobf("curse.maven:free-cam-557076:4643128")
 
-    implementation fg.deobf("libs:betterlockon:2.0.2")
+    //implementation fg.deobf("curse.maven:free-cam-557076:4643128")
+    //implementation fg.deobf("libs:betterlockon:2.0.2")
 
 
     implementation 'org.spongepowered:mixin:0.8.5'

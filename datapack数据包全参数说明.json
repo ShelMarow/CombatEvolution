@@ -22,7 +22,7 @@
       "value": 30
     },
     {
-      "attribute": "epicfight:staminar_regen",//如果实体没有耐力回复属性，那么不会自然恢复耐力
+      "attribute": "epicfight:stamina_regen",//如果实体没有耐力回复属性，那么不会自然恢复耐力
       "value": 1
     }
   ],

@@ -51,21 +51,23 @@ public abstract class EFAttackAnimation extends StaticAnimation {
                 int currentPhase = List.of(this.phases).indexOf(phase);
                 PhaseParams params = phaseParamsMap.containsKey(currentPhase) ? phaseParamsMap.get(currentPhase) : phaseParamsMap.get(-1);
 
-                int stunIndex = params.getStunType();
-                float damage = params.getDamageMultiplier();
-                float impact = params.getImpactMultiplier();
-                float armorNegation = params.getArmorNegationMultiplier();
-                Set<TagKey<DamageType>> sourceTag = params.getDamageSource();
+                if(params != null){
+                    int stunIndex = params.getStunType();
+                    float damage = params.getDamageMultiplier();
+                    float impact = params.getImpactMultiplier();
+                    float armorNegation = params.getArmorNegationMultiplier();
+                    Set<TagKey<DamageType>> sourceTag = params.getDamageSource();
 
-                if (stunIndex != -1) {
-                    StunType stunType = StunType.values()[stunIndex];
-                    returnValue.setStunType(stunType);
+                    if (stunIndex != -1) {
+                        StunType stunType = StunType.values()[stunIndex];
+                        returnValue.setStunType(stunType);
+                    }
+
+                    returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
+                    returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
+                    returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
+                    sourceTag.forEach(returnValue::addRuntimeTag);
                 }
-
-                returnValue.attachDamageModifier(ValueModifier.multiplier(damage));
-                returnValue.attachImpactModifier(ValueModifier.multiplier(impact));
-                returnValue.attachArmorNegationModifier(ValueModifier.multiplier(armorNegation));
-                sourceTag.forEach(returnValue::addRuntimeTag);
             }
         }
 

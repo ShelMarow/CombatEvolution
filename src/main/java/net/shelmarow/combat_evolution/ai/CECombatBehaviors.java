@@ -1284,7 +1284,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             @SafeVarargs
             public final Builder<T> onCounterStart(Consumer<T>... behavior) {
-                this.exBehaviors.addAll(List.of(behavior));
+                this.onCounterStart.addAll(List.of(behavior));
                 return this;
             }
 

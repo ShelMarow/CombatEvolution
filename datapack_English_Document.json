@@ -22,7 +22,7 @@
       "value": 30
     },
     {
-      "attribute": "epicfight:staminar_regen", // If the entity lacks this attribute, stamina will not regenerate naturally.
+      "attribute": "epicfight:stamina_regen", // If the entity lacks this attribute, stamina will not regenerate naturally.
       "value": 1
     }
   ],

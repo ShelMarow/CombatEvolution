@@ -46,10 +46,6 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private static void onInitLivingEntityDataAccessor(CallbackInfo ci) {
         combat_evolution$CAN_MODIFY_SPEED = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.BOOLEAN);
         combat_evolution$ATTACK_SPEED = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-//        combat_evolution$DAMAGE_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-//        combat_evolution$IMPACT_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-//        combat_evolution$ARMOR_NEGATION_MULTIPLIER = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
-//        combat_evolution$STUN_TYPE = SynchedEntityData.defineId(LivingEntity.class,EntityDataSerializers.INT);
 
         combat_evolution$STAMINA = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.FLOAT);
         combat_evolution$STAMINA_STATUS = SynchedEntityData.defineId(LivingEntity.class, EntityDataSerializers.INT);
@@ -64,10 +60,6 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
     private static void onCreateSyncedEntityData(LivingEntity livingentity,CallbackInfo ci) {
         livingentity.getEntityData().define(combat_evolution$CAN_MODIFY_SPEED, false);
         livingentity.getEntityData().define(combat_evolution$ATTACK_SPEED, 1.0F);
-//        livingentity.getEntityData().define(combat_evolution$DAMAGE_MULTIPLIER, 1.0F);
-//        livingentity.getEntityData().define(combat_evolution$IMPACT_MULTIPLIER, 1.0F);
-//        livingentity.getEntityData().define(combat_evolution$ARMOR_NEGATION_MULTIPLIER, 1.0F);
-//        livingentity.getEntityData().define(combat_evolution$STUN_TYPE, -1);
 
         livingentity.getEntityData().define(combat_evolution$STAMINA, 0.0F);
         livingentity.getEntityData().define(combat_evolution$STAMINA_STATUS, StaminaStatus.COMMON.ordinal());
