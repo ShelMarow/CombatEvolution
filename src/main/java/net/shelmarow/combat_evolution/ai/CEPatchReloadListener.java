@@ -685,7 +685,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         //通用事件
         if (behaviors.contains("exBehavior")){
             ListTag array = behaviors.getList("exBehavior",Tag.TAG_COMPOUND);
-            for (int i = 1; i < array.size(); i++) {
+            for (int i = 0; i < array.size(); i++) {
                 CompoundTag exBehavior = array.getCompound(i);
                 boolean onTarget = exBehavior.getBoolean("onTarget");
                 String command = exBehavior.getString("command");

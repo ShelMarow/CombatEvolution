@@ -91,7 +91,7 @@ public class CombatEvolution {
     }
 
     public static void registerArmatures() {
-        //Armatures.registerEntityTypeArmature(CEEntities.SHELMAROW.get(),Armatures.BIPED);
+        Armatures.registerEntityTypeArmature(CEEntities.SHELMAROW.get(),Armatures.BIPED);
     }
 
     private void registerPackets() {

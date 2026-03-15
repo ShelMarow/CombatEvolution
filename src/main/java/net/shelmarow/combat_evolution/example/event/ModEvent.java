@@ -24,6 +24,6 @@ public class ModEvent {
 
     @SubscribeEvent
     public static void setPatch(EntityPatchRegistryEvent event) {
-        //event.getTypeEntry().put(CEEntities.SHELMAROW.get(), (entity) -> ShelMarowPatch::new);
+        event.getTypeEntry().put(CEEntities.SHELMAROW.get(), (entity) -> ShelMarowPatch::new);
     }
 }
