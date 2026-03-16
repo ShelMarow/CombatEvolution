@@ -15,7 +15,6 @@ import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
 import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import yesman.epicfight.api.forgeevent.EntityStunEvent;
-import yesman.epicfight.events.WorldEvents;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
@@ -27,7 +26,7 @@ public class ForgeEvent {
     @SubscribeEvent
     public static void onDatapackSync(final OnDatapackSyncEvent event) {
         if (event.getPlayer() != null) {
-            if(!event.getPlayer().getServer().isSingleplayerOwner(event.getPlayer().getGameProfile())) {
+            if(event.getPlayer().getServer() != null && !event.getPlayer().getServer().isSingleplayerOwner(event.getPlayer().getGameProfile())) {
                 CombatEvolution.CHANNEL.send(PacketDistributor.PLAYER.with(event::getPlayer), new SPCEDataPacket(CEPatchReloadListener.getSize(), CEPatchReloadListener.getTags()));
             }
         }
@@ -47,7 +46,15 @@ public class ForgeEvent {
     public static void onStunApply(EntityStunEvent event) {
         LivingEntity original = event.getStunnedEntityPatch().getOriginal();
         StunType stunType = event.getStunType();
-        if(stunType != StunType.NEUTRALIZE && original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
+        if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){
+            event.setCanceled(true);
+        }
+        else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) &&
+                stunType != StunType.NEUTRALIZE && stunType != StunType.FALL){
+            event.setCanceled(true);
+        }
+        else if(original.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get()) &&
+                stunType != StunType.NEUTRALIZE && stunType != StunType.KNOCKDOWN && stunType != StunType.FALL){
             event.setCanceled(true);
         }
     }
@@ -55,7 +62,9 @@ public class ForgeEvent {
     @SubscribeEvent
     public static void onKnockBack(LivingKnockBackEvent event) {
         LivingEntity target = event.getEntity();
-        if(target.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
+        if(target.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get()) ||
+                target.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) ||
+                target.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get())){
             event.setCanceled(true);
         }
     }

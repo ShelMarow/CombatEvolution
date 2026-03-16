@@ -9,12 +9,15 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,6 +25,7 @@ import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,11 +35,13 @@ import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
+import net.shelmarow.combat_evolution.enchantment.CEEnchantments;
 import net.shelmarow.combat_evolution.mixins.GuardSkillInvoker;
 import net.shelmarow.combat_evolution.tickTask.TickTaskManager;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
+import yesman.epicfight.api.forgeevent.EntityStunEvent;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.model.armature.HumanoidArmature;
 import yesman.epicfight.skill.Skill;
@@ -53,10 +59,7 @@ import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.item.GloveItem;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -94,9 +97,16 @@ public class ExecutionHandler {
 
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent event) {
-        //处决保护，如果不是最后一击，实体会锁血，防止提前击杀
         LivingEntity target = event.getEntity();
         DamageSource damageSource = event.getSource();
+
+        //根据附魔增加处决伤害
+        if(damageSource.is(CEDamageTypeTags.EXECUTION) && damageSource.getEntity() instanceof LivingEntity livingEntity) {
+            int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.MASSACRE.get(), livingEntity);
+            event.setAmount(event.getAmount() * (1 + level * 0.16F));
+        }
+
+        //处决保护，如果不是最后一击，实体会锁血，防止提前击杀
         if(!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)) {
             float damageAmount = event.getAmount();
             float health = target.getHealth();
@@ -112,6 +122,39 @@ public class ExecutionHandler {
                     container.getSkill().setStackSynchronize(container, container.getStack() + 1);
                 }
             });
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event){
+        DamageSource source = event.getSource();
+        Entity killer = source.getEntity();
+
+        //处决击杀敌人时，如果有威慑附魔，对周围的敌人施加负面效果
+        if(source.is(CEDamageTypeTags.EXECUTION_FINISHED) && killer instanceof LivingEntity livingKiller) {
+            int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.INTIMIDATE.get(), livingKiller);
+            if(level > 0){
+                List<LivingEntity> targets = livingKiller.level().getEntitiesOfClass(LivingEntity.class, livingKiller.getBoundingBox().inflate(8), target -> {
+                    return target.isAlive() &&
+                            !target.equals(livingKiller) &&
+                            !(target instanceof Player) &&
+                            livingKiller.canAttack(target, TargetingConditions.forCombat()) &&
+                            (target.getTeam() == null || target.getTeam() != livingKiller.getTeam()) &&
+                            target.distanceTo(livingKiller) < 6 * 6;
+                });
+                for(LivingEntity target : targets){
+                    target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
+                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 5));
+                    EpicFightCapabilities.getUnparameterizedEntityPatch(target, LivingEntityPatch.class).ifPresent(entityPatch -> {
+                        EntityStunEvent entityStunEvent = new EntityStunEvent(null, entityPatch, StunType.HOLD);
+                        if(!entityStunEvent.isCanceled()){
+                            entityPatch.applyStun(StunType.HOLD, 1F);
+                        }
+                    });
+                    Vec3 vec = target.position().subtract(killer.position()).normalize().scale(1.0);
+                    target.addDeltaMovement(new Vec3(vec.x, 0, vec.z));
+                }
+            }
         }
     }
 
@@ -257,14 +300,14 @@ public class ExecutionHandler {
         Vec3 lookVec = player.getViewVector(1.0F);
         Vec3 reachVec = eyePos.add(lookVec.scale(maxDistance));
 
-        AABB aabb = new AABB(eyePos, reachVec).inflate(0.2D);
+        AABB aabb = new AABB(eyePos, reachVec).inflate(1.0D);
 
         //检测视线上的第一个实体
         EntityHitResult entityHit = getEntityHitResult(
                 player,eyePos,reachVec,aabb,
                 entity -> entity != player && entity instanceof LivingEntity living &&
                         player.canAttack(living, TargetingConditions.forCombat()) && !living.isInvulnerable() && living.isAlive(),
-                maxDistance * maxDistance,0.5
+                maxDistance * maxDistance,1.0
         );
 
         //如果存在实体
@@ -368,7 +411,7 @@ public class ExecutionHandler {
     }
 
     @Nullable
-    private static ExecutionTransform calculateExecutionPosition(Level level, LivingEntity executor, LivingEntity target, Vec3 offset) {
+    public static ExecutionTransform calculateExecutionPosition(Level level, LivingEntity executor, LivingEntity target, Vec3 offset) {
         //先查询目标正前方是否可以直接站立
         float yaw = target.getYRot();
         ExecutionTransform executionTransform = findPosAround(level, executor, target, offset, yaw, 360F, 0.5F);
@@ -393,7 +436,7 @@ public class ExecutionHandler {
     }
 
     @Nullable
-    private static ExecutionTransform findPosAround(Level level, LivingEntity executor, LivingEntity target, Vec3 offset, float startAngle, float angleStep, float allowedY) {
+    public static ExecutionTransform findPosAround(Level level, LivingEntity executor, LivingEntity target, Vec3 offset, float startAngle, float angleStep, float allowedY) {
         float yaw;
         double rad;
         double forwardX;

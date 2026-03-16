@@ -7,8 +7,6 @@ import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.io.Serializable;
-
 public class BossData {
     public String displayType = "";
     public float stamina = 1F;

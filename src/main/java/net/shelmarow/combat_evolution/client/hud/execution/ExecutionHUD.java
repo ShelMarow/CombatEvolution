@@ -299,4 +299,20 @@ public class ExecutionHUD implements IGuiOverlay {
             RenderSystem.disableBlend();
         }
     }
+
+    public static void setCurrentHudType(HUDType currentHudType) {
+        ExecutionHUD.currentHudType = currentHudType;
+    }
+
+    public static void setShowExecutionIcon(boolean showExecutionIcon) {
+        ExecutionHUD.showExecutionIcon = showExecutionIcon;
+    }
+
+    public static void setTimePercent(float timePercent) {
+        ExecutionHUD.timePercent = timePercent;
+    }
+
+    public static void setTimePercentO(float timePercentO) {
+        ExecutionHUD.timePercentO = timePercentO;
+    }
 }

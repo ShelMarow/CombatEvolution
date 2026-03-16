@@ -34,8 +34,11 @@ import net.shelmarow.combat_evolution.config.CEClientConfig;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.config.screen.CombatEvolutionConfigScreen;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
+import net.shelmarow.combat_evolution.enchantment.CEEnchantments;
 import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
+import net.shelmarow.combat_evolution.item.CECreativeTab;
+import net.shelmarow.combat_evolution.item.CEItems;
 import net.shelmarow.combat_evolution.sounds.CESounds;
 import org.slf4j.Logger;
 import yesman.epicfight.gameasset.Armatures;
@@ -64,6 +67,9 @@ public class CombatEvolution {
         CEEntities.ENTITY_TYPES.register(modEventBus);
         CESounds.SOUNDS.register(modEventBus);
         CEConditions.CONDITIONS.register(modEventBus);
+        CEEnchantments.ENCHANTMENTS.register(modEventBus);
+        CEItems.ITEMS.register(modEventBus);
+        CECreativeTab.CREATIVE_TAB.register(modEventBus);
 
         context.registerConfig(ModConfig.Type.COMMON, CECommonConfig.COMMON_SPEC);
 

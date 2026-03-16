@@ -1,6 +1,5 @@
 package net.shelmarow.combat_evolution.gameassets;
 
-import net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationEvent;
 import yesman.epicfight.api.animation.types.ActionAnimation;

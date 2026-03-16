@@ -1,6 +1,5 @@
 package net.shelmarow.combat_evolution.bossbar.network.packet;
 
-import com.google.gson.Gson;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkDirection;

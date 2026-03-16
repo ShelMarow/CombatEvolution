@@ -2,7 +2,6 @@ package net.shelmarow.combat_evolution.ai.network;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
 

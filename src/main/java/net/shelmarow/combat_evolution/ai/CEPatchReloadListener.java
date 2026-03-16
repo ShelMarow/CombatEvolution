@@ -6,7 +6,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -168,58 +171,89 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         provider.hurtImpact = getHurtImpact(tag);
         provider.guardHitImpact = getGuardHitImpact(tag);
         provider.beParriedDamage = getBeParriedDamage(tag);
+        initBossBarSetting(provider, tag);
+        initBossBGM(provider, tag);
     }
 
-    private static float getBeParriedDamage(CompoundTag tag) {
+    public static void initBossBGM(CEDatapackMobPatchProvider provider, CompoundTag tag) {
+        if(tag.contains("ceBossMusic")){
+            CompoundTag ceBossBGM = tag.getCompound("ceBossMusic");
+
+            provider.playBGM = ceBossBGM.getBoolean("playBGM");
+            provider.bgm =  ResourceLocation.parse(ceBossBGM.getString("bgm"));
+            provider.bgmLoop =  ceBossBGM.getBoolean("loop");
+            provider.bgmDuration = ceBossBGM.getInt("duration");
+            provider.bgmVolume = ceBossBGM.getInt("volume");
+            provider.bgmFadeIn = ceBossBGM.getInt("fadeIn");
+            provider.bgmFadeOut = ceBossBGM.getInt("fadeOut");
+        }
+    }
+
+    public static void initBossBarSetting(CEDatapackMobPatchProvider provider, CompoundTag tag) {
+        if(tag.contains("ceBossBar")){
+            CompoundTag bossBar = tag.getCompound("ceBossBar");
+            if(bossBar.contains("enableBossBar")) {
+                provider.enableBossBar = bossBar.getBoolean("enableBossBar");
+            }
+            if(bossBar.contains("bossBarName")){
+                provider.bossBarName = bossBar.getString("bossBarName");
+            }
+            if(bossBar.contains("bossBarTextures")) {
+                provider.bossBarTexture = ResourceLocation.parse(bossBar.getString("bossBarTextures"));
+            }
+        }
+    }
+
+    public static float getBeParriedDamage(CompoundTag tag) {
         if(tag.contains("beParriedDamage")){
             return tag.getFloat("beParriedDamage");
         }
         return 1;
     }
 
-    private static float getGuardHitImpact(CompoundTag tag) {
+    public static float getGuardHitImpact(CompoundTag tag) {
         if (tag.contains("guardHitImpact")) {
             return tag.getFloat("guardHitImpact");
         }
         return 1;
     }
 
-    private static float getHurtImpact(CompoundTag tag) {
+    public static float getHurtImpact(CompoundTag tag) {
         if (tag.contains("hurtImpact")) {
             return tag.getFloat("hurtImpact");
         }
         return 0.35F;
     }
 
-    private static int getStaminaRegenDelay(CompoundTag tag) {
+    public static int getStaminaRegenDelay(CompoundTag tag) {
         if (tag.contains("staminaRegenDelay")) {
             return tag.getInt("staminaRegenDelay");
         }
         return 60;
     }
 
-    private static int getRecoverTime(CompoundTag tag) {
+    public static int getRecoverTime(CompoundTag tag) {
         if (tag.contains("recoverTime")) {
             return tag.getInt("recoverTime");
         }
         return 60;
     }
 
-    private static int getBreakTime(CompoundTag tag) {
+    public static int getBreakTime(CompoundTag tag) {
         if(tag.contains("breakTime")) {
             return tag.getInt("breakTime");
         }
         return 40;
     }
 
-    private static float getScale(CompoundTag tag) {
+    public static float getScale(CompoundTag tag) {
         if(tag.contains("scale")) {
             return tag.getFloat("scale");
         }
         return 1;
     }
 
-    private static Factions getFaction(CompoundTag tag) {
+    public static Factions getFaction(CompoundTag tag) {
         if(tag.contains("faction")) {
             try{
                 return Factions.valueOf(tag.getString("faction").toUpperCase());
@@ -231,7 +265,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return Factions.NEUTRAL;
     }
 
-    private static Map<Attribute, Double> getAttributeMap(CompoundTag tag) {
+    public static Map<Attribute, Double> getAttributeMap(CompoundTag tag) {
         Map<Attribute, Double> attributes = new HashMap<>();
         if (tag.contains("attributes")){
             ListTag array = tag.getList("attributes", Tag.TAG_COMPOUND);
@@ -246,7 +280,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return attributes;
     }
 
-    private static Map<StunType, AnimationManager.AnimationAccessor<? extends StaticAnimation>> getStunAnimations(CompoundTag tag) {
+    public static Map<StunType, AnimationManager.AnimationAccessor<? extends StaticAnimation>> getStunAnimations(CompoundTag tag) {
         Map<StunType, AnimationManager.AnimationAccessor<? extends StaticAnimation>> animations = new HashMap<>();
         if(tag.contains("stunAnimations")){
             CompoundTag stunAnimations = tag.getCompound("stunAnimations");
@@ -262,7 +296,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return animations;
     }
 
-    private static Map<WeaponCategory, Map<Style, List<AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> getGuardHitMotions(CompoundTag tag) {
+    public static Map<WeaponCategory, Map<Style, List<AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> getGuardHitMotions(CompoundTag tag) {
         Map<WeaponCategory, Map<Style, List<AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> guardHitMotions = new HashMap<>();
 
         if(tag.contains("guardHitAnimation")){
@@ -289,7 +323,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return guardHitMotions;
     }
 
-    private static Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>>>> getWeaponLivingMotions(CompoundTag tag) {
+    public static Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>>>> getWeaponLivingMotions(CompoundTag tag) {
         Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>>>> weaponLivingMotions = new HashMap<>();
 
         if(tag.contains("weaponLivingMotions")){
@@ -319,7 +353,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return weaponLivingMotions;
     }
 
-    private static Map<WeaponCategory, Map<Style, CECombatBehaviors.Builder<MobPatch<?>>>> getWeaponAttackMotions(CompoundTag tag) {
+    public static Map<WeaponCategory, Map<Style, CECombatBehaviors.Builder<MobPatch<?>>>> getWeaponAttackMotions(CompoundTag tag) {
         Map<WeaponCategory, Map<Style, CECombatBehaviors.Builder<MobPatch<?>>>> weaponAttackMotions = new HashMap<>();
 
 
@@ -425,7 +459,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return builder;
     }
 
-    private static CECombatBehaviors.Behavior.Builder<MobPatch<?>> getBehaviorBuilder(CompoundTag behaviors) {
+    public static CECombatBehaviors.Behavior.Builder<MobPatch<?>> getBehaviorBuilder(CompoundTag behaviors) {
         CECombatBehaviors.Behavior.Builder<MobPatch<?>> builder = CECombatBehaviors.Behavior.builder();
 
         if(behaviors.contains("behaviorName")){
@@ -724,7 +758,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return builder;
     }
 
-    private static Function<MobPatch<?>, Boolean> creatFunctionCommand(boolean cancelHitAnimation, boolean onTarget, String command) {
+    public static Function<MobPatch<?>, Boolean> creatFunctionCommand(boolean cancelHitAnimation, boolean onTarget, String command) {
         return mobPatch -> {
             if (!mobPatch.isLogicalClient()){
                 LivingEntity target = mobPatch.getTarget();
@@ -747,7 +781,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         };
     }
 
-    private static @NotNull TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> creatTriFunctionCommand(AttackResult.ResultType resultType, float damage, boolean onTarget, String command) {
+    public static @NotNull TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> creatTriFunctionCommand(AttackResult.ResultType resultType, float damage, boolean onTarget, String command) {
         return (mobPatch, damageSource, attackResult) -> {
             if (!mobPatch.isLogicalClient()){
                 LivingEntity target = mobPatch.getTarget();
@@ -774,7 +808,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         };
     }
 
-    private static @NotNull Consumer<MobPatch<?>> creatCommandConsumer(boolean onTarget, String command) {
+    public static @NotNull Consumer<MobPatch<?>> creatCommandConsumer(boolean onTarget, String command) {
         return mobPatch -> {
             if (mobPatch.isLogicalClient()) return;
 
@@ -797,7 +831,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         };
     }
 
-    private static @NotNull BiConsumer<MobPatch<?>, Entity> creatCommandConsumer2(boolean onTarget, String command) {
+    public static @NotNull BiConsumer<MobPatch<?>, Entity> creatCommandConsumer2(boolean onTarget, String command) {
         return (mobPatch, target) -> {
             if (mobPatch.isLogicalClient()) return;
 
@@ -819,7 +853,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         };
     }
 
-    private static @NotNull BiConsumer<MobPatch<?>, LivingEntityPatch<?>> creatCommandConsumer3(boolean onTarget, String command) {
+    public static @NotNull BiConsumer<MobPatch<?>, LivingEntityPatch<?>> creatCommandConsumer3(boolean onTarget, String command) {
         return (mobPatch, targetPatch) -> {
             if (mobPatch.isLogicalClient()) return;
 
@@ -841,7 +875,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         };
     }
 
-    private static AnimationParams getAnimationParams(CompoundTag paramsTag) {
+    public static AnimationParams getAnimationParams(CompoundTag paramsTag) {
         AnimationParams animationParams = new AnimationParams();
 
         if(paramsTag.contains("transitionTime")){
@@ -937,6 +971,16 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         public float guardHitImpact = 1F;
         public float hurtImpact = 0.35F;
         public float beParriedDamage = 1F;
+        public boolean enableBossBar = false;
+        public String bossBarName = "[CE:EMPTY_NAME]";
+        public ResourceLocation bossBarTexture = null;
+        public boolean playBGM = false;
+        public ResourceLocation bgm = null;
+        public boolean bgmLoop = true;
+        public int bgmDuration = Integer.MAX_VALUE;
+        public int bgmFadeIn = 0;
+        public int bgmFadeOut = 0;
+        public float bgmVolume = 1;
 
 
         @Override

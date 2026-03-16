@@ -6,6 +6,20 @@
   "model": "player",      // <Required> Entity model. Common options: player, zombie, skeleton, epicfight:custom, etc.
   "armature": "epicfight:entity/biped",//<Required>  armature，for more info  please refer to the json file under epicfight/animmodels/entity/
   "humanoid": true,       // [Optional] Whether to use a humanoid model. If true and renderer is epicfight:custom, the default human model will be used.
+  "ceBossBar": {          //[Optional]  Display BOSS Bar
+    "enableBossBar": true,
+    "bossBarName":"Zombie Boss",  //BOSS Bar Display Name，can use translate lang key
+    "bossBarTextures": "combat_evolution:textures/gui/bossbar/ce_boss_bar.png"  //BOSS Bar Texture Resource Location
+  },
+  "ceBossMusic": {  //[Optional]  Play BOSS BGM
+    "playBGM": true,
+    "bgm": "combat_evolution:music.test_bgm", //BGM Resource Location
+    "loop": true,              //Loop
+    "duration": 3500,          //Total BGM Duration / Loop start time（Tick）
+    "volume": 1,
+    "fadeIn": 40,
+    "fadeOut": 40
+  },
   "scale": 1.0,           // [Optional] Render scale. Does not affect the actual collision box.
   "breakTime": 40,        // [Optional] Duration (in ticks) of the stagger/break state after stamina is depleted (independent of animations).
   "recoverTime": 60,      // [Optional] Time (in ticks) needed for stamina to fully recover after the break state ends.

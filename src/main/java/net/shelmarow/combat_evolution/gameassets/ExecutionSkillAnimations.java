@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.gameassets;
 
 
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionAttackAnimation;
@@ -77,10 +78,12 @@ public class ExecutionSkillAnimations {
 
         return new ExecutionAttackAnimation(0.01F, accessor, Armatures.BIPED,
 
-                new ExecutionAttackAnimation.ExecutionPhase(false,0.0F, 0.0F, 0.76F, 0.93F, 0.93F, 0.93F, Armatures.BIPED.get().rootJoint, executionCollider)
+                new ExecutionAttackAnimation.ExecutionPhase(false,0.0F, 0.0F, 0.76F, 0.93F, 0.93F, 0.93F,
+                        InteractionHand.MAIN_HAND, Armatures.BIPED.get().rootJoint, executionCollider)
                         .addProperty(AnimationProperty.AttackPhaseProperty.HIT_SOUND, EpicFightSounds.BLADE_RUSH_FINISHER.get()),
 
-                new ExecutionAttackAnimation.ExecutionPhase(true,0.93F, 0.0F, 3.16F, 3.36F, 5.0F, 5.0F, Armatures.BIPED.get().rootJoint, executionCollider)
+                new ExecutionAttackAnimation.ExecutionPhase(true,0.93F, 0.0F, 3.16F, 3.36F, 5.0F, 5.0F,
+                        InteractionHand.MAIN_HAND, Armatures.BIPED.get().rootJoint, executionCollider)
                         .addProperty(AnimationProperty.AttackPhaseProperty.DAMAGE_MODIFIER, ValueModifier.multiplier(2.5F))
                         .addProperty(AnimationProperty.AttackPhaseProperty.EXTRA_DAMAGE, Set.of(TARGET_MAX_HEALTH.create(15, 0.08F)))
                         .addProperty(AnimationProperty.AttackPhaseProperty.HIT_SOUND, EpicFightSounds.EVISCERATE.get()))

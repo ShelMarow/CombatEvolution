@@ -3,6 +3,7 @@ package net.shelmarow.combat_evolution.ai;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -658,5 +659,13 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 return null;
             }
         }
+    }
+
+    public void startSeenByPlayer(ServerPlayer serverPlayer) {
+
+    }
+
+    public void stopSeenByPlayer(ServerPlayer serverPlayer) {
+
     }
 }
