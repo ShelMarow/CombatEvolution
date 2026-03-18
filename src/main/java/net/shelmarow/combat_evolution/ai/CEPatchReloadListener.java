@@ -115,7 +115,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             String armatureString = tag.getString("armature");
             boolean isHumanoid = tag.getBoolean("humanoid");
             ResourceLocation armatureLocation = ResourceLocation.parse(armatureString);
-            AssetAccessor<? extends Armature> armature = Armatures.getOrCreate(armatureLocation, isHumanoid ? Armature::new : HumanoidArmature::new);
+            AssetAccessor<? extends Armature> armature = Armatures.getOrCreate(armatureLocation, isHumanoid ? HumanoidArmature::new : Armature::new);
             Armatures.registerEntityTypeArmature(entityType, armature);
 
             TAGMAP.put(entityType, tag);
@@ -150,7 +150,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             String armatureString = tag.getString("armature");
             boolean isHumanoid = tag.getBoolean("humanoid");
             ResourceLocation armatureLocation = ResourceLocation.parse(armatureString);
-            AssetAccessor<? extends Armature> armature = Armatures.getOrCreate(armatureLocation, isHumanoid ? Armature::new : HumanoidArmature::new);
+            AssetAccessor<? extends Armature> armature = Armatures.getOrCreate(armatureLocation, isHumanoid ? HumanoidArmature::new : Armature::new);
             Armatures.registerEntityTypeArmature(entityType, armature);
 
             ClientEngine.getInstance().renderEngine.registerCustomEntityRenderer(entityType, tag.getString("renderer"), tag);
@@ -164,6 +164,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         provider.stunAnimations = getStunAnimations(tag);
         provider.attributeMap = getAttributeMap(tag);
         provider.faction = getFaction(tag);
+        provider.chasingSpeed = getChasingSpeed(tag);
         provider.scale = getScale(tag);
         provider.breakTime = getBreakTime(tag);
         provider.recoverTime = getRecoverTime(tag);
@@ -173,6 +174,13 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         provider.beParriedDamage = getBeParriedDamage(tag);
         initBossBarSetting(provider, tag);
         initBossBGM(provider, tag);
+    }
+
+    private static float getChasingSpeed(CompoundTag tag) {
+        if(tag.contains("chasingSpeed")) {
+            return tag.getFloat("chasingSpeed");
+        }
+        return 1.25F;
     }
 
     public static void initBossBGM(CEDatapackMobPatchProvider provider, CompoundTag tag) {
@@ -967,6 +975,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         public int breakTime = 40;
         public int recoverTime = 60;
         public int staminaRegenDelay = 60;
+        public float chasingSpeed = 1.25F;
         public float scale = 1;
         public float guardHitImpact = 1F;
         public float hurtImpact = 0.35F;

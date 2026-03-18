@@ -6,6 +6,14 @@
   "model": "player",      //<必填>  实体模型，常用的有player, zombie, skeleton等
   "armature": "epicfight:entity/biped",//<必填>  实体骨架，可用类型请查阅epicfight/animmodels/entity/下的文件
   "humanoid": true,       //[可选]  是否使用人形模型，在渲染类型为epicfight:custom时如果该选项为true，会使用默认人模
+  "chasingSpeed": 1.25,   //[可选]  生物追逐目标时额外的速度倍率
+  "scale": 1.0,           //[可选]  渲染大小，不影响实际碰撞箱
+  "breakTime": 40,        //[可选]  耐力清空的破防持续时间（和动画无关）Tick
+  "recoverTime": 60,      //[可选]  耐力从破防结束到完全恢复所需要的时间 Tick
+  "staminaRegenDelay":60, //[可选]  正常状态且没有行动的情况下，需要多久才会开始自然恢复耐力值
+  "beParriedDamage": 1,   //[可选]  攻击被招架时，自身损耗的耐力值
+  "guardHitImpact": 1,    //[可选]  防御敌人攻击时，损耗的耐力百分比（如果敌人攻击3冲击，为0.5就是3*0.5，最终受到1.5的耐力伤害）
+  "hurtImpact": 0.35,     //[可选]  受到伤害时，耐力损耗的百分比（如果敌人攻击10冲击，为0.35就是10*0.35，最终受到3.5的耐力伤害）
   "ceBossBar": {          //[可选]  是否显示BOSS血条
     "enableBossBar": true,
     "bossBarName":"Zombie Boss",  //血条显示名称，支持翻译键
@@ -20,13 +28,6 @@
     "fadeIn": 40,           //BGM过渡时间
     "fadeOut": 40
   },
-  "scale": 1.0,           //[可选]  渲染大小，不影响实际碰撞箱
-  "breakTime": 40,        //[可选]  耐力清空的破防持续时间（和动画无关）Tick
-  "recoverTime": 60,      //[可选]  耐力从破防结束到完全恢复所需要的时间 Tick
-  "staminaRegenDelay":60, //[可选]  正常状态且没有行动的情况下，需要多久才会开始自然恢复耐力值
-  "beParriedDamage": 1,   //[可选]  攻击被招架时，自身损耗的耐力值
-  "guardHitImpact": 1,    //[可选]  防御敌人攻击时，损耗的耐力百分比（如果敌人攻击3冲击，为0.5就是3*0.5，最终受到1.5的耐力伤害）
-  "hurtImpact": 0.35,     //[可选]  受到伤害时，耐力损耗的百分比（如果敌人攻击10冲击，为0.35就是10*0.35，最终受到3.5的耐力伤害）
   "attributes": [         //[可选]  属性修改，可以为实体添加和修改属性
     {
       "attribute": "minecraft:generic.attack_damage",

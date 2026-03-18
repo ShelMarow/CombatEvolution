@@ -77,6 +77,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     protected int staminaRegenDelay = 60;
 
     protected int attackRadius = 1;
+    protected double chasingSpeed = 1.25F;
 
     public CEHumanoidPatch(Factions factions) {
         super(factions);
@@ -102,6 +103,16 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     }
 
     @Override
+    public void onAddedToWorld(){
+        CEPatchUtils.setStamina(this,CEPatchUtils.getMaxStamina(this));
+    }
+
+    @Override
+    public void onStartTracking(ServerPlayer trackingPlayer) {
+        this.modifyLivingMotionByCurrentItem();
+    }
+
+    @Override
     public void initAnimator(Animator animator) {
         super.initAnimator(animator);
         initLivingMotions(animator);
@@ -110,17 +121,13 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     public void initLivingMotions(Animator animator){
         animator.addLivingAnimation(LivingMotions.IDLE, Animations.BIPED_IDLE);
         animator.addLivingAnimation(LivingMotions.WALK, Animations.BIPED_WALK);
-        animator.addLivingAnimation(LivingMotions.CHASE, Animations.BIPED_WALK);
+        animator.addLivingAnimation(LivingMotions.RUN, Animations.BIPED_RUN);
+        animator.addLivingAnimation(LivingMotions.CHASE, Animations.BIPED_RUN);
         animator.addLivingAnimation(LivingMotions.FALL, Animations.BIPED_FALL);
         animator.addLivingAnimation(LivingMotions.MOUNT, Animations.BIPED_MOUNT);
         animator.addLivingAnimation(LivingMotions.DEATH, Animations.BIPED_DEATH);
     }
 
-    @Override
-    public void onAddedToWorld(){
-        CEPatchUtils.setStamina(this,CEPatchUtils.getMaxStamina(this));
-        modifyLivingMotionByCurrentItem();
-    }
 
     @Override
     public void tick(LivingEvent.LivingTickEvent event) {
@@ -434,7 +441,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         CECombatBehaviors.Builder<MobPatch<?>> builder = this.getCustomWeaponMotionBuilder();
         if(builder != null) {
             this.original.goalSelector.addGoal(0, new CEAnimationAttackGoal<>(this, builder.build()));
-            this.original.goalSelector.addGoal(1, new CommonChasingGoal(this, attackRadius));
+            this.original.goalSelector.addGoal(1, new CommonChasingGoal(this, attackRadius, this.chasingSpeed));
         }
 
     }
@@ -450,11 +457,11 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         else if (this.original.getVehicle() != null) {
             this.currentLivingMotion = LivingMotions.MOUNT;
         }
-        else if (!(this.original.getDeltaMovement().y < (double)-0.55F) && !this.isAirborneState()) {
-            if (this.original.walkAnimation.speed() > 0.08F && this.original.walkAnimation.speed() <= 0.72) {
+        else if (!(this.original.getDeltaMovement().y < -0.55) && !this.isAirborneState()) {
+            if (this.original.walkAnimation.speed() > 0.08F && this.original.walkAnimation.speed() <= 0.65) {
                 this.currentLivingMotion = LivingMotions.WALK;
             }
-            else if (this.original.walkAnimation.speed() > 0.72) {
+            else if (this.original.walkAnimation.speed() > 0.65) {
                 if (this.original.isAggressive()) {
                     this.currentLivingMotion = LivingMotions.CHASE;
                 } else {
@@ -468,14 +475,14 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         else {
             this.currentLivingMotion = LivingMotions.FALL;
         }
-
         this.currentCompositeMotion = this.currentLivingMotion;
     }
 
     @Override
     public void updateHeldItem(CapabilityItem fromCap, CapabilityItem toCap, ItemStack from, ItemStack to, InteractionHand hand) {
-        super.initAI();
-        this.setAIAsInfantry();
+        if(fromCap.getWeaponCategory() != toCap.getWeaponCategory()) {
+            this.initAI();
+        }
         this.modifyLivingMotionByCurrentItem();
 
         if (hand == InteractionHand.OFF_HAND) {
@@ -564,6 +571,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> oldLivingAnimations = this.getAnimator().getLivingAnimations();
         Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> newLivingAnimations = Maps.newHashMap();
 
+        original.getItemInHand(InteractionHand.MAIN_HAND);
         CapabilityItem mainHandCap = this.getHoldingItemCapability(InteractionHand.MAIN_HAND);
         CapabilityItem offHandCap = this.getAdvancedHoldingItemCapability(InteractionHand.OFF_HAND);
 
@@ -573,15 +581,15 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         boolean hasChange = false;
 
         for (Map.Entry<LivingMotion, AssetAccessor<? extends StaticAnimation>> entry : livingMotionModifiers.entrySet()) {
-            AssetAccessor<? extends StaticAnimation> aniamtion = entry.getValue();
+            AssetAccessor<? extends StaticAnimation> animation = entry.getValue();
 
             if (!oldLivingAnimations.containsKey(entry.getKey())) {
                 hasChange = true;
-            } else if (oldLivingAnimations.get(entry.getKey()) != aniamtion) {
+            } else if (oldLivingAnimations.get(entry.getKey()) != animation) {
                 hasChange = true;
             }
 
-            newLivingAnimations.put(entry.getKey(), aniamtion);
+            newLivingAnimations.put(entry.getKey(), animation);
         }
 
         if (this.weaponLivingMotions.containsKey(mainHandCap.getWeaponCategory())) {
@@ -609,13 +617,13 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
         if (hasChange) {
             this.getAnimator().resetLivingAnimations();
             newLivingAnimations.forEach(this.getAnimator()::addLivingAnimation);
-
-            SPChangeLivingMotion msg = new SPChangeLivingMotion(this.original.getId());
-            msg.putEntries(newLivingAnimations.entrySet());
             if(!isLogicalClient()) {
+                SPChangeLivingMotion msg = new SPChangeLivingMotion(this.original.getId());
+                msg.putEntries(newLivingAnimations.entrySet());
                 EpicFightNetworkManager.sendToAllPlayerTrackingThisEntity(msg, this.original);
             }
         }
+
     }
 
 

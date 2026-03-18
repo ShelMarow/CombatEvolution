@@ -2,7 +2,6 @@ package net.shelmarow.combat_evolution.example.entity.shelmarow.ai;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.phys.Vec3;
@@ -11,6 +10,7 @@ import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.params.AnimationParams;
+import net.shelmarow.combat_evolution.ai.params.PhaseParams;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.util.CEParticleUtils;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
@@ -97,16 +97,13 @@ public class ShelMarowCombatBehaviors {
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
                                 .withinDistance(0, 4)
-                                .animationBehavior(Animations.LONGSWORD_AUTO1, 0.25F)
-                                .addExBehavior(mobPatch -> {
-                                    mobPatch.playSound(SoundEvents.GUARDIAN_AMBIENT, 0, 0);
-                                })
+                                .animationBehavior(Animations.LONGSWORD_AUTO1, new AnimationParams()
+                                        .playSpeed(0.9F)
+                                )
 
                                 .addNextBehavior(CECombatBehaviors.Behavior.builder()
-                                        .withinDistance(0, 4)
-                                        .animationBehavior(Animations.LONGSWORD_AUTO2, new AnimationParams()
-                                                .playSpeed(1.25F).damageMultiplier(1.15F)
-                                        )
+                                        .withinDistance(0, 6)
+                                        .animationBehavior(Animations.LONGSWORD_AUTO2, new AnimationParams())
 
                                         .addNextBehavior(CECombatBehaviors.Behavior.builder()
                                                 .withinDistance(0, 4)

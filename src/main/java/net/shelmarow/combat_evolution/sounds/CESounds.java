@@ -11,6 +11,7 @@ public class CESounds {
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CombatEvolution.MOD_ID);
 
     public static final RegistryObject<SoundEvent> COUNTER = registerSound("skill.counter");
+    public static final RegistryObject<SoundEvent> SILENCE = registerSound("misc.silence");
 
 
     public static RegistryObject<SoundEvent> registerSound(String name) {

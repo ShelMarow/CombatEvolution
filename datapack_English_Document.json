@@ -6,6 +6,14 @@
   "model": "player",      // <Required> Entity model. Common options: player, zombie, skeleton, epicfight:custom, etc.
   "armature": "epicfight:entity/biped",//<Required>  armature，for more info  please refer to the json file under epicfight/animmodels/entity/
   "humanoid": true,       // [Optional] Whether to use a humanoid model. If true and renderer is epicfight:custom, the default human model will be used.
+  "chasingSpeed": 1.25,   // [Optional] Additional speed multiplier when mobs chase targets
+  "scale": 1.0,           // [Optional] Render scale. Does not affect the actual collision box.
+  "breakTime": 40,        // [Optional] Duration (in ticks) of the stagger/break state after stamina is depleted (independent of animations).
+  "recoverTime": 60,      // [Optional] Time (in ticks) needed for stamina to fully recover after the break state ends.
+  "staminaRegenDelay":60, // [Optional] Delay (in ticks) before natural stamina regeneration begins when idle and not performing actions.
+  "beParriedDamage": 1,   // [Optional] Stamina damage taken by the entity when its own attack is parried.
+  "guardHitImpact": 1,    // [Optional] Percentage of stamina damage taken when blocking an enemy attack. (e.g., enemy impact=3, multiplier=0.5 -> stamina damage=1.5)
+  "hurtImpact": 0.35,     // [Optional] Percentage of stamina damage taken when receiving damage. (e.g., enemy impact=10, multiplier=0.35 -> stamina damage=3.5)
   "ceBossBar": {          //[Optional]  Display BOSS Bar
     "enableBossBar": true,
     "bossBarName":"Zombie Boss",  //BOSS Bar Display Name，can use translate lang key
@@ -20,13 +28,6 @@
     "fadeIn": 40,
     "fadeOut": 40
   },
-  "scale": 1.0,           // [Optional] Render scale. Does not affect the actual collision box.
-  "breakTime": 40,        // [Optional] Duration (in ticks) of the stagger/break state after stamina is depleted (independent of animations).
-  "recoverTime": 60,      // [Optional] Time (in ticks) needed for stamina to fully recover after the break state ends.
-  "staminaRegenDelay":60, // [Optional] Delay (in ticks) before natural stamina regeneration begins when idle and not performing actions.
-  "beParriedDamage": 1,   // [Optional] Stamina damage taken by the entity when its own attack is parried.
-  "guardHitImpact": 1,    // [Optional] Percentage of stamina damage taken when blocking an enemy attack. (e.g., enemy impact=3, multiplier=0.5 -> stamina damage=1.5)
-  "hurtImpact": 0.35,     // [Optional] Percentage of stamina damage taken when receiving damage. (e.g., enemy impact=10, multiplier=0.35 -> stamina damage=3.5)
   "attributes": [         // [Optional] Attribute modifications. Adds or modifies attributes for the entity.
     {
       "attribute": "minecraft:generic.attack_damage",

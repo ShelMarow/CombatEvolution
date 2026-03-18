@@ -4,6 +4,14 @@
   "model": "zombie",
   "armature": "epicfight:entity/biped",
   "humanoid": true,
+  "chasingSpeed": 1.25,
+  "scale": 1.0,
+  "breakTime": 40,
+  "recoverTime": 60,
+  "staminaRegenDelay":60,
+  "beParriedDamage": 1,
+  "guardHitImpact": 1,
+  "hurtImpact": 0.35,
   "ceBossBar": {
     "enableBossBar": true,
     "bossBarName":"Zombie Boss",
@@ -18,13 +26,6 @@
     "fadeIn": 100,
     "fadeOut": 100
   },
-  "scale": 1.0,
-  "breakTime": 40,
-  "recoverTime": 60,
-  "staminaRegenDelay":60,
-  "beParriedDamage": 1,
-  "guardHitImpact": 1,
-  "hurtImpact": 0.35,
   "attributes": [
     {
       "attribute": "minecraft:generic.attack_damage",

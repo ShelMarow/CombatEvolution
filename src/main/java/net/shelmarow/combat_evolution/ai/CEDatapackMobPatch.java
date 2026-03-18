@@ -7,11 +7,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
@@ -39,6 +37,8 @@ public class CEDatapackMobPatch extends CEHumanoidPatch{
         this.provider = provider;
         this.ceBossEvent.setVisible(false);
 
+        this.chasingSpeed = provider.chasingSpeed;
+
         this.breakTime = provider.breakTime;
         this.recoverTime = provider.recoverTime;
         this.staminaRegenDelay = provider.staminaRegenDelay;
@@ -62,10 +62,10 @@ public class CEDatapackMobPatch extends CEHumanoidPatch{
     }
 
     @Override
-    public void onJoinWorld(PathfinderMob entity, EntityJoinLevelEvent event) {
-        super.onJoinWorld(entity, event);
+    public void onAddedToWorld(){
         initBossBar();
         putAndSetCustomAttributes();
+        super.onAddedToWorld();
     }
 
     private void initBossBar() {
@@ -107,21 +107,25 @@ public class CEDatapackMobPatch extends CEHumanoidPatch{
         super.tick(event);
 
         if(!isLogicalClient()){
-            ceBossEvent.setProgress(Mth.clamp(original.getHealth() / original.getMaxHealth(),0,1));
-            ceBossEvent.setStaminaStatus(CEPatchUtils.getStaminaStatus(this));
-            ceBossEvent.setStamina(CEPatchUtils.getStaminaPercent(this));
-
-            boolean hasTarget = getTarget() != null;
-            if(!shouldPlayBGM && hasTarget){
-                shouldPlayBGM = true;
-                for (ServerPlayer serverPlayer : ceBossEvent.getPlayers()){
-                    CEMusicNetworkHandler.sendRequestPlayPacket(serverPlayer, music);
-                }
+            if(ceBossEvent.isVisible()){
+                ceBossEvent.setProgress(Mth.clamp(original.getHealth() / original.getMaxHealth(),0,1));
+                ceBossEvent.setStaminaStatus(CEPatchUtils.getStaminaStatus(this));
+                ceBossEvent.setStamina(CEPatchUtils.getStaminaPercent(this));
             }
-            else if(shouldPlayBGM && !hasTarget){
-                shouldPlayBGM = false;
-                for (ServerPlayer serverPlayer : ceBossEvent.getPlayers()) {
-                    CEMusicNetworkHandler.sendRemoveMusicPacket(serverPlayer, bgmUUID, false);
+
+            if(music != null){
+                boolean hasTarget = getTarget() != null;
+                if(!shouldPlayBGM && hasTarget){
+                    shouldPlayBGM = true;
+                    for (ServerPlayer serverPlayer : ceBossEvent.getPlayers()){
+                        CEMusicNetworkHandler.sendRequestPlayPacket(serverPlayer, music);
+                    }
+                }
+                else if(shouldPlayBGM && !hasTarget){
+                    shouldPlayBGM = false;
+                    for (ServerPlayer serverPlayer : ceBossEvent.getPlayers()) {
+                        CEMusicNetworkHandler.sendRemoveMusicPacket(serverPlayer, bgmUUID, false);
+                    }
                 }
             }
 
