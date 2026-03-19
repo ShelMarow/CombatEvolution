@@ -30,6 +30,14 @@ public class CommonChasingGoal extends Goal {
         this(mobpatch, 0.0F, 1.25);
     }
 
+    public CommonChasingGoal(MobPatch<? extends PathfinderMob> mobpatch, double attackRadius) {
+        this.mobpatch = mobpatch;
+        this.mob = mobpatch.getOriginal();
+        this.attackRadius = attackRadius;
+        this.speedModifier = 1.25;
+        this.followingTargetEvenIfNotSeen = false;
+    }
+
     public CommonChasingGoal(MobPatch<? extends PathfinderMob> mobpatch, double attackRadius, double speedModifier) {
         this.mobpatch = mobpatch;
         this.mob = mobpatch.getOriginal();

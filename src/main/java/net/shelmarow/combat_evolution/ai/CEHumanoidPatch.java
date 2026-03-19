@@ -269,7 +269,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
     public void onCommonHurt(DamageSource damageSource) {
         EpicFightDamageSource efSource = damageSource instanceof EpicFightDamageSource ? (EpicFightDamageSource) damageSource : null;
 
-        if (!original.hasEffect(EpicFightMobEffects.STUN_IMMUNITY.get()) && !original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())) {
+        if (!original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())) {
             //普通受击削减耐力
             float hurtImpactPercent = getHurtImpactPercent(damageSource);
             float impact = 0.5F * hurtImpactPercent;

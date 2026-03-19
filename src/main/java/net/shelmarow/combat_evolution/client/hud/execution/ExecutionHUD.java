@@ -315,4 +315,20 @@ public class ExecutionHUD implements IGuiOverlay {
     public static void setTimePercentO(float timePercentO) {
         ExecutionHUD.timePercentO = timePercentO;
     }
+
+    public static HUDType getCurrentHudType() {
+        return currentHudType;
+    }
+
+    public static boolean isShowExecutionIcon() {
+        return showExecutionIcon;
+    }
+
+    public static float getTimePercent() {
+        return timePercent;
+    }
+
+    public static float getTimePercentO() {
+        return timePercentO;
+    }
 }
