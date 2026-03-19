@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -25,7 +26,7 @@ import yesman.epicfight.world.damagesource.StunType;
 import java.util.Map;
 import java.util.UUID;
 
-public class CEDatapackMobPatch extends CEHumanoidPatch{
+public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     private final CEPatchReloadListener.CEDatapackMobPatchProvider provider;
     protected final CEBossEvent ceBossEvent = new CEBossEvent(Component.empty());
     private boolean shouldPlayBGM = false;

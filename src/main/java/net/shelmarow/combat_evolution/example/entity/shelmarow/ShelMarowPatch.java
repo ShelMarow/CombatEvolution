@@ -17,7 +17,7 @@ import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import java.util.List;
 import java.util.Set;
 
-public class ShelMarowPatch extends CEHumanoidPatch implements CustomExecuteEntity {
+public class ShelMarowPatch extends CEHumanoidPatch<ShelMarow> implements CustomExecuteEntity {
 
     public ShelMarowPatch() {
         super(Factions.NEUTRAL);

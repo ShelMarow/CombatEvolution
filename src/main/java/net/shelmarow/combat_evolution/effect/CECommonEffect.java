@@ -2,10 +2,8 @@ package net.shelmarow.combat_evolution.effect;
 
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
-import yesman.epicfight.world.effect.EpicFightMobEffects;
 
 public class CECommonEffect extends MobEffect {
 

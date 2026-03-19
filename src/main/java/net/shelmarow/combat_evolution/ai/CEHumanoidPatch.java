@@ -11,7 +11,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -57,14 +57,13 @@ import yesman.epicfight.world.capabilities.item.WeaponCategory;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
-import yesman.epicfight.world.effect.EpicFightMobEffects;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 import yesman.epicfight.world.entity.ai.goal.AnimatedAttackGoal;
 import yesman.epicfight.world.entity.ai.goal.TargetChasingGoal;
 
 import java.util.*;
 
-public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
+public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
     protected final Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>>>> weaponLivingMotions = new HashMap<>();
     protected final Map<WeaponCategory, Map<Style, List<AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> guardHitMotions = new HashMap<>();
     protected final Map<WeaponCategory, Map<Style, CECombatBehaviors.Builder<MobPatch<?>>>> weaponAttackMotions = new HashMap<>();
@@ -236,7 +235,7 @@ public abstract class CEHumanoidPatch extends MobPatch<PathfinderMob> {
                 LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
                 if(targetPatch != null){
                     targetPatch.onAttackBlocked(damageSource, this);
-                    if(targetPatch instanceof CEHumanoidPatch ceHumanoidPatch){
+                    if(targetPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch){
                         ceHumanoidPatch.onAttackParried(damageSource, this);
                     }
                 }

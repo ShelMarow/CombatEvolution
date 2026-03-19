@@ -3,7 +3,6 @@ package net.shelmarow.combat_evolution.ai.goal;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Node;
@@ -12,7 +11,7 @@ import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 public class CommonChasingGoal extends Goal {
-    protected final MobPatch<? extends PathfinderMob> mobpatch;
+    protected final MobPatch<? extends Mob> mobpatch;
     protected final Mob mob;
     protected final double attackRadius;
     private final double speedModifier;
@@ -26,11 +25,11 @@ public class CommonChasingGoal extends Goal {
     private final boolean canPenalize = false;
     private long lastCanUseCheck;
 
-    public CommonChasingGoal(MobPatch<? extends PathfinderMob> mobpatch) {
+    public CommonChasingGoal(MobPatch<? extends Mob> mobpatch) {
         this(mobpatch, 0.0F, 1.25);
     }
 
-    public CommonChasingGoal(MobPatch<? extends PathfinderMob> mobpatch, double attackRadius) {
+    public CommonChasingGoal(MobPatch<? extends Mob> mobpatch, double attackRadius) {
         this.mobpatch = mobpatch;
         this.mob = mobpatch.getOriginal();
         this.attackRadius = attackRadius;
@@ -38,7 +37,7 @@ public class CommonChasingGoal extends Goal {
         this.followingTargetEvenIfNotSeen = false;
     }
 
-    public CommonChasingGoal(MobPatch<? extends PathfinderMob> mobpatch, double attackRadius, double speedModifier) {
+    public CommonChasingGoal(MobPatch<? extends Mob> mobpatch, double attackRadius, double speedModifier) {
         this.mobpatch = mobpatch;
         this.mob = mobpatch.getOriginal();
         this.attackRadius = attackRadius;

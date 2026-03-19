@@ -21,7 +21,7 @@ public class StaticAnimationsMixin {
             at = @At(value = "HEAD")
     )
     public void end(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
-        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch){
+        if(entityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch){
 
             //动画结束时重置属性
             if(ceHumanoidPatch instanceof ILivingEntityData livingEntityData) {

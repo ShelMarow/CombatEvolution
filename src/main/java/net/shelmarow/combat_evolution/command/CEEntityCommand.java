@@ -46,7 +46,7 @@ public class CEEntityCommand {
                                                 .then(Commands.argument("amount", FloatArgumentType.floatArg())
                                                         .executes(ctx->{
                                                             Entity target = EntityArgument.getEntity(ctx, "target");
-                                                            CEHumanoidPatch ceHumanoidPatch = EpicFightCapabilities.getEntityPatch(target, CEHumanoidPatch.class);
+                                                            CEHumanoidPatch<?> ceHumanoidPatch = EpicFightCapabilities.getEntityPatch(target, CEHumanoidPatch.class);
                                                             if(ceHumanoidPatch != null) {
                                                                 ceHumanoidPatch.dealStaminaDamage(null, FloatArgumentType.getFloat(ctx, "amount"));
                                                             }

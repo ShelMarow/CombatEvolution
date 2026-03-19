@@ -44,7 +44,7 @@ public abstract class EFAttackAnimation extends StaticAnimation {
         sourceData.setSourcePhase(phase);
 
         //如果是CE实体，尝试应用行为中存放的伤害参数
-        if (entityPatch instanceof CEHumanoidPatch) {
+        if (entityPatch instanceof CEHumanoidPatch<?>) {
             Map<Integer, PhaseParams> phaseParamsMap = BehaviorUtils.getPhaseParams(entityPatch);
             if (!phaseParamsMap.isEmpty()) {
                 //获取当前Phase可用的参数

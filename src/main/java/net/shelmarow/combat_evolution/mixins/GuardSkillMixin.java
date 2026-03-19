@@ -20,7 +20,7 @@ public class GuardSkillMixin {
     private void ontDealEvent(PlayerPatch<?> playerpatch, TakeDamageEvent.Attack event, boolean advanced, CallbackInfo ci){
         if(event.isParried()){
             LivingEntityPatch<?> livingEntityPatch = EpicFightCapabilities.getEntityPatch(event.getDamageSource().getDirectEntity(),LivingEntityPatch.class);
-            if(livingEntityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
+            if(livingEntityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch) {
                 ceHumanoidPatch.onAttackParried(event.getDamageSource(), playerpatch);
             }
         }

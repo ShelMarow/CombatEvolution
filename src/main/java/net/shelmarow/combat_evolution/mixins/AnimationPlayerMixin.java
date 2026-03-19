@@ -39,7 +39,7 @@ public abstract class AnimationPlayerMixin {
     private void tick(LivingEntityPatch<?> entityPatch, CallbackInfo ci){
         combatEvolution$storeEntityPatch = entityPatch;
         combatEvolution$currentPlay = ((AnimationPlayer)(Object) this).getAnimation().get();
-        if(entityPatch instanceof CEHumanoidPatch ceHumanoidPatch){
+        if(entityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch){
             CECombatBehaviors.Behavior<?> behavior = BehaviorUtils.getCurrentBehavior(ceHumanoidPatch);
             if(behavior != null){
                 behavior.executeTimeEvent(prevElapsedTime,elapsedTime,ceHumanoidPatch);
@@ -56,7 +56,7 @@ public abstract class AnimationPlayerMixin {
     private float modifyPlaybackSpeed(float originalValue) {
         ILivingEntityData livingEntityData = (ILivingEntityData) combatEvolution$storeEntityPatch;
         if(livingEntityData.combat_evolution$getCanModifySpeed()) {
-            if(combatEvolution$currentPlay instanceof ActionAnimation && combatEvolution$storeEntityPatch instanceof CEHumanoidPatch){
+            if(combatEvolution$currentPlay instanceof ActionAnimation && combatEvolution$storeEntityPatch instanceof CEHumanoidPatch<?>){
                 return livingEntityData.combat_evolution$getAttackSpeed();
             }
         }
@@ -76,7 +76,7 @@ public abstract class AnimationPlayerMixin {
 
         ILivingEntityData livingEntityData = (ILivingEntityData) entityPatch;
         if(livingEntityData.combat_evolution$getCanModifySpeed()) {
-            if (dynamicAnimation instanceof ActionAnimation && entityPatch instanceof CEHumanoidPatch) {
+            if (dynamicAnimation instanceof ActionAnimation && entityPatch instanceof CEHumanoidPatch<?>) {
                 return playbackSpeed;
             }
         }

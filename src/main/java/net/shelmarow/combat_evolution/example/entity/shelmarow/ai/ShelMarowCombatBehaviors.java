@@ -10,7 +10,6 @@ import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.params.AnimationParams;
-import net.shelmarow.combat_evolution.ai.params.PhaseParams;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.ai.util.CEParticleUtils;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
@@ -270,7 +269,7 @@ public class ShelMarowCombatBehaviors {
         return (mobPatch, damageSource, attackResult) -> {
             if (!damageSource.is(EpicFightDamageTypeTags.GUARD_PUNCTURE) && !damageSource.is(EpicFightDamageTypeTags.UNBLOCKALBE) &&
                     mobPatch.getEntityState().getLevel() >= 1 && mobPatch.getEntityState().getLevel() <= 2) {
-                CEHumanoidPatch ceHumanoidPatch = (CEHumanoidPatch) mobPatch;
+                CEHumanoidPatch<?> ceHumanoidPatch = (CEHumanoidPatch<?>) mobPatch;
                 ceHumanoidPatch.playGuardHitSound();
                 EpicFightParticles.HIT_BLUNT.get().spawnParticleWithArgument(
                         (ServerLevel) ceHumanoidPatch.getOriginal().level(), HitParticleType.FRONT_OF_EYES, HitParticleType.ZERO, ceHumanoidPatch.getOriginal(),

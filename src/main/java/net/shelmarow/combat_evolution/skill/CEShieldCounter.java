@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -31,7 +30,6 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
-import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.effect.EpicFightMobEffects;
@@ -131,7 +129,7 @@ public class CEShieldCounter extends Skill {
                 }
             }
         }
-        else if (attackerPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
+        else if (attackerPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch) {
             float totalAmount = amount + CEPatchUtils.getMaxStamina(ceHumanoidPatch) * percent;
             ceHumanoidPatch.onAttackCountered(damageSource, totalAmount);
         }
