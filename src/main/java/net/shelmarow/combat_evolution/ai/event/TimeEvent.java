@@ -41,7 +41,7 @@ public class TimeEvent {
                 }
             }
             case IN_TIME -> {
-                if(available && preTime >= timeStart && timeStart <= currenTime) {
+                if(available && preTime <= timeStart && timeStart <= currenTime) {
                     behavior.accept(mobPatch);
                     available = false;
                 }

@@ -103,7 +103,7 @@ public class ExecutionHandler {
         //根据附魔增加处决伤害
         if(damageSource.is(CEDamageTypeTags.EXECUTION) && damageSource.getEntity() instanceof LivingEntity livingEntity) {
             int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.MASSACRE.get(), livingEntity);
-            event.setAmount(event.getAmount() * (1 + level * 0.16F));
+            event.setAmount(event.getAmount() * (1 + level * CECommonConfig.MASSACRE_ENCHANTMENT.get().floatValue()));
         }
 
         //处决保护，如果不是最后一击，实体会锁血，防止提前击杀

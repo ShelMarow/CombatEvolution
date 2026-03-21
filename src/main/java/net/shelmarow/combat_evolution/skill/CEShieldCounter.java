@@ -30,6 +30,8 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
+import yesman.epicfight.world.damagesource.EpicFightDamageSource;
+import yesman.epicfight.world.damagesource.EpicFightDamageSources;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.effect.EpicFightMobEffects;
@@ -104,26 +106,27 @@ public class CEShieldCounter extends Skill {
                 playerPatch.getOriginal().addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 160, 1));
 
                 //对敌人造成耐力伤害和硬直
-                onCounterSucceed(attacker, damageSource);
+                onCounterSucceed(playerPatch, attacker, damageSource);
 
             }
         });
 
     }
 
-    public void onCounterSucceed(Entity attacker, DamageSource damageSource) {
+    public void onCounterSucceed(ServerPlayerPatch playerPatch, Entity attacker, DamageSource damageSource) {
         LivingEntityPatch<?> attackerPatch = EpicFightCapabilities.getEntityPatch(attacker, LivingEntityPatch.class);
+        EpicFightDamageSource efSource = EpicFightDamageSources.playerAttack(playerPatch.getOriginal());
         if(attackerPatch instanceof PlayerPatch<?> playerAttacker && !playerAttacker.getOriginal().isCreative() && !playerAttacker.getOriginal().isSpectator()) {
             float rest = playerAttacker.getStamina() - amount - playerAttacker.getMaxStamina() * percent;
             playerAttacker.setStamina(rest);
             if(rest <= 0) {
-                EntityStunEvent entityStunEvent = new EntityStunEvent(null, attackerPatch, StunType.NEUTRALIZE);
+                EntityStunEvent entityStunEvent = new EntityStunEvent(efSource, attackerPatch, StunType.NEUTRALIZE);
                 if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {
                     attackerPatch.applyStun(StunType.NEUTRALIZE, 0F);
                 }
             }
             else{
-                EntityStunEvent entityStunEvent = new EntityStunEvent(null, attackerPatch, StunType.HOLD);
+                EntityStunEvent entityStunEvent = new EntityStunEvent(efSource, attackerPatch, StunType.HOLD);
                 if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {
                     attackerPatch.playAnimationSynchronized(ShieldCounterAnimations.COUNTERED,0F);
                 }
@@ -134,7 +137,7 @@ public class CEShieldCounter extends Skill {
             ceHumanoidPatch.onAttackCountered(damageSource, totalAmount);
         }
         else if (attackerPatch != null && attackerPatch.getArmature() instanceof HumanoidArmature) {
-            EntityStunEvent entityStunEvent = new EntityStunEvent(null, attackerPatch, StunType.NEUTRALIZE);
+            EntityStunEvent entityStunEvent = new EntityStunEvent(efSource, attackerPatch, StunType.NEUTRALIZE);
             if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {
                 attackerPatch.applyStun(StunType.NEUTRALIZE, 0F);
             }

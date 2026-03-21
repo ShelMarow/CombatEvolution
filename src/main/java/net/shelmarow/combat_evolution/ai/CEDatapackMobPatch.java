@@ -21,10 +21,15 @@ import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
+import yesman.epicfight.world.capabilities.item.Style;
+import yesman.epicfight.world.capabilities.item.WeaponCategory;
 import yesman.epicfight.world.damagesource.StunType;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     private final CEPatchReloadListener.CEDatapackMobPatchProvider provider;
@@ -46,7 +51,15 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
 
         this.weaponLivingMotions.putAll(provider.weaponLivingMotions);
         this.guardHitMotions.putAll(provider.guardHitMotions);
-        this.weaponAttackMotions.putAll(provider.weaponAttackMotions);
+        for (Map.Entry<WeaponCategory, Map<Style, Supplier<CECombatBehaviors.Builder<MobPatch<?>>>>> entry : provider.weaponAttackMotions.entrySet()){
+            Map<Style, CECombatBehaviors.Builder<MobPatch<?>>> newInner = new HashMap<>();
+
+            for (Map.Entry<Style, Supplier<CECombatBehaviors.Builder<MobPatch<?>>>> inner : entry.getValue().entrySet()) {
+                newInner.put(inner.getKey(), inner.getValue().get());
+            }
+
+            this.weaponAttackMotions.put(entry.getKey(), newInner);
+        }
 
         if(provider.playBGM && provider.bgm != null){
             music = new CEMusic(

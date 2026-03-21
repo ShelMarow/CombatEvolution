@@ -31,6 +31,8 @@
 
   "creativetab.combat_evolution.items": "Combat Evolution",
   "enchantment.combat_evolution.massacre": "Massacre",
-  "enchantment.combat_evolution.intimidate": "Intimidate"
+  "enchantment.combat_evolution.massacre.desc": "Increases the damage dealt by executions",
+  "enchantment.combat_evolution.intimidate": "Intimidate",
+  "enchantment.combat_evolution.intimidate.desc": "After killed an enemy by execution, knock back and stun surrounding non-player targets"
 
 }

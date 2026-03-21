@@ -361,8 +361,8 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return weaponLivingMotions;
     }
 
-    public static Map<WeaponCategory, Map<Style, CECombatBehaviors.Builder<MobPatch<?>>>> getWeaponAttackMotions(CompoundTag tag) {
-        Map<WeaponCategory, Map<Style, CECombatBehaviors.Builder<MobPatch<?>>>> weaponAttackMotions = new HashMap<>();
+    public static Map<WeaponCategory, Map<Style, Supplier<CECombatBehaviors.Builder<MobPatch<?>>>>> getWeaponAttackMotions(CompoundTag tag) {
+        Map<WeaponCategory, Map<Style, Supplier<CECombatBehaviors.Builder<MobPatch<?>>>>> weaponAttackMotions = new HashMap<>();
 
 
         //战斗集
@@ -375,24 +375,6 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
 
                 Set<WeaponCategory> weaponCategories = new HashSet<>();
                 Style style = CapabilityItem.Styles.COMMON;
-                CECombatBehaviors.Builder<MobPatch<?>> behaviorBuilder = CECombatBehaviors.builder();
-
-                //全局事件
-                if(combatTag.contains("stunEvents")){
-                    CompoundTag stunTag = combatTag.getCompound("stunEvents");
-                    for (StunType stunType : StunType.values()) {
-                        String name = stunType.name().toLowerCase();
-                        if(stunTag.contains(name)){
-                            ListTag array = stunTag.getList(name,Tag.TAG_COMPOUND);
-                            for (int j = 0; j < array.size(); j++){
-                                CompoundTag evet = array.getCompound(j);
-                                String command =  evet.getString("command");
-                                boolean onTarget = evet.getBoolean("onTarget");
-                                behaviorBuilder.addStunEvent(stunType, creatCommandConsumer(onTarget, command));
-                            }
-                        }
-                    }
-                }
 
                 //获取该行为对应的武器种类和风格
                 if (combatTag.contains("weaponCategories")) {
@@ -406,24 +388,45 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                     style = Style.ENUM_MANAGER.getOrThrow(combatTag.getString("style").toUpperCase());
                 }
 
-                //递归获取所有行为集
-                if (combatTag.contains("behaviorRoots")) {
-                    ListTag behaviorRoots = combatTag.getList("behaviorRoots",Tag.TAG_COMPOUND);
-                    for (int j = 0; j < behaviorRoots.size(); j++){
-                        CompoundTag root = behaviorRoots.getCompound(j);
-                        if(root.contains("isGlobal")){
-                            boolean global = root.getBoolean("isGlobal");
-                            if(global){
-                                behaviorBuilder.newGlobalBehavior(getBehaviorRootBuilder(root));
-                                continue;
+                Supplier<CECombatBehaviors.Builder<MobPatch<?>>> supplier = () -> {
+                    CECombatBehaviors.Builder<MobPatch<?>> behaviorBuilder = CECombatBehaviors.builder();
+                    //全局事件
+                    if(combatTag.contains("stunEvents")){
+                        CompoundTag stunTag = combatTag.getCompound("stunEvents");
+                        for (StunType stunType : StunType.values()) {
+                            String name = stunType.name().toLowerCase();
+                            if(stunTag.contains(name)){
+                                ListTag array = stunTag.getList(name,Tag.TAG_COMPOUND);
+                                for (int j = 0; j < array.size(); j++){
+                                    CompoundTag evet = array.getCompound(j);
+                                    String command =  evet.getString("command");
+                                    boolean onTarget = evet.getBoolean("onTarget");
+                                    behaviorBuilder.addStunEvent(stunType, creatCommandConsumer(onTarget, command));
+                                }
                             }
                         }
-                        behaviorBuilder.newBehaviorRoot(getBehaviorRootBuilder(root));
                     }
-                }
+
+                    //递归获取所有行为集
+                    if (combatTag.contains("behaviorRoots")) {
+                        ListTag behaviorRoots = combatTag.getList("behaviorRoots",Tag.TAG_COMPOUND);
+                        for (int j = 0; j < behaviorRoots.size(); j++){
+                            CompoundTag root = behaviorRoots.getCompound(j);
+                            if(root.contains("isGlobal")){
+                                boolean global = root.getBoolean("isGlobal");
+                                if(global){
+                                    behaviorBuilder.newGlobalBehavior(getBehaviorRootBuilder(root));
+                                    continue;
+                                }
+                            }
+                            behaviorBuilder.newBehaviorRoot(getBehaviorRootBuilder(root));
+                        }
+                    }
+                    return behaviorBuilder;
+                };
 
                 for (WeaponCategory category : weaponCategories){
-                    weaponAttackMotions.computeIfAbsent(category, k -> new HashMap<>()).put(style, behaviorBuilder);
+                    weaponAttackMotions.computeIfAbsent(category, k -> new HashMap<>()).put(style, supplier);
                 }
             }
         }
@@ -431,8 +434,8 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return weaponAttackMotions;
     }
 
-    public static CECombatBehaviors.BehaviorRoot.Builder<MobPatch<?>> getBehaviorRootBuilder(CompoundTag tag) {
 
+    public static CECombatBehaviors.BehaviorRoot.Builder<MobPatch<?>> getBehaviorRootBuilder(CompoundTag tag) {
         CECombatBehaviors.BehaviorRoot.Builder<MobPatch<?>> builder = new CECombatBehaviors.BehaviorRoot.Builder<>();
 
         if (tag.contains("rootName")) {
@@ -463,7 +466,6 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                 builder.addFirstBehavior(getBehaviorBuilder(firstBehavior));
             }
         }
-
         return builder;
     }
 
@@ -968,7 +970,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
 
         public Map<WeaponCategory, Map<Style, Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>>>> weaponLivingMotions = new HashMap<>();
         public Map<WeaponCategory, Map<Style, List<AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> guardHitMotions = new HashMap<>();
-        public Map<WeaponCategory, Map<Style, CECombatBehaviors.Builder<MobPatch<?>>>> weaponAttackMotions = new HashMap<>();
+        public Map<WeaponCategory, Map<Style, Supplier<CECombatBehaviors.Builder<MobPatch<?>>>>> weaponAttackMotions = new HashMap<>();
         public Map<StunType, AnimationManager.AnimationAccessor<? extends StaticAnimation>> stunAnimations = new HashMap<>();
         public Map<Attribute, Double> attributeMap = new HashMap<>();
         public Factions faction;

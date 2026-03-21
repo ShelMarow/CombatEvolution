@@ -32,6 +32,7 @@ import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.gameassets.ShieldCounterAnimations;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.Animator;
 import yesman.epicfight.api.animation.LivingMotion;
@@ -108,7 +109,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
 
     @Override
     public void onStartTracking(ServerPlayer trackingPlayer) {
-        this.modifyLivingMotionByCurrentItem();
+        this.modifyLivingMotionByCurrentItem(true);
     }
 
     @Override
@@ -320,7 +321,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         playGuardHitSound();
     }
 
-    public boolean dealStaminaDamage(DamageSource damageSource,float amount){
+    public boolean dealStaminaDamage(@Nullable DamageSource damageSource, float amount){
         //只有在正常状态下能造成耐力伤害
         if(CEPatchUtils.getStaminaStatus(this) == StaminaStatus.COMMON){
             float stamina = CEPatchUtils.getStamina(this);
@@ -335,7 +336,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
     }
 
 
-    public void onBreak(DamageSource damageSource){
+    public void onBreak(@Nullable DamageSource damageSource){
         EpicFightDamageSource efSource = damageSource instanceof EpicFightDamageSource ? (EpicFightDamageSource) damageSource : null;
         if (efSource != null) {
             efSource.setStunType(StunType.NONE);
@@ -482,7 +483,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         if(fromCap.getWeaponCategory() != toCap.getWeaponCategory()) {
             this.initAI();
         }
-        this.modifyLivingMotionByCurrentItem();
+        this.modifyLivingMotionByCurrentItem(false);
 
         if (hand == InteractionHand.OFF_HAND) {
             if (!from.isEmpty()) {
@@ -565,8 +566,11 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         }
     }
 
-
     public void modifyLivingMotionByCurrentItem() {
+        modifyLivingMotionByCurrentItem(true);
+    }
+
+    public void modifyLivingMotionByCurrentItem(boolean forceChange) {
         Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> oldLivingAnimations = this.getAnimator().getLivingAnimations();
         Map<LivingMotion, AssetAccessor<? extends StaticAnimation>> newLivingAnimations = Maps.newHashMap();
 
@@ -613,7 +617,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             }
         }
 
-        if (hasChange) {
+        if (hasChange || forceChange) {
             this.getAnimator().resetLivingAnimations();
             newLivingAnimations.forEach(this.getAnimator()::addLivingAnimation);
             if(!isLogicalClient()) {
