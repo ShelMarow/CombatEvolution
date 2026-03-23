@@ -21,8 +21,8 @@ public class CEMobEffects {
     public static final RegistryObject<MobEffect> MIDDLE_STUN_IMMUNITY =
             EFFECTS.register("middle_stun_immunity",() -> new CEStunImmunityEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
 
-//    public static final RegistryObject<MobEffect> NORMAL_STUN_IMMUNITY =
-//            EFFECTS.register("normal_stun_immunity",() -> new CEStunImmunityEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
+    public static final RegistryObject<MobEffect> NORMAL_STUN_IMMUNITY =
+            EFFECTS.register("normal_stun_immunity",() -> new CEStunImmunityEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
 
     public static final RegistryObject<MobEffect> BYPASS_DODGE_EFFECT =
             EFFECTS.register("bypass_dodge_effect",() -> new CECommonEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));

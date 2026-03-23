@@ -436,6 +436,33 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         }
     }
 
+    public void resetAllRootCooldown(){
+        behaviorRoots.forEach(root->root.cooldown = 0);
+        globalBehaviors.forEach(root->root.cooldown = 0);
+    }
+
+    public void resetRootCooldown(String rootName, boolean isGlobal){
+        if(isGlobal){
+            globalBehaviors.stream().filter(root->root.getRootName().equals(rootName))
+                    .forEach(root->root.cooldown = 0);
+        }
+        else {
+            behaviorRoots.stream().filter(root->root.getRootName().equals(rootName))
+                    .forEach(root->root.cooldown = 0);
+        }
+    }
+
+    public void setRootCooldown(String rootName, int cooldownSet, boolean isGlobal){
+        if(isGlobal){
+            globalBehaviors.stream().filter(root->root.getRootName().equals(rootName))
+                    .forEach(root->root.cooldown = cooldownSet);
+        }
+        else {
+            behaviorRoots.stream().filter(root->root.getRootName().equals(rootName))
+                    .forEach(root->root.cooldown = cooldownSet);
+        }
+    }
+
     //构造器
     public static class Builder<T extends MobPatch<?>>{
         private final List<BehaviorRoot.Builder<T>> behaviorRoots = new ArrayList<>();

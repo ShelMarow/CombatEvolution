@@ -1,7 +1,8 @@
 {
   "effect.combat_evolution.full_stun_immunity": "Full Stun Immunity",
-  "effect.combat_evolution.high_stun_immunity": "HIGH Stun Immunity",
+  "effect.combat_evolution.high_stun_immunity": "High Stun Immunity",
   "effect.combat_evolution.middle_stun_immunity": "Middle Stun Immunity",
+  "effect.combat_evolution.normal_stun_immunity": "Normal Stun Immunity",
   "effect.combat_evolution.bypass_dodge_effect": "Bypass Dodge",
   "effect.combat_evolution.bypass_guard_effect": "Bypass Guard",
   "effect.combat_evolution.impact_boost": "Impact Boost",

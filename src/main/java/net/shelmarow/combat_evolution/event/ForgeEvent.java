@@ -49,11 +49,14 @@ public class ForgeEvent {
         if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){
             event.setCanceled(true);
         }
-        else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) &&
-                stunType != StunType.NEUTRALIZE && stunType != StunType.FALL){
+        else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){
             event.setCanceled(true);
         }
         else if(original.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get()) &&
+                stunType != StunType.NEUTRALIZE && stunType != StunType.FALL){
+            event.setCanceled(true);
+        }
+        else if(original.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY.get()) &&
                 stunType != StunType.NEUTRALIZE && stunType != StunType.KNOCKDOWN && stunType != StunType.FALL){
             event.setCanceled(true);
         }
@@ -64,7 +67,8 @@ public class ForgeEvent {
         LivingEntity target = event.getEntity();
         if(target.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get()) ||
                 target.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) ||
-                target.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get())){
+                target.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get()) ||
+                target.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY.get())){
             event.setCanceled(true);
         }
     }

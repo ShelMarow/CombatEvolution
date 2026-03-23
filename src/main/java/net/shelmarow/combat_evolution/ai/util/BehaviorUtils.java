@@ -80,6 +80,27 @@ public class BehaviorUtils {
         }
     }
 
+    public static void resetAllCooldown(LivingEntityPatch<?> entityPatch) {
+        CECombatBehaviors<?> combatBehaviors = getCECombatBehaviors(entityPatch);
+        if (combatBehaviors != null) {
+            combatBehaviors.resetAllRootCooldown();
+        }
+    }
+
+    public static void resetRootCooldown(LivingEntityPatch<?> entityPatch, String rootName, boolean isGlobal) {
+        CECombatBehaviors<?> combatBehaviors = getCECombatBehaviors(entityPatch);
+        if (combatBehaviors != null) {
+            combatBehaviors.resetRootCooldown(rootName, isGlobal);
+        }
+    }
+
+    public static void setRootCooldown(LivingEntityPatch<?> entityPatch, String rootName, int cooldown, boolean isGlobal) {
+        CECombatBehaviors<?> combatBehaviors = getCECombatBehaviors(entityPatch);
+        if (combatBehaviors != null) {
+            combatBehaviors.setRootCooldown(rootName, cooldown, isGlobal);
+        }
+    }
+
     public static Map<Integer, PhaseParams> getPhaseParams(LivingEntityPatch<?> entityPatch) {
         CECombatBehaviors.Behavior<?> current = getCurrentBehavior(entityPatch);
         return current != null && current.canApplyPhaseParams() ? current.getPhaseParams() : new HashMap<>();
