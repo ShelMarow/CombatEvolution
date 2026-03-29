@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.bossbar;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerBossEvent;
@@ -8,6 +9,8 @@ import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.bossbar.network.CEBossNetworkHandler;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 public class CEBossEvent extends ServerBossEvent {
     private final BossData bossData = new BossData();
@@ -53,5 +56,16 @@ public class CEBossEvent extends ServerBossEvent {
                 CEBossNetworkHandler.updateStaminaData(player, getId(), bossData);
             }
         }
+    }
+
+    public void updateCustomData(CompoundTag tag){
+        bossData.customData = tag;
+        for (ServerPlayer player : getPlayers()) {
+            CEBossNetworkHandler.updateCustomData(player, getId(), bossData.customData);
+        }
+    }
+
+    public CompoundTag getCustomData(){
+        return bossData.customData;
     }
 }

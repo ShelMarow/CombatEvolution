@@ -1,10 +1,12 @@
 package net.shelmarow.combat_evolution.bossbar.network;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.PacketDistributor;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.bossbar.BossData;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CRemoveBossDataPacket;
+import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossCustomDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateBossDataPacket;
 import net.shelmarow.combat_evolution.bossbar.network.packet.S2CUpdateStaminaDataPacket;
 
@@ -22,6 +24,10 @@ public class CEBossNetworkHandler {
 
     public static void removeBossData(ServerPlayer serverPlayer, UUID uuid) {
         CombatEvolution.CHANNEL.send(PacketDistributor.PLAYER.with(()->serverPlayer), new S2CRemoveBossDataPacket(uuid));
+    }
+
+    public static void updateCustomData(ServerPlayer serverPlayer, UUID uuid, CompoundTag compoundTag) {
+        CombatEvolution.CHANNEL.send(PacketDistributor.PLAYER.with(()->serverPlayer), new S2CUpdateBossCustomDataPacket(uuid, compoundTag));
     }
 
 }

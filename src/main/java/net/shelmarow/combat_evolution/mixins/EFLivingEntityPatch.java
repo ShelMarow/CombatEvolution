@@ -83,7 +83,11 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public int combat_evolution$getPhase() {
-        return combatEvolution$getEntityData().get(combat_evolution$PHASE);
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if(entityData.hasItem(combat_evolution$PHASE)){
+            return entityData.get(combat_evolution$PHASE);
+        }
+        return 0;
     }
 
     @Override
@@ -93,7 +97,11 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public boolean combat_evolution$getCanModifySpeed() {
-        return combatEvolution$getEntityData().get(combat_evolution$CAN_MODIFY_SPEED);
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if(entityData.hasItem(combat_evolution$CAN_MODIFY_SPEED)){
+            return entityData.get(combat_evolution$CAN_MODIFY_SPEED);
+        }
+        return false;
     }
 
     @Override
@@ -103,7 +111,11 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public float combat_evolution$getAttackSpeed(){
-        return combatEvolution$getEntityData().get(combat_evolution$ATTACK_SPEED);
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if(entityData.hasItem(combat_evolution$ATTACK_SPEED)){
+            return entityData.get(combat_evolution$ATTACK_SPEED);
+        }
+        return 1;
     }
 
     @Override
@@ -113,7 +125,11 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public float combat_evolution$getStamina() {
-        return combatEvolution$getEntityData().get(combat_evolution$STAMINA);
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if(entityData.hasItem(combat_evolution$STAMINA)){
+            return entityData.get(combat_evolution$STAMINA);
+        }
+        return 0;
     }
 
     @Override
@@ -139,7 +155,11 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public boolean combat_evolution$isGuard() {
-        return combatEvolution$getEntityData().get(combat_evolution$GUARD);
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if(entityData.hasItem(combat_evolution$GUARD)){
+            return entityData.get(combat_evolution$GUARD);
+        }
+        return false;
     }
 
     @Override
@@ -149,7 +169,11 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public boolean combat_evolution$isInCounter(){
-        return combatEvolution$getEntityData().get(combat_evolution$IN_COUNTER);
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if (entityData.hasItem(combat_evolution$IN_COUNTER)){
+            return entityData.get(combat_evolution$IN_COUNTER);
+        }
+        return false;
     }
 
     @Override
@@ -159,7 +183,11 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public boolean combat_evolution$isWander() {
-        return combatEvolution$getEntityData().get(combat_evolution$WANDER);
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if(entityData.hasItem(combat_evolution$WANDER)){
+            return entityData.get(combat_evolution$WANDER);
+        }
+        return false;
     }
 
     @Override
@@ -169,9 +197,12 @@ public abstract class EFLivingEntityPatch implements ILivingEntityData {
 
     @Override
     public StaminaStatus combat_evolution$getStaminaStatus() {
-        int index = combatEvolution$getEntityData().get(combat_evolution$STAMINA_STATUS);
-        if(index >= 0 && index < StaminaStatus.values().length){
-            return StaminaStatus.values()[index];
+        SynchedEntityData entityData = combatEvolution$getEntityData();
+        if(entityData.hasItem(combat_evolution$STAMINA_STATUS)){
+            int index = entityData.get(combat_evolution$STAMINA_STATUS);
+            if(index >= 0 && index < StaminaStatus.values().length){
+                return StaminaStatus.values()[index];
+            }
         }
         return StaminaStatus.COMMON;
     }

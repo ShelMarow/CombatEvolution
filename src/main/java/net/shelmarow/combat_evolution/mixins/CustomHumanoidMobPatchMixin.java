@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
+import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.entitypatch.CustomHumanoidMobPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
@@ -36,7 +37,7 @@ public class CustomHumanoidMobPatchMixin {
             cir.setReturnValue(map.get(stunType));
         }
         else{
-            cir.setReturnValue(null);
+            cir.setReturnValue(Animations.EMPTY_ANIMATION);
         }
     }
 }

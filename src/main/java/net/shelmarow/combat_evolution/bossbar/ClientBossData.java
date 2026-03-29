@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.bossbar;
 
 import net.minecraft.Util;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -52,5 +53,9 @@ public class ClientBossData {
             data.staminaO = data.stamina;
         }
         return displayed;
+    }
+
+    public static void updateCustomDate(UUID uuid, CompoundTag tag) {
+        getBossData(uuid).customData = tag;
     }
 }

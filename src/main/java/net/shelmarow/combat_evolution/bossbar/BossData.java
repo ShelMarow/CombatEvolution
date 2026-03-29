@@ -14,6 +14,7 @@ public class BossData {
     public long staminaSetTime = 0;
     public @NonNull StaminaStatus staminaStatus = StaminaStatus.EMPTY;
     public @NonNull ResourceLocation bossBarTexture = ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "textures/gui/bossbar/ce_boss_bar.png");
+    public CompoundTag customData = new CompoundTag();
 
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
@@ -23,6 +24,7 @@ public class BossData {
         tag.putLong("staminaSetTime", staminaSetTime);
         tag.putString("staminaStatus", staminaStatus.name());
         tag.putString("bossBarTexture", bossBarTexture.toString());
+        tag.put("customData", customData);
         return tag;
     }
 
@@ -36,5 +38,6 @@ public class BossData {
         ResourceLocation texture = ResourceLocation.tryParse(tag.getString("bossBarTexture"));
         texture = texture == null ? ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "textures/gui/bossbar/ce_boss_bar.png") : texture;
         bossBarTexture = texture;
+        customData = tag.getCompound("customData");
     }
 }

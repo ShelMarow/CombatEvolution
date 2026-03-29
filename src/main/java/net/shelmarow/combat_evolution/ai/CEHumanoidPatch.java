@@ -140,6 +140,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             StaminaStatus staminaStatus = CEPatchUtils.getStaminaStatus(this);
 
 
+            boolean isGuard = entityData.combat_evolution$isGuard();
             if(staminaStatus == StaminaStatus.COMMON){
                 //普通状态下重置计时器
                 if(recoverTickCount != 0) {
@@ -151,7 +152,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
                 }
                 //如果有耐力回复属性，则在一段时间未行动时回复耐力
                 else if(original.getAttribute(EpicFightAttributes.STAMINA_REGEN.get()) != null){
-                    if(state.inaction() || entityData.combat_evolution$isGuard()){
+                    if(state.inaction() || isGuard){
                         lastActionTime = original.tickCount;
                     }
                     else if(original.tickCount - lastActionTime > staminaRegenDelay && currentStamina < maxStamina){
@@ -185,7 +186,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             AttributeInstance instance = original.getAttribute(Attributes.MOVEMENT_SPEED);
             AttributeModifier modifier = new AttributeModifier(UUID.fromString("086f00c3-2763-463e-a64e-b19c8959d4bd"),"guard_move_speed",-0.45D, AttributeModifier.Operation.MULTIPLY_TOTAL);
             if (instance != null) {
-                if (entityData.combat_evolution$isGuard()) {
+                if (isGuard) {
                     if (!instance.hasModifier(modifier)) {
                         instance.addPermanentModifier(modifier);
                     }
