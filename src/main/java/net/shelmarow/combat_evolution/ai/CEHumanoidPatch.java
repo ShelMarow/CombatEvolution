@@ -672,12 +672,4 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             }
         }
     }
-
-    public void startSeenByPlayer(ServerPlayer serverPlayer) {
-
-    }
-
-    public void stopSeenByPlayer(ServerPlayer serverPlayer) {
-
-    }
 }

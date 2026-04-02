@@ -17,7 +17,6 @@
     "GuardSkillInvoker",
     "GuardSkillMixin",
     "LivingEntityPatchMixin",
-    "ServerEntityMixin",
     "StaticAnimationsMixin"
   ]
 }

@@ -185,9 +185,9 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
         }
     }
 
-
     @Override
-    public void startSeenByPlayer(ServerPlayer serverPlayer){
+    public void onStartTracking(ServerPlayer serverPlayer) {
+        super.onStartTracking(serverPlayer);
         ceBossEvent.addPlayer(serverPlayer);
         if(music != null && shouldPlayBGM){
             CEMusicNetworkHandler.sendRequestPlayPacket(serverPlayer, music);
@@ -195,7 +195,8 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     }
 
     @Override
-    public void stopSeenByPlayer(ServerPlayer serverPlayer) {
+    public void onStopTracking(ServerPlayer serverPlayer) {
+        super.onStopTracking(serverPlayer);
         ceBossEvent.removePlayer(serverPlayer);
         if(music != null){
             CEMusicNetworkHandler.sendRemoveMusicPacket(serverPlayer, bgmUUID, false);
