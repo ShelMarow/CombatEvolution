@@ -63,6 +63,10 @@ public class CEMusicManager {
             return;
         }
 
+        if(!Minecraft.getInstance().getSoundManager().isActive(currentPlay.getSound())){
+            playLoop();
+        }
+
         //正常计时
         if(playState != MusicPlayState.STOPPED){
             elapsedTick++;
@@ -83,6 +87,9 @@ public class CEMusicManager {
         }
 
         if(playState == MusicPlayState.PLAYING){
+            if(currentPlay.getSound().getVolume() != currentPlay.getVolume()){
+                currentPlay.getSound().adjustVolume(targetVolume);
+            }
             if(elapsedTick >= currentPlay.getDuration() - currentPlay.getFadeOut()){
                 changePlayState(MusicPlayState.FADE_OUT);
             }

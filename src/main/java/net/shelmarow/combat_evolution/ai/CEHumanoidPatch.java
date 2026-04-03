@@ -3,6 +3,7 @@ package net.shelmarow.combat_evolution.ai;
 import com.google.common.collect.Maps;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
@@ -48,6 +49,7 @@ import yesman.epicfight.model.armature.HumanoidArmature;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPChangeLivingMotion;
 import yesman.epicfight.particle.EpicFightParticles;
+import yesman.epicfight.particle.HitParticleType;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.Factions;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -298,10 +300,13 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             //是否能进行反击
             boolean canCounter = BehaviorUtils.onGuardHit(this);
             boolean cancelHitAnimation = false;
-            if (canCounter) {
-                CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
-                if (current != null) {
+            CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
+            if (current != null) {
+                if (canCounter) {
                     cancelHitAnimation = current.executeBeforeCounterEvent(this);
+                }
+                else {
+                    current.executeGuardHitEvent(this, damageSource);
                 }
             }
 
@@ -316,7 +321,11 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
     }
 
     public void playGuardHitAnimation(DamageSource damageSource, boolean canCounter){
-        //播放防御动画
+        //播放防御动画和生成粒子
+        if(original.level() instanceof ServerLevel serverLevel){
+            Vec3 pos = original.getEyePosition().add(original.getLookAngle().normalize().scale(1.25));
+            serverLevel.sendParticles(EpicFightParticles.HIT_BLUNT.get(), pos.x, pos.y, pos.z,1,0,0,0,1);
+        }
         AnimationManager.AnimationAccessor<? extends StaticAnimation> guardHit = getGuardHitAnimation(damageSource);
         this.playAnimationSynchronized(guardHit,0F);
         playGuardHitSound();

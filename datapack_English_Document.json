@@ -235,6 +235,9 @@
               "resetGuardTime": true,
               "counterType": "end", // <Required> Counter type: 'random', 'end', 'never'.
               "maxGuardHit": 3,    // <Required> Required if counterType is 'end'. Number of blocks before countering.
+              "onGuardHit": [       //[Optional] Event triggered on every guard hit except last block before the counter
+                {"onTarget": false, "command": "/say Guard Hit！"}
+              ],
               "beforeCounter": {  // [Optional] Event triggered during the last block before the counter.
                 "cancelHitAnimation": false, "onTarget": false, "command": "/say Content executed at the start of the last block before the counter"
               },

@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.shelmarow.combat_evolution.ai.condition.*;
 import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
@@ -669,6 +670,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         private final OnHurtEvent onHurtEvent;
         private final List<BlockedEvent> blockedEventList;
         private final BeforeCounterEvent beforeCounter;
+        private final List<GuardHitEvent> guardHitEventList;
         private final Map<Integer, PhaseParams> phaseParams;                         //攻击Phase参数
         private boolean canApplyPhaseParams = false;                                //Phase参数锁
         private boolean shouldExecuteTimeEvent = false;                             //时间事件锁
@@ -709,6 +711,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             this.onHurtEvent = builder.onHurtEvent;
             this.blockedEventList = builder.blockedEventList;
             this.beforeCounter = builder.beforeCounter;
+            this.guardHitEventList = builder.guardHitEventList;
             this.phaseParams = builder.phaseParams;
         }
 
@@ -781,6 +784,11 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return beforeCounter.executeBeforeCounterEvent(mobPatch);
         }
 
+        public void executeGuardHitEvent(MobPatch<?> mobPatch, DamageSource damageSource) {
+            for (GuardHitEvent guardHitEvent : guardHitEventList) {
+                guardHitEvent.executeGuardHitEvent(mobPatch, damageSource);
+            }
+        }
 
         public boolean canBeInterrupted(T mobPatch) {
             /*
@@ -1094,6 +1102,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             private OnHurtEvent onHurtEvent;
             private final List<BlockedEvent> blockedEventList= new ArrayList<>();
             private BeforeCounterEvent beforeCounter = new BeforeCounterEvent(mobPatch -> false);
+            private final List<GuardHitEvent> guardHitEventList = new ArrayList<>();
             private final Map<Integer,PhaseParams> phaseParams = new HashMap<>();
 
             public Builder<T> canInsertGlobalBehavior(boolean canInsertGlobalBehavior,String... allowedGlobalNames) {
@@ -1135,6 +1144,11 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             public Builder<T> setBeforeCounterEvent(BeforeCounterEvent event){
                 this.beforeCounter = event;
+                return this;
+            }
+
+            public Builder<T> addGuardHitEvent(GuardHitEvent... guardHitEvent){
+                this.guardHitEventList.addAll(List.of(guardHitEvent));
                 return this;
             }
 

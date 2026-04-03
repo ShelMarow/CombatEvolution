@@ -686,6 +686,16 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                 builder.maxGuardHit(behaviors.getInt("maxGuardHit"));
             }
 
+            if(behaviors.contains("onGuardHit")){
+                ListTag array = behaviors.getList("onGuardHit",Tag.TAG_COMPOUND);
+                for(int i = 0; i < array.size(); i++) {
+                    CompoundTag onGuardHit = array.getCompound(i);
+                    boolean onTarget = onGuardHit.getBoolean("onTarget");
+                    String command = onGuardHit.getString("command");
+                    builder.addGuardHitEvent(new GuardHitEvent(creatCommandConsumer4(onTarget, command)));
+                }
+            }
+
             if(behaviors.contains("beforeCounter")){
                 CompoundTag beforeCounter = behaviors.getCompound("beforeCounter");
                 boolean cancelHitAnimation = beforeCounter.getBoolean("cancelHitAnimation");
@@ -695,6 +705,15 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                 builder.setBeforeCounterEvent(new BeforeCounterEvent(creatFunctionCommand(cancelHitAnimation, onTarget, command)));
             }
 
+            if(behaviors.contains("onCounterStart")){
+                ListTag array = behaviors.getList("onCounterStart", Tag.TAG_COMPOUND);
+                for(int i = 0; i < array.size(); i++) {
+                    CompoundTag onCounterStart = array.getCompound(i);
+                    boolean onTarget = onCounterStart.getBoolean("onTarget");
+                    String command = onCounterStart.getString("command");
+                    builder.onCounterStart(creatCommandConsumer(onTarget, command));
+                }
+            }
 
             float forward = 0;
             float strafe = 0;
@@ -869,6 +888,29 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
 
             LivingEntity original = mobPatch.getOriginal();
             LivingEntity executor = onTarget ? targetPatch.getOriginal() : original;
+
+            if (executor != null) {
+                MinecraftServer server = executor.getServer();
+                if (server != null) {
+                    CommandSourceStack source =
+                            executor.createCommandSourceStack()
+                                    .withPermission(2)
+                                    .withSuppressedOutput();
+
+                    server.getCommands().performPrefixedCommand(source, command);
+                }
+            }
+
+        };
+    }
+
+
+    public static @NotNull BiConsumer<MobPatch<?>, DamageSource> creatCommandConsumer4(boolean onTarget, String command) {
+        return (mobPatch, damageSource) -> {
+            if (mobPatch.isLogicalClient()) return;
+
+            LivingEntity original = mobPatch.getOriginal();
+            LivingEntity executor = onTarget ? (damageSource.getEntity() instanceof LivingEntity livingTarget ? livingTarget : null) : original;
 
             if (executor != null) {
                 MinecraftServer server = executor.getServer();

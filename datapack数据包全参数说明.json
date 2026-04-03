@@ -235,6 +235,9 @@
               "resetGuardTime": true,
               "counterType": "end", //<必填>  反击类型，可选 random随机 end固定次数 never不反击
               "maxGuardHit": 3,    //<必填>  当反击类型为end时必填，表示防御多少次后开始反击
+              "onGuardHit": [       //[可选]  反击前每一次防御受击时触发的内容
+                {"onTarget": false, "command": "/say 防御受击！"}
+              ],
               "beforeCounter": {  //[可选]  反击前最后一次防御执行时，会触发的事件
                 "cancelHitAnimation": false, "onTarget": false, "command": "/say 反击前最后一次防御开始时执行的内容"
               },

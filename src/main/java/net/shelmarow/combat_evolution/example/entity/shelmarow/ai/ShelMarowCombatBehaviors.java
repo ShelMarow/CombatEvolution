@@ -31,14 +31,8 @@ import java.util.Set;
 
 public class ShelMarowCombatBehaviors {
 
-    public static final CECombatBehaviors.Builder<MobPatch<?>> COMMON;
-
-    static{
-        COMMON = CECombatBehaviors.builder()
-
-                .addStunEvent(StunType.SHORT, mobPatch -> {
-                    //mobPatch.playAnimationSynchronized(Animations.BIPED_ROLL_BACKWARD, 0F);
-                })
+    public static CECombatBehaviors.Builder<MobPatch<?>> creatCommon(){
+        return CECombatBehaviors.builder()
 
                 .setNoBehaviorHurt((mobPatch, damageSource, attackResult) -> {
                     if(CEPatchUtils.getStaminaStatus(mobPatch) == StaminaStatus.COMMON && mobPatch.getEntityState().hurtLevel() > 0){
@@ -162,6 +156,7 @@ public class ShelMarowCombatBehaviors {
                                 .addHitEvent(new HitEvent(AttackResult.ResultType.SUCCESS, (mobPatch, entity) -> {
                                     CEPatchUtils.setPhase(mobPatch, 1);
                                 }))
+                                .setPhase(0)
 
                                 .addNextBehavior(CECombatBehaviors.Behavior.builder()
                                         .withinDistance(0, 4)
@@ -171,6 +166,7 @@ public class ShelMarowCombatBehaviors {
                                         .addHitEvent(new HitEvent(AttackResult.ResultType.SUCCESS, (mobPatch, entity) -> {
                                             CEPatchUtils.setPhase(mobPatch, 2);
                                         }))
+                                        .setPhase(0)
 
                                         .addNextBehavior(CECombatBehaviors.Behavior.builder()
                                                 .withinDistance(0, 4)
@@ -235,6 +231,9 @@ public class ShelMarowCombatBehaviors {
                                     mobPatch.playSound(EpicFightSounds.NEUTRALIZE_MOBS.get(), 0,0);
                                     return false;
                                 }))
+                                .addGuardHitEvent(new GuardHitEvent((mobPatch, damageSource) -> {
+                                    System.out.println("防御受击");
+                                }))
                         )
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
@@ -259,10 +258,13 @@ public class ShelMarowCombatBehaviors {
                                     mobPatch.playSound(EpicFightSounds.NEUTRALIZE_MOBS.get(), 0,0);
                                     return false;
                                 }))
+                                .addGuardHitEvent(new GuardHitEvent((mobPatch, damageSource) -> {
+                                    System.out.println("防御受击");
+                                }))
                         )
                 )
 
-        ;
+                ;
     }
 
     private static @NotNull TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> onLongswordSkillBlocked() {

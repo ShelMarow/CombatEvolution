@@ -84,7 +84,10 @@ public class ExecutionHandler {
             if (source == null || !source.getUUID().equals(allowedAttacker.getUUID())) {
                 event.setCanceled(true);
             }
-        } else if (EXECUTION_TARGETS.containsValue(target)) event.setCanceled(true);
+        }
+        else if (EXECUTION_TARGETS.containsValue(target)) {
+            event.setCanceled(true);
+        }
 
         //处决者只会对目标造成伤害
         if (source instanceof LivingEntity livingEntity) {
@@ -205,6 +208,7 @@ public class ExecutionHandler {
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     ExecutionTransform transform = calculateExecutionPosition(player.level(), player, target, executionType.offset());
                     if (transform != null) {
+                        BehaviorUtils.stopCurrentBehavior(target);
                         Vec3 executionPos = transform.position();
                         player.teleportTo(executionPos.x, executionPos.y, executionPos.z);
                         TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, transform, executionType.totalTick()));

@@ -269,7 +269,16 @@
               "guardTime": 60,
               "counterAnimation": "epicfight:biped/combat/tachi_auto3",
               "counterType": "end",
-              "maxGuardHit": 3
+              "maxGuardHit": 3,
+              "onGuardHit": [
+                {"onTarget": false, "command": "/say 防御受击！"}
+              ],
+              "beforeCounter": {
+                "cancelHitAnimation": false, "onTarget": false, "command": "/say 反击前最后一次防御"
+              },
+              "onCounterStart": [
+                {"onTarget": false, "command": "/say 和反击动画一起执行的内容"}
+              ]
             }
           ]
         },
@@ -282,7 +291,16 @@
               "counterType": "random",
               "counterChance": 0.15,
               "forward": 0,
-              "strafe": 1
+              "strafe": 1,
+              "onGuardHit": [
+                {"onTarget": false, "command": "/say 防御受击！"}
+              ],
+              "beforeCounter": {
+                "cancelHitAnimation": false, "onTarget": false, "command": "/say 反击前最后一次防御"
+              },
+              "onCounterStart": [
+                {"onTarget": false, "command": "/say 和反击动画一起执行的内容"}
+              ]
             }
           ]
         }
