@@ -232,7 +232,7 @@ public class ShelMarowCombatBehaviors {
                                     return false;
                                 }))
                                 .addGuardHitEvent(new GuardHitEvent((mobPatch, damageSource) -> {
-                                    System.out.println("防御受击");
+                                    //System.out.println("防御受击");
                                 }))
                         )
 
@@ -259,7 +259,7 @@ public class ShelMarowCombatBehaviors {
                                     return false;
                                 }))
                                 .addGuardHitEvent(new GuardHitEvent((mobPatch, damageSource) -> {
-                                    System.out.println("防御受击");
+                                    //System.out.println("防御受击");
                                 }))
                         )
                 )

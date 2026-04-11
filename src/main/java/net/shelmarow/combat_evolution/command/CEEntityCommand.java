@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.commands.TeleportCommand;
 import net.minecraft.world.entity.Entity;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
@@ -18,6 +19,7 @@ public class CEEntityCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("combat_evolution")
                 .then(Commands.literal("entity")
+                        .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("target", EntityArgument.entity())
                                 .then(Commands.literal("stamina")
                                         .then(Commands.literal("add")

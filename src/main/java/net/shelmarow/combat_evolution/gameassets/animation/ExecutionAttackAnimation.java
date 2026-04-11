@@ -3,7 +3,11 @@ package net.shelmarow.combat_evolution.gameassets.animation;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
@@ -15,6 +19,8 @@ import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.collider.Collider;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.api.utils.math.ValueModifier;
+import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 
 import java.util.HashSet;
@@ -51,6 +57,16 @@ public class ExecutionAttackAnimation extends AttackAnimation {
         this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.CAN_SKILL_EXECUTION, false);
     }
 
+    public EpicFightDamageSource getEpicFightDamageSource(DamageSource originalSource, LivingEntityPatch<?> entitypatch, Entity target, Phase phase) {
+        EpicFightDamageSource epicFightDamageSource = super.getEpicFightDamageSource(originalSource, entitypatch, target, phase);
+        if(!(target instanceof Player) || CECommonConfig.ENABLE_DAMAGE_SOURCE_TO_PLAYER.get()){
+            epicFightDamageSource.addRuntimeTag(DamageTypeTags.BYPASSES_ARMOR);
+            epicFightDamageSource.addRuntimeTag(DamageTypeTags.BYPASSES_ENCHANTMENTS);
+            epicFightDamageSource.addRuntimeTag(DamageTypeTags.BYPASSES_EFFECTS);
+            epicFightDamageSource.addRuntimeTag(DamageTypeTags.BYPASSES_SHIELD);
+        }
+        return epicFightDamageSource;
+    }
 
     public static class ExecutionPhase extends Phase {
 
@@ -88,9 +104,6 @@ public class ExecutionAttackAnimation extends AttackAnimation {
             tags.add(EpicFightDamageTypeTags.BYPASS_DODGE);
             tags.add(EpicFightDamageTypeTags.GUARD_PUNCTURE);
             tags.add(EpicFightDamageTypeTags.UNBLOCKALBE);
-            tags.add(DamageTypeTags.BYPASSES_ARMOR);
-            tags.add(DamageTypeTags.BYPASSES_ENCHANTMENTS);
-            tags.add(DamageTypeTags.BYPASSES_EFFECTS);
             tags.add(CEDamageTypeTags.EXECUTION);
             if (isFinished) {
                 tags.add(CEDamageTypeTags.EXECUTION_FINISHED);

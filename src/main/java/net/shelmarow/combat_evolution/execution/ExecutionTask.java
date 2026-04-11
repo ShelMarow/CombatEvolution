@@ -72,21 +72,6 @@ public class ExecutionTask extends TickTask {
             //播放处决动画
             executorPatch.playAnimationSynchronized(executionType.executionAnimation(), 0F);
             targetPatch.playAnimationSynchronized(executionType.executedAnimation(), 0F);
-
-
-            //是的孩子们还得二次矫正，不然位置对不上
-//            if (executorPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-//                serverPlayerPatch.setModelYRot(yaw + executionType.rotationOffset(), true);
-//            }
-//            else {
-//                executorPatch.setYRot(yaw + executionType.rotationOffset());
-//            }
-//            if (targetPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-//                serverPlayerPatch.setModelYRot(transform.yaw(), true);
-//            }
-//            else {
-//                targetPatch.setYRot(transform.yaw());
-//            }
         }
     }
 

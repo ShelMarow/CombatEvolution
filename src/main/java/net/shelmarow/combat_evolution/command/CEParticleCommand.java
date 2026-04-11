@@ -18,6 +18,7 @@ public class CEParticleCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("combat_evolution")
                 .then(Commands.literal("particle")
+                        .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("target", EntityArgument.entity())
                                 .then(Commands.argument("offset", Vec3Argument.vec3(false))
                                         .then(Commands.literal("bypass_dodge")

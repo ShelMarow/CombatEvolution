@@ -52,6 +52,7 @@ public class CEShieldCounter extends Skill {
     @Override
     public void setParams(CompoundTag parameters) {
         super.setParams(parameters);
+        this.consumption = Math.max(parameters.getFloat("consumption"), 0F);
         this.amount = Math.max(parameters.getFloat("amount"), 0F);
         this.percent = Math.max(parameters.getFloat("percent"), 0F);
     }
@@ -175,7 +176,17 @@ public class CEShieldCounter extends Skill {
     @Override
     public void executeOnServer(SkillContainer container, FriendlyByteBuf args) {
         super.executeOnServer(container, args);
-        container.getExecutor().getOriginal().addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(), 10, 0, false, false, true));
-        container.getExecutor().playAnimationSynchronized(ShieldCounterAnimations.SHIELD_COUNTER, 0F);
+        if(costStamina(container.getServerExecutor())){
+            container.getExecutor().getOriginal().addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(), 10, 0, false, false, true));
+            container.getExecutor().playAnimationSynchronized(ShieldCounterAnimations.SHIELD_COUNTER, 0F);
+        }
+    }
+
+    public boolean costStamina(PlayerPatch<?> playerPatch){
+        if(playerPatch.getStamina() >= this.consumption){
+            playerPatch.setStamina(playerPatch.getStamina() - this.consumption);
+            return true;
+        }
+        return false;
     }
 }

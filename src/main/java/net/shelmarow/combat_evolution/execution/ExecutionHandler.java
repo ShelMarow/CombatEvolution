@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
@@ -30,6 +31,7 @@ import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
@@ -107,6 +109,11 @@ public class ExecutionHandler {
         if(damageSource.is(CEDamageTypeTags.EXECUTION) && damageSource.getEntity() instanceof LivingEntity livingEntity) {
             int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.MASSACRE.get(), livingEntity);
             event.setAmount(event.getAmount() * (1 + level * CECommonConfig.MASSACRE_ENCHANTMENT.get().floatValue()));
+        }
+        
+        //如果处决目标是玩家，根据配置文件调整伤害倍率
+        if(target instanceof Player){
+            event.setAmount(event.getAmount() * CECommonConfig.EXECUTION_DAMAGE_TO_PLAYER.get().floatValue());
         }
 
         //处决保护，如果不是最后一击，实体会锁血，防止提前击杀
@@ -383,6 +390,10 @@ public class ExecutionHandler {
 
     public static boolean isHoldingWeapon(LivingEntity executor){
         ItemStack itemInHand = executor.getItemInHand(InteractionHand.MAIN_HAND);
+        ResourceLocation itemsKey = ForgeRegistries.ITEMS.getKey(itemInHand.getItem());
+        if(itemsKey != null && CECommonConfig.EXECUTION_ITEM_BLACKLIST.get().contains(itemsKey.toString())){
+            return false;
+        }
         CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(itemInHand);
         return capabilityItem.getWeaponCategory() != CapabilityItem.WeaponCategories.NOT_WEAPON && (capabilityItem.getWeaponCategory() != CapabilityItem.WeaponCategories.FIST || itemInHand.getItem() instanceof GloveItem);
     }

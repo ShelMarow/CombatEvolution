@@ -14,6 +14,7 @@ public class CEExecutionCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("combat_evolution")
                 .then(Commands.literal("execution")
+                        .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("executor", EntityArgument.entity())
                                 .then(Commands.argument("target", EntityArgument.entity())
                                         .then(Commands.argument("require_guard_break", BoolArgumentType.bool())
