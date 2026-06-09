@@ -1,10 +1,11 @@
 package net.shelmarow.combat_evolution.ai.event;
 
+import net.shelmarow.combat_evolution.ai.event.manager.CEMobEvent;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 import java.util.function.Consumer;
 
-public class TimeEvent {
+public class TimeEvent implements CEMobEvent {
     private boolean available = true;
     private final float timeStart;
     private final float timeEnd;

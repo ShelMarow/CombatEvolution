@@ -14,8 +14,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
-import net.shelmarow.combat_evolution.bgm.CEMusic;
 import net.shelmarow.combat_evolution.bgm.network.CEMusicNetworkHandler;
+import net.shelmarow.combat_evolution.bgm.network.CEMusicPacket;
 import net.shelmarow.combat_evolution.bossbar.CEBossEvent;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
@@ -36,7 +36,7 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     protected final CEBossEvent ceBossEvent = new CEBossEvent(Component.empty());
     private boolean shouldPlayBGM = false;
     private final UUID bgmUUID = UUID.randomUUID();
-    private CEMusic music;
+    private CEMusicPacket music;
 
     public CEDatapackMobPatch(CEPatchReloadListener.CEDatapackMobPatchProvider provider) {
         super(provider.faction);
@@ -62,8 +62,9 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
         }
 
         if(provider.playBGM && provider.bgm != null){
-            music = new CEMusic(
-                    provider.bgm, SoundSource.RECORDS, bgmUUID,
+            music = new CEMusicPacket(
+                    true, bgmUUID,
+                    provider.bgm, SoundSource.RECORDS,
                     provider.bgmVolume, provider.bgmDuration,
                     provider.bgmLoop, true,
                     provider.bgmFadeIn,provider.bgmFadeOut

@@ -24,7 +24,7 @@ public class S2CRequestMusicPacket {
     public static void handle(S2CRequestMusicPacket msg, Supplier<NetworkEvent.Context> ctx){
         if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
             ctx.get().enqueueWork(() -> {
-                CEMusicNetworkHandler.requestMusicPlay(msg.packet.isSoftChange(), CEMusicPacket.toCEMusic(msg.packet));
+                CEMusicNetworkHandler.requestMusicPlay(msg.packet.isSoftChange(), msg.packet);
             });
         }
         ctx.get().setPacketHandled(true);

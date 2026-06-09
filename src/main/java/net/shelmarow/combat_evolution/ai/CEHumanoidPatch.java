@@ -24,6 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.shelmarow.combat_evolution.ai.event.BeforeCounterEvent;
+import net.shelmarow.combat_evolution.ai.event.BlockedEvent;
 import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
 import net.shelmarow.combat_evolution.ai.goal.CommonChasingGoal;
 import net.shelmarow.combat_evolution.ai.iml.IDamageSourceData;
@@ -49,7 +51,6 @@ import yesman.epicfight.model.armature.HumanoidArmature;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPChangeLivingMotion;
 import yesman.epicfight.particle.EpicFightParticles;
-import yesman.epicfight.particle.HitParticleType;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.Factions;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -303,7 +304,8 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
             if (current != null) {
                 if (canCounter) {
-                    cancelHitAnimation = current.executeBeforeCounterEvent(this);
+                    cancelHitAnimation = (boolean) current.executeEventAndReturn(BeforeCounterEvent.class,this);
+                    //cancelHitAnimation = current.executeBeforeCounterEvent(this);
                 }
                 else {
                     current.executeGuardHitEvent(this, damageSource);
@@ -375,7 +377,8 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         int phase = (damageSource instanceof IDamageSourceData sourceData) ? sourceData.getSourcePhaseIndex() : -1;
         CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
         if(current != null){
-            current.executeBlockedEvent(phase, this, blocker, false);
+            current.executeEvent(BlockedEvent.class,phase, this, blocker, false);
+            //current.executeBlockedEvent(phase, this, blocker, false);
         }
     }
 
@@ -383,7 +386,8 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         int phase = (damageSource instanceof IDamageSourceData sourceData) ? sourceData.getSourcePhaseIndex() : -1;
         CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
         if(current != null){
-            current.executeBlockedEvent(phase, this, blocker, true);
+            current.executeEvent(BlockedEvent.class,phase, this, blocker, true);
+            //current.executeBlockedEvent(phase, this, blocker, true);
         }
     }
 
@@ -453,6 +457,10 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             this.original.goalSelector.addGoal(0, new CEAnimationAttackGoal<>(this, builder.build()));
             this.original.goalSelector.addGoal(1, new CommonChasingGoal(this, attackRadius, this.chasingSpeed));
         }
+
+    }
+
+    public void onExecutionHurt(DamageSource damageSource , boolean isLastHit, float amount){
 
     }
 

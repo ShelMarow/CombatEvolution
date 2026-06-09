@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.example.entity.shelmarow.ai;
 
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -228,7 +229,7 @@ public class ShelMarowCombatBehaviors {
                                     mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
                                 })
                                 .setBeforeCounterEvent(new BeforeCounterEvent(mobPatch -> {
-                                    mobPatch.playSound(EpicFightSounds.NEUTRALIZE_MOBS.get(), 0,0);
+                                    mobPatch.playSound(EpicFightSounds.BUZZ.get(), 0,0);
                                     return false;
                                 }))
                                 .addGuardHitEvent(new GuardHitEvent((mobPatch, damageSource) -> {
@@ -255,7 +256,7 @@ public class ShelMarowCombatBehaviors {
                                     }
                                 })
                                 .setBeforeCounterEvent(new BeforeCounterEvent(mobPatch -> {
-                                    mobPatch.playSound(EpicFightSounds.NEUTRALIZE_MOBS.get(), 0,0);
+                                    mobPatch.playSound(EpicFightSounds.BUZZ.get(), 0,0);
                                     return false;
                                 }))
                                 .addGuardHitEvent(new GuardHitEvent((mobPatch, damageSource) -> {

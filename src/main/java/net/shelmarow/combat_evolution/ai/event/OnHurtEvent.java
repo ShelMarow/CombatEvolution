@@ -1,11 +1,12 @@
 package net.shelmarow.combat_evolution.ai.event;
 
 import net.minecraft.world.damagesource.DamageSource;
+import net.shelmarow.combat_evolution.ai.event.manager.CEMobEvent;
 import org.apache.commons.lang3.function.TriFunction;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
-public class OnHurtEvent {
+public class OnHurtEvent implements CEMobEvent {
     private final TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> behavior;
 
     public OnHurtEvent(TriFunction<MobPatch<?>, DamageSource, AttackResult, AttackResult> behavior) {

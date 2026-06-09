@@ -2,6 +2,7 @@ package net.shelmarow.combat_evolution.bossbar;
 
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -34,6 +35,15 @@ public class ClientBossData {
         BOSS_DATA_MAP.put(bossId, bossData);
     }
 
+    //更新材质
+    public static void updateTexture(UUID uuid, String texture) {
+        BossData bossData = getBossData(uuid);
+        ResourceLocation barTexture = ResourceLocation.tryParse(texture);
+        if (barTexture != null) {
+            bossData.bossBarTexture = barTexture;
+        }
+    }
+
     //更新耐力
     public static void updateStaminaData(UUID uuid, float stamina, StaminaStatus staminaStatus) {
         BossData data = getBossData(uuid);
@@ -55,6 +65,7 @@ public class ClientBossData {
         return displayed;
     }
 
+    //更新自定义数据
     public static void updateCustomDate(UUID uuid, CompoundTag tag) {
         getBossData(uuid).customData = tag;
     }

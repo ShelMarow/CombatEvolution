@@ -37,12 +37,6 @@ public class ExecutionTask extends TickTask {
         executor.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
         target.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
 
-        //玩家回满耐力值，恢复生命值
-        if (executorPatch instanceof PlayerPatch<?> playerPatch) {
-            playerPatch.setStamina(playerPatch.getMaxStamina());
-            executor.addEffect(new MobEffectInstance(MobEffects.REGENERATION, maxTime, 4));
-        }
-
         if (executorPatch != null && targetPatch != null) {
 
             //矫正处决者和被处决目标的模型朝向

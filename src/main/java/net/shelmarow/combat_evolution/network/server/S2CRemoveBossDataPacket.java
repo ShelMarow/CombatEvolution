@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.bossbar.network.packet;
+package net.shelmarow.combat_evolution.network.server;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkDirection;

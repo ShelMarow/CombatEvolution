@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -33,8 +34,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.combat_evolution.CombatEvolution;
+import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
+import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
+import net.shelmarow.combat_evolution.api.event.OnExecutionStartEvent;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.enchantment.CEEnchantments;
@@ -57,6 +61,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.Style;
 import yesman.epicfight.world.capabilities.item.WeaponCategory;
+import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.item.GloveItem;
 
@@ -67,11 +72,27 @@ import java.util.function.Predicate;
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ExecutionHandler {
 
-    //参数说明
     //Key：被处决的实体
     //value：处决者
     private static final Map<LivingEntity, LivingEntity> EXECUTION_TARGETS = new HashMap<>();
     public static final float EXECUTION_DISTANCE = 4F;
+
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onExecutionStart(OnExecutionStartEvent event){
+        if(event.getExecutor().getOriginal() instanceof Player player){
+            PlayerPatch<?> playerPatch = EpicFightCapabilities.getPlayerPatch(player);
+            if (playerPatch != null) {
+                playerPatch.setStamina(playerPatch.getMaxStamina());
+
+                float maxHealth = player.getMaxHealth();
+                double healAmount = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_AMOUNT.get());
+                double healPercent = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_PERCENT.get());
+                player.heal((float) (healAmount + maxHealth * healPercent));
+            }
+        }
+
+    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingAttack(LivingAttackEvent event) {
@@ -94,43 +115,56 @@ public class ExecutionHandler {
         //处决者只会对目标造成伤害
         if (source instanceof LivingEntity livingEntity) {
             if (EXECUTION_TARGETS.containsValue(livingEntity)) {
-                if (!EXECUTION_TARGETS.containsKey(target))
+                if (!EXECUTION_TARGETS.containsKey(target)){
                     event.setCanceled(true);
+                }
             }
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onLivingDamage(LivingDamageEvent event) {
         LivingEntity target = event.getEntity();
         DamageSource damageSource = event.getSource();
+        float amount = event.getAmount();
 
         //根据附魔增加处决伤害
         if(damageSource.is(CEDamageTypeTags.EXECUTION) && damageSource.getEntity() instanceof LivingEntity livingEntity) {
             int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.MASSACRE.get(), livingEntity);
-            event.setAmount(event.getAmount() * (1 + level * CECommonConfig.MASSACRE_ENCHANTMENT.get().floatValue()));
+            amount *= (1 + level * CECommonConfig.MASSACRE_ENCHANTMENT.get().floatValue());
+
+            //根据属性调整处决伤害
+            float damageMultiply = (float) livingEntity.getAttributeValue(CEAttributes.EXECUTION_DAMAGE_MULTIPLY.get());
+            amount *= damageMultiply;
         }
         
         //如果处决目标是玩家，根据配置文件调整伤害倍率
         if(target instanceof Player){
-            event.setAmount(event.getAmount() * CECommonConfig.EXECUTION_DAMAGE_TO_PLAYER.get().floatValue());
+            amount *= CECommonConfig.EXECUTION_DAMAGE_TO_PLAYER.get().floatValue();
         }
 
         //处决保护，如果不是最后一击，实体会锁血，防止提前击杀
         if(!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)) {
-            float damageAmount = event.getAmount();
             float health = target.getHealth();
-            if(damageAmount >= health){
-                event.setAmount(health - 0.01F);
+            if(amount >= health){
+                amount = health - 0.01F;
             }
         }
 
+        event.setAmount(amount);
+
         if(damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)){
+            //玩家获取技能能量
             EpicFightCapabilities.getUnparameterizedEntityPatch(EXECUTION_TARGETS.get(target), ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
                 SkillContainer container = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
                 if(container != null && container.hasSkill()){
                     container.getSkill().setStackSynchronize(container, container.getStack() + 1);
                 }
+            });
+
+            //目标如果是CE实体则触发回调
+            EpicFightCapabilities.getUnparameterizedEntityPatch(target, CEHumanoidPatch.class).ifPresent(targetPatch -> {
+                targetPatch.onExecutionHurt(event.getSource() ,damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED), event.getAmount());
             });
         }
     }
@@ -156,7 +190,7 @@ public class ExecutionHandler {
                     target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
                     target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 5));
                     EpicFightCapabilities.getUnparameterizedEntityPatch(target, LivingEntityPatch.class).ifPresent(entityPatch -> {
-                        EntityStunEvent entityStunEvent = new EntityStunEvent(null, entityPatch, StunType.HOLD);
+                        EntityStunEvent entityStunEvent = new EntityStunEvent(new EpicFightDamageSource(source), entityPatch, StunType.HOLD);
                         if(!entityStunEvent.isCanceled()){
                             entityPatch.applyStun(StunType.HOLD, 1F);
                         }
@@ -215,6 +249,7 @@ public class ExecutionHandler {
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     ExecutionTransform transform = calculateExecutionPosition(player.level(), player, target, executionType.offset());
                     if (transform != null) {
+                        MinecraftForge.EVENT_BUS.post(new OnExecutionStartEvent(playerPatch, targetPatch, executionType));
                         BehaviorUtils.stopCurrentBehavior(target);
                         Vec3 executionPos = transform.position();
                         player.teleportTo(executionPos.x, executionPos.y, executionPos.z);
@@ -244,6 +279,7 @@ public class ExecutionHandler {
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     ExecutionTransform transform = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
                     if (transform != null) {
+                        MinecraftForge.EVENT_BUS.post(new OnExecutionStartEvent(executorPatch, targetPatch, executionType));
                         BehaviorUtils.stopCurrentBehavior(executor);
                         BehaviorUtils.stopCurrentBehavior(target);
                         executor.setDeltaMovement(Vec3.ZERO);

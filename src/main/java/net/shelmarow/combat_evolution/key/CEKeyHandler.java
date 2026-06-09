@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
+import net.shelmarow.combat_evolution.network.CENetworkHandler;
 
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class CEKeyHandler {
@@ -20,7 +21,7 @@ public class CEKeyHandler {
             if(CEKeyMappings.EXECUTION.consumeClick()) {
                 LivingEntity entity = ExecutionHandler.getEntityLookedAt(mc.player, ExecutionHandler.EXECUTION_DISTANCE);
                 if(entity != null) {
-                    CombatEvolution.CHANNEL.sendToServer(new C2STryExecutionPacket());
+                    CENetworkHandler.sendToServer(new C2STryExecutionPacket());
                 }
             }
         }

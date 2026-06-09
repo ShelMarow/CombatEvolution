@@ -23,8 +23,8 @@
     "loop": true,
     "duration": 3500,
     "volume": 1,
-    "fadeIn": 100,
-    "fadeOut": 100
+    "fadeIn": 20,
+    "fadeOut": 20
   },
   "attributes": [
     {

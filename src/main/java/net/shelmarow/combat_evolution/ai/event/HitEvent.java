@@ -1,12 +1,13 @@
 package net.shelmarow.combat_evolution.ai.event;
 
 import net.minecraft.world.entity.Entity;
+import net.shelmarow.combat_evolution.ai.event.manager.CEMobEvent;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 import java.util.function.BiConsumer;
 
-public class HitEvent {
+public class HitEvent implements CEMobEvent {
     private final BiConsumer<MobPatch<?>, Entity> behavior;
     private final int phaseIndex;
     private final AttackResult.ResultType hitType;
