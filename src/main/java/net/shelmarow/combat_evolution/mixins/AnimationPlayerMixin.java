@@ -2,6 +2,7 @@ package net.shelmarow.combat_evolution.mixins;
 
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
+import net.shelmarow.combat_evolution.ai.event.TimeEvent;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,8 +42,8 @@ public abstract class AnimationPlayerMixin {
         combatEvolution$currentPlay = ((AnimationPlayer)(Object) this).getAnimation().get();
         if(entityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch){
             CECombatBehaviors.Behavior<?> behavior = BehaviorUtils.getCurrentBehavior(ceHumanoidPatch);
-            if(behavior != null){
-                behavior.executeTimeEvent(prevElapsedTime,elapsedTime,ceHumanoidPatch);
+            if(behavior != null && behavior.shouldExecuteTimeEvent()){
+                behavior.executeEvent(TimeEvent.class, new TimeEvent.EventParams(prevElapsedTime,elapsedTime,ceHumanoidPatch));
             }
         }
     }

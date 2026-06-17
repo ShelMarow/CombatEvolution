@@ -1,35 +1,38 @@
 package net.shelmarow.combat_evolution.ai.event.manager;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 
 public class CEMobEventManager {
-    private final Map<Class<? extends CEMobEvent>, List<CEMobEvent>> mobEvents = new HashMap<>();
-    private final Map<Class<? extends CEMobEvent>, CEMobEvent> mobEventWithReturn = new HashMap<>();
+    private final Map<Class<? extends CEMobEvent<?>>, List<CEMobEvent<?>>> mobEvents = new HashMap<>();
+    private final Map<Class<? extends CEMobEventWithReturn<?, ?>>, CEMobEventWithReturn<?, ?>> mobEventWithReturn = new HashMap<>();
 
-    public void addEvent(Class<? extends CEMobEvent> eventClass, CEMobEvent... event){
+    public final void addEvent(Class<? extends CEMobEvent<?>> eventClass, CEMobEvent<?>... event){
         mobEvents.computeIfAbsent(eventClass, k -> new ArrayList<>()).addAll(Arrays.stream(event).toList());
     }
 
-    public void setEventWithReturn(Class<? extends CEMobEvent> eventClass, CEMobEvent event){
+    public void setEventWithReturn(Class<? extends CEMobEventWithReturn<?, ?>> eventClass, CEMobEventWithReturn<?, ?> event){
         mobEventWithReturn.put(eventClass, event);
     }
 
-    public void clearEvents(Class<? extends CEMobEvent> eventClass){
-        if(mobEvents.containsKey(eventClass)){
-            mobEvents.get(eventClass).clear();
+
+    @SuppressWarnings("unchecked")
+    public <P> void execute(Class<? extends CEMobEvent<?>> eventClass, P param){
+        for (CEMobEvent<?> ceMobEvent : this.mobEvents.getOrDefault(eventClass, new ArrayList<>())) {
+            ((CEMobEvent<P>) ceMobEvent).execute(param);
         }
     }
 
-    public void execute(Class<? extends CEMobEvent> eventClass, Object... params){
-        for (CEMobEvent ceMobEvent : this.mobEvents.getOrDefault(eventClass, new ArrayList<>())) {
-            ceMobEvent.execute(params);
-        }
-    }
-
-    public Object executeAndReturn(Class<? extends CEMobEvent> eventClass, Object... params){
+    @SuppressWarnings("unchecked")
+    public <P, R> @Nullable R executeAndReturn(Class<? extends CEMobEventWithReturn<P,R>> eventClass, P param){
         if(mobEventWithReturn.containsKey(eventClass)){
-            return mobEventWithReturn.get(eventClass).executeAndReturn(params);
+            return ((CEMobEventWithReturn<P, R>) mobEventWithReturn.get(eventClass)).executeAndReturn(param);
         }
         return null;
+    }
+
+    public List<? extends CEMobEvent<?>> getEvents(Class<? extends CEMobEvent<?>> eventClass) {
+        return this.mobEvents.getOrDefault(eventClass, new ArrayList<>());
     }
 }

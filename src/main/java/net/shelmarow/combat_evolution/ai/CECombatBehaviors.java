@@ -2,17 +2,18 @@ package net.shelmarow.combat_evolution.ai;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.combat_evolution.ai.condition.*;
 import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.event.manager.CEMobEvent;
 import net.shelmarow.combat_evolution.ai.event.manager.CEMobEventManager;
+import net.shelmarow.combat_evolution.ai.event.manager.CEMobEventWithReturn;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import net.shelmarow.combat_evolution.ai.params.AnimationParams;
 import net.shelmarow.combat_evolution.ai.params.PhaseParams;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.AnimationPlayer;
 import yesman.epicfight.api.animation.LivingMotions;
@@ -148,7 +149,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         List<Pair<Behavior<T>,Boolean>> usableBehaviors = new ArrayList<>();
 
         //收集当前节点所属的子行为
-        List<Behavior<T>> temp = behaviors.stream().filter(b -> b.priority > 0 && b.checkPredicates(mobPatch) && (!canBeInterrupted || b.canInterruptParent)).toList();
+        List<Behavior<T>> temp = behaviors.stream().filter(b -> b.priority() > 0 && b.checkPredicates(mobPatch) && (!canBeInterrupted || b.canInterruptParent())).toList();
         for (Behavior<T> behavior : temp) {
             usableBehaviors.add(new Pair<>(behavior,false));
         }
@@ -184,7 +185,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return usableBehaviors.get(0).getFirst();
         }
         else if(usableBehaviors.size() > 1) {
-            Pair<Behavior<T>, Boolean> bestOne = selectBehaviorByWeight(usableBehaviors.stream().filter(b -> b.getFirst().weight > 0).toList());
+            Pair<Behavior<T>, Boolean> bestOne = selectBehaviorByWeight(usableBehaviors.stream().filter(b -> b.getFirst().weight() > 0).toList());
 
             //如果选中的是全局行为，则记录当前行为
             if(bestOne.getSecond()){
@@ -205,13 +206,13 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
         for (Pair<Behavior<T>, Boolean> pair : list) {
             //如果有优先级更高的，清空列表，添加自身，更新最大值
-            if(pair.getFirst().priority > max){
+            if(pair.getFirst().priority() > max){
                 usableBehaviors.clear();
                 usableBehaviors.add(pair);
-                max = pair.getFirst().priority;
+                max = pair.getFirst().priority();
             }
             //如果优先级相等，添加自身
-            else if(pair.getFirst().priority == max){
+            else if(pair.getFirst().priority() == max){
                 usableBehaviors.add(pair);
             }
         }
@@ -225,26 +226,17 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         double counter = 0;
 
         for(Pair<Behavior<T>, Boolean> pair : list){
-            totalWeight += pair.getFirst().weight;
+            totalWeight += pair.getFirst().weight();
         }
-//        for (Behavior<T> behavior : list) {
-//            totalWeight += behavior.weight;
-//        }
 
         double random = Math.random()*totalWeight;
 
         for (Pair<Behavior<T>, Boolean> pair : list) {
-            counter += pair.getFirst().weight;
+            counter += pair.getFirst().weight();
             if (counter >= random) {
                 return pair;
             }
         }
-//        for (Behavior<T> behavior : list) {
-//            counter += behavior.weight;
-//            if (counter >= random) {
-//                return behavior;
-//            }
-//        }
 
         //理论上不会到这里，但是还是要写
         return null;
@@ -466,6 +458,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
     }
 
     //构造器
+    @SuppressWarnings("UnusedReturnValue")
     public static class Builder<T extends MobPatch<?>>{
         private final List<BehaviorRoot.Builder<T>> behaviorRoots = new ArrayList<>();
         private final List<BehaviorRoot.Builder<T>> globalBehaviors = new ArrayList<>();
@@ -574,6 +567,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         }
 
 
+        @SuppressWarnings("UnusedReturnValue")
         public static class Builder<T extends MobPatch<?>> {
             private String rootName = "";
             private final List<Behavior.Builder<T>> behavior = new ArrayList<>();
@@ -633,84 +627,76 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return new Builder<>();
         }
     }
+
+
+
+
+    public static class BehaviorParams {
+
+        public static class CommonParams{
+            public double priority = 1;                      //优先级
+            public double weight = 1;                        //权重
+            public boolean canInsertGlobalBehavior = false;      //是否允许接入全局行为
+            public List<String> allowedGlobalNameList = new ArrayList<>();   //允许的全局行为名称列表
+            public int totalWaitTime = 0;                    //行为结束后的等待窗口时间
+            public int waitTime = 0;                               //等待计时器
+            public int stopByStun = 1;                       //是否会被眩晕打断其余连段
+            public boolean canInterruptParent = false;           //是否能打断父行为
+            public boolean canBeInterrupted = false;             //是否能被其他行为打断
+            public InterruptType interruptType = InterruptType.TIME;          //打断类型
+            public List<Float> interruptedWindow = new ArrayList<>();        //能够被打断的窗口时间
+            public int exCoolDown = 0;                       //额外冷却时间
+            public int behaviorTime = 0;                     //特定行为的持续时间（游荡、防御）
+            public int timeCount = 0;                              //计时器
+            public boolean shouldExecuteTimeEvent = false;
+            public boolean shouldExecuteHitEvent = false;
+        }
+
+        public static class AnimationBehavior{
+            public Map<Integer, PhaseParams> phaseParams = new HashMap<>();
+            public boolean canApplyPhaseParams = false;
+        }
+
+        public static class GuardBehavior<T extends MobPatch<?>>{
+            public Consumer<T> counter;
+            public CounterType counterType = CounterType.NEVER;
+            public boolean canCounter = false;
+            public double counterChance = 0.25;
+            public int maxGuardHit = Integer.MAX_VALUE;
+            public int guardHit = 0;
+            public boolean resetGuardTime = false;
+            public float guardCost = 1;
+        }
+
+
+    }
+
     //行为类
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static class Behavior<T extends MobPatch<?>> {
         private final String behaviorName;                  //行为名称
-        private final Consumer<T> behavior;                 //具体行为
-        private final Consumer<T> counter;                  //反击行为
-        private final boolean canInsertGlobalBehavior;      //是否允许接入全局行为
-        private final List<String> allowedGlobalNameList;   //允许的全局行为名称列表
-        private final List<Consumer<T>> exBehaviors;        //额外行为
-        private final List<Consumer<T>> onCounterStart;     //额外行为
         private final BehaviorType type;                    //主行为类型
-        private final int exCoolDown;                       //额外冷却时间
-        private final int behaviorTime;                     //特定行为的持续时间（游荡、防御）
-        private int timeCount;                              //计时器
-        private final CounterType counterType;              //反击类型（不反击，随机反击，防御次数耗尽时）
-        private boolean canCounter = false;                 //反击标志
-        private final double counterChance;                 //反击概率
-        private final int maxGuardHit;                      //最大防御次数
-        private int guardHit;                               //计数器
-        private final boolean resetGuardTime;
-        private final int totalWaitTime;                    //行为结束后的等待窗口时间
-        private int waitTime;                               //等待计时器
-        private final double priority;                      //优先级
-        private final double weight;                        //权重
-        private final int stopByStun;                       //是否会被眩晕打断其余连段
-        private final boolean canInterruptParent;           //是否能打断父行为
-        private final boolean canBeInterrupted;             //是否能被其他行为打断
-        private final InterruptType interruptType;          //打断类型
-        private final List<Float> interruptedWindow;        //能够被打断的窗口时间
+        private final Consumer<T> behavior;                 //具体行为
         private final BehaviorRoot<T> behaviorRoot;         //所属的根节点
         private final List<Condition<T>> conditions;        //执行需要满足的条件
         private final List<Behavior<T>> nextBehaviors;      //下一个能执行的行为列表
         private BehaviorState state = BehaviorState.RUNNING;//执行状态
-        private final AssetAccessor<? extends StaticAnimation> counterAnimation;    //防御反击动画
-        private final List<TimeEvent> timeEventList;                                //时间事件列表
-        private final List<HitEvent> hitEventList;                                  //攻击命中事件列表
-        private final OnHurtEvent onHurtEvent;
-        private final List<GuardHitEvent> guardHitEventList;
-        private final Map<Integer, PhaseParams> phaseParams;                         //攻击Phase参数
-        private boolean canApplyPhaseParams = false;                                //Phase参数锁
-        private boolean shouldExecuteTimeEvent = false;                             //时间事件锁
-        private boolean shouldExecuteHitEvent = false;                              //攻击命中事件锁
-        private final CEMobEventManager eventManager;
+
+        private final BehaviorParams.CommonParams commonParams;        //行为参数
+        private final BehaviorParams.AnimationBehavior animationParams;        //行为参数
+        private final BehaviorParams.GuardBehavior<T> guardParams;        //行为参数
+        private final CEMobEventManager eventManager;       //事件管理器
 
         private Behavior(Builder<T> builder, BehaviorRoot<T> behaviorRoot){
             this.behaviorName = builder.behaviorName;
-            this.stopByStun = builder.stopByStun;
             this.behaviorRoot = behaviorRoot;
             this.behavior = builder.behavior;
-            this.counter = builder.counter;
-            this.canInsertGlobalBehavior = builder.canInsertGlobalBehavior;
-            this.allowedGlobalNameList = builder.allowedGlobalNameList;
-            this.exBehaviors = builder.exBehaviors;
-            this.onCounterStart = builder.onCounterStart;
             this.type = builder.type;
-            this.exCoolDown = builder.exCoolDown;
-            this.behaviorTime = builder.behaviorTime;
-            this.timeCount = behaviorTime;
-            this.counterType = builder.counterType;
-            this.counterChance = builder.counterChance;
-            this.maxGuardHit = builder.maxGuardHit;
-            this.guardHit = maxGuardHit;
-            this.resetGuardTime = builder.resetGuardTime;
-            this.totalWaitTime = builder.totalWaitTime;
-            this.waitTime = totalWaitTime;
-            this.canInterruptParent = builder.canInterruptParent;
-            this.canBeInterrupted = builder.canBeInterrupted;
-            this.interruptType = builder.interruptType;
-            this.interruptedWindow = builder.interruptedWindow;
-            this.priority = builder.priority;
-            this.weight = builder.weight;
             this.conditions = builder.conditions;
-            this.counterAnimation = builder.counterAnimation;
             this.nextBehaviors = builder.nextBehaviors.stream().map(b->b.build(behaviorRoot)).toList();
-            this.timeEventList = builder.timeEventList;
-            this.hitEventList = builder.hitEventList;
-            this.onHurtEvent = builder.onHurtEvent;
-            this.guardHitEventList = builder.guardHitEventList;
-            this.phaseParams = builder.phaseParams;
+            this.commonParams = builder.commonParams;
+            this.animationParams = builder.animationParams;
+            this.guardParams = builder.guardParams;
             this.eventManager = builder.eventManager;
         }
 
@@ -718,73 +704,61 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             return behaviorRoot;
         }
 
+        public double priority(){
+            return commonParams.priority;
+        }
+
+        public double weight(){
+            return commonParams.weight;
+        }
+
+        public float getGuardHitCost(){
+            return guardParams.guardCost;
+        }
+
 
         public Map<Integer, PhaseParams> getPhaseParams() {
-            return phaseParams;
+            return animationParams.phaseParams;
         }
 
         public boolean canApplyPhaseParams() {
-            return canApplyPhaseParams;
+            return animationParams.canApplyPhaseParams;
         }
 
         public void setCanApplyPhaseParam(boolean canApplyPhaseParams) {
-            this.canApplyPhaseParams = canApplyPhaseParams;
+            this.animationParams.canApplyPhaseParams = canApplyPhaseParams;
         }
 
         public void setShouldExecuteTimeEvent(boolean shouldExecuteTimeEvent) {
-            this.shouldExecuteTimeEvent = shouldExecuteTimeEvent;
+            this.commonParams.shouldExecuteTimeEvent = shouldExecuteTimeEvent;
         }
 
-        public void executeTimeEvent(float pre,float current,MobPatch<?> mobPatch){
-            if(shouldExecuteTimeEvent && !this.timeEventList.isEmpty()) {
-                for (TimeEvent event : this.timeEventList) {
-                    event.executeIfAvailable(pre, current, mobPatch);
-                }
-            }
+        public boolean shouldExecuteTimeEvent() {
+            return commonParams.shouldExecuteTimeEvent;
         }
 
         public void resetTimeEventAvailable(){
-            for(TimeEvent event : this.timeEventList){
-                event.resetAvailable();
+            for(CEMobEvent<?> event : eventManager.getEvents(TimeEvent.class)){
+                ((TimeEvent) event).resetAvailable();
             }
         }
 
-        public void executeEvent(Class<? extends CEMobEvent> eventClass, Object... params){
+        public <P,R> void executeEvent(Class<? extends CEMobEvent<P>> eventClass, P params){
             this.eventManager.execute(eventClass, params);
         }
 
-        public Object executeEventAndReturn(Class<? extends CEMobEvent> eventClass, Object... params){
+        public <P,R> @Nullable R executeEventAndReturn(Class<? extends CEMobEventWithReturn<P,R>> eventClass, P params){
             return this.eventManager.executeAndReturn(eventClass, params);
         }
 
         public void setShouldExecuteHitEvent(boolean shouldExecuteHitEvent) {
-            this.shouldExecuteHitEvent = shouldExecuteHitEvent;
+            this.commonParams.shouldExecuteHitEvent = shouldExecuteHitEvent;
         }
 
         public boolean shouldExecuteHitEvent() {
-            return shouldExecuteHitEvent;
+            return commonParams.shouldExecuteHitEvent;
         }
 
-        public void executeHitEvent(int phase, AttackResult.ResultType resultType, MobPatch<?> mobPatch, Entity target){
-            if(shouldExecuteHitEvent) {
-                for(HitEvent event : this.hitEventList){
-                    event.executeHitEvent(phase,resultType,mobPatch,target);
-                }
-            }
-        }
-
-        public AttackResult executeOnHurtEvent(MobPatch<?> mobPatch, DamageSource damageSource, AttackResult result) {
-            if(this.onHurtEvent != null) {
-                return this.onHurtEvent.executeOnHurtEvent(mobPatch, damageSource, result);
-            }
-            return result;
-        }
-
-        public void executeGuardHitEvent(MobPatch<?> mobPatch, DamageSource damageSource) {
-            for (GuardHitEvent guardHitEvent : guardHitEventList) {
-                guardHitEvent.executeGuardHitEvent(mobPatch, damageSource);
-            }
-        }
 
         public boolean canBeInterrupted(T mobPatch) {
             /*
@@ -792,23 +766,23 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 1.时间窗口划分
                 2.动作level划分
              */
-            if(canBeInterrupted && !interruptedWindow.isEmpty()){
-                if (interruptType == InterruptType.TIME) {
-                    if(behaviorTime == 0 || getType() == BehaviorType.ANIMATION) {
+            if(commonParams.canBeInterrupted && !commonParams.interruptedWindow.isEmpty()){
+                if (commonParams.interruptType == InterruptType.TIME) {
+                    if(commonParams.behaviorTime == 0 || getType() == BehaviorType.ANIMATION) {
                         AnimationPlayer animator = mobPatch.getAnimator().getPlayerFor(null);
                         if (animator != null) {
                             float prevElapsedTime = animator.getPrevElapsedTime();
                             float elapsedTime = animator.getElapsedTime();
-                            return elapsedTime >= interruptedWindow.get(0) && elapsedTime < interruptedWindow.get(1) || prevElapsedTime >= interruptedWindow.get(0) && prevElapsedTime < interruptedWindow.get(1);
+                            return elapsedTime >= commonParams.interruptedWindow.get(0) && elapsedTime < commonParams.interruptedWindow.get(1) || prevElapsedTime >= commonParams.interruptedWindow.get(0) && prevElapsedTime < commonParams.interruptedWindow.get(1);
                         }
                     }
                     else {
-                        int elapsedTick = behaviorTime - timeCount;
-                        return elapsedTick * 0.05F >= interruptedWindow.get(0) && elapsedTick * 0.05F < interruptedWindow.get(1);
+                        int elapsedTick = commonParams.behaviorTime - commonParams.timeCount;
+                        return elapsedTick * 0.05F >= commonParams.interruptedWindow.get(0) && elapsedTick * 0.05F < commonParams.interruptedWindow.get(1);
                     }
                 }
-                else if(interruptType == InterruptType.LEVEL) {
-                    return interruptedWindow.contains((float)mobPatch.getEntityState().getLevel());
+                else if(commonParams.interruptType == InterruptType.LEVEL) {
+                    return commonParams.interruptedWindow.contains((float)mobPatch.getEntityState().getLevel());
                 }
             }
             return false;
@@ -825,13 +799,16 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
         public void execute(T mobPatch) {
             this.behavior.accept(mobPatch);
-            for(Consumer<T> consumer : this.exBehaviors){
-                consumer.accept(mobPatch);
-            }
+            this.eventManager.execute(BehaviorStartEvent.class, new BehaviorStartEvent.EventParams(mobPatch));
             mobPatch.updateEntityState();
-            this.canApplyPhaseParams = true;
-            this.shouldExecuteTimeEvent = true;
-            this.shouldExecuteHitEvent = true;
+            this.animationParams.canApplyPhaseParams = true;
+            this.commonParams.shouldExecuteTimeEvent = true;
+            this.commonParams.shouldExecuteHitEvent = true;
+            commonParams.timeCount = commonParams.behaviorTime;
+            commonParams.waitTime = commonParams.totalWaitTime;
+            if(mobPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch){
+                ceHumanoidPatch.setGuardHitCost(guardParams.guardCost);
+            }
             this.state = BehaviorState.RUNNING;
         }
 
@@ -850,7 +827,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         public void resetCooldown() {
             if(this.behaviorRoot.cooldown < this.behaviorRoot.maxCooldown) {
                 //System.out.println("根节点["+behaviorRoot.getRootName()+"]进入冷却");
-                this.behaviorRoot.resetCooldown(this.exCoolDown);
+                this.behaviorRoot.resetCooldown(this.commonParams.exCoolDown);
             }
         }
 
@@ -873,7 +850,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
         public void running(T mobPatch) {
             if(type == BehaviorType.WANDER || type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) {
-                if (timeCount > 0) {
+                if (commonParams.timeCount > 0) {
                     //索敌朝向
                     if(mobPatch.getTarget()!=null) {
                         mobPatch.rotateTo(mobPatch.getTarget(),360F,true);
@@ -892,28 +869,26 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     if(type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER){
                         this.behavior.accept(mobPatch);
                         //如果防御被取消，直接进入等待
-                        if(!CEPatchUtils.isGuard(mobPatch) && !canCounter) {
+                        if(!CEPatchUtils.isGuard(mobPatch) && !guardParams.canCounter) {
                             behaviorWaiting();
                         }
                     }
 
 
-                    if((type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) && canCounter){
+                    if((type == BehaviorType.GUARD || type == BehaviorType.GUARD_WANDER) && guardParams.canCounter){
                         CEPatchUtils.setInCounter(mobPatch, true);
                         if (mobPatch.getEntityState().canBasicAttack()) {
-                            canCounter = false;
+                            guardParams.canCounter = false;
                             stopGuardAndWander(mobPatch);
-                            this.counter.accept(mobPatch);
-                            for (Consumer<T> consumer : this.onCounterStart){
-                                consumer.accept(mobPatch);
-                            }
+                            this.guardParams.counter.accept(mobPatch);
+                            this.eventManager.execute(CounterStartEvent.class, new CounterStartEvent.EventParams(mobPatch));
                         }
                         else {
-                            timeCount++;
+                            commonParams.timeCount++;
                         }
                     }
 
-                    timeCount--;
+                    commonParams.timeCount--;
                 }
                 else if (mobPatch.getEntityState().canBasicAttack()) {
                     stopGuardAndWander(mobPatch);
@@ -922,7 +897,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             }
             else if(type == BehaviorType.ANIMATION || type == BehaviorType.CUSTOM){
-                if (mobPatch.getEntityState().canBasicAttack() && (!nextBehaviors.isEmpty() || behaviorRoot.isGlobal() || canInsertGlobalBehavior)) {
+                if (mobPatch.getEntityState().canBasicAttack() && (!nextBehaviors.isEmpty() || behaviorRoot.isGlobal() || commonParams.canInsertGlobalBehavior)) {
                     behaviorWaiting();
                 }
                 else if (!mobPatch.getEntityState().inaction() && nextBehaviors.isEmpty()) {
@@ -945,14 +920,14 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 if (mobPatch.isLogicalClient()) {
                     mobPatch.getAnimator().stopPlaying(guardAnimation);
                 } else {
-                    mobPatch.stopPlaying(guardAnimation);
+                     mobPatch.stopPlaying(guardAnimation);
                 }
             }
         }
 
         public void waiting(T mobPatch) {
-            if(waitTime > 0) {
-                waitTime--;
+            if(commonParams.waitTime > 0) {
+                commonParams.waitTime--;
             }
             else {
                 behaviorFinished();
@@ -960,41 +935,41 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
         }
 
         public boolean whenGuardHit(){
-            if(resetGuardTime){
-                timeCount = behaviorTime;
+            if(guardParams.resetGuardTime){
+                commonParams.timeCount = commonParams.behaviorTime;
             }
-            switch (counterType){
+            switch (guardParams.counterType){
                 case END -> {
-                    guardHit--;
-                    if(guardHit <= 0){
-                        canCounter = true;
-                        timeCount = 1;
+                    guardParams.guardHit--;
+                    if(guardParams.guardHit <= 0){
+                        guardParams.canCounter = true;
+                        commonParams.timeCount = 1;
                     }
                 }
                 case RANDOM -> {
-                    if(counterChance >= Math.random()){
-                        canCounter = true;
-                        timeCount = 1;
+                    if(guardParams.counterChance >= Math.random()){
+                        guardParams.canCounter = true;
+                        commonParams.timeCount = 1;
                     }
                 }
             }
-            return canCounter;
+            return guardParams.canCounter;
         }
 
-        public void behaviorWaiting(){
-            if(totalWaitTime > 0) this.state = BehaviorState.WAITING;
+        public void behaviorWaiting() {
+            if(commonParams.totalWaitTime > 0) this.state = BehaviorState.WAITING;
             else behaviorFinished();
         }
 
-        public void behaviorFinished(){
+        public void behaviorFinished() {
             this.state = BehaviorState.FINISHED;
-            timeCount = behaviorTime;
-            guardHit = maxGuardHit;
-            waitTime = totalWaitTime;
-            canCounter = false;
-            canApplyPhaseParams = false;
-            shouldExecuteTimeEvent = false;
-            shouldExecuteHitEvent = false;
+            commonParams.timeCount = commonParams.behaviorTime;
+            commonParams.waitTime = commonParams.totalWaitTime;
+            commonParams.shouldExecuteTimeEvent = false;
+            commonParams.shouldExecuteHitEvent = false;
+            animationParams.canApplyPhaseParams = false;
+            guardParams.canCounter = false;
+            guardParams.guardHit = guardParams.maxGuardHit;
         }
 
         public boolean isWaiting() {
@@ -1020,23 +995,23 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 6 不会被short long hold knockdown打断
                 7 不会被short long hold fall knockdown打断
              */
-            if(stopByStun == 1) return true;
-            else if(stopByStun == 2){
+            if(commonParams.stopByStun == 1) return true;
+            else if(commonParams.stopByStun == 2){
                 return stunType != StunType.SHORT;
             }
-            else if(stopByStun == 3){
+            else if(commonParams.stopByStun == 3){
                 return stunType != StunType.SHORT && stunType != StunType.LONG;
             }
-            else if(stopByStun == 4){
+            else if(commonParams.stopByStun == 4){
                 return stunType != StunType.SHORT && stunType != StunType.LONG && stunType != StunType.HOLD;
             }
-            else if(stopByStun == 5){
+            else if(commonParams.stopByStun == 5){
                 return stunType != StunType.SHORT && stunType != StunType.LONG && stunType != StunType.HOLD && stunType != StunType.FALL;
             }
-            else if(stopByStun == 6){
+            else if(commonParams.stopByStun == 6){
                 return stunType != StunType.SHORT && stunType != StunType.LONG && stunType != StunType.HOLD && stunType != StunType.KNOCKDOWN;
             }
-            else if(stopByStun == 7){
+            else if(commonParams.stopByStun == 7){
                 return stunType != StunType.SHORT && stunType != StunType.LONG && stunType != StunType.HOLD && stunType != StunType.FALL && stunType != StunType.KNOCKDOWN;
             }
             else {
@@ -1044,90 +1019,72 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
         }
 
-        public AssetAccessor<? extends StaticAnimation> getCounterAnimation() {
-            return counterAnimation;
-        }
 
         public int getBehaviorTime() {
-            return behaviorTime;
+            return commonParams.behaviorTime;
         }
 
         public int getTimeCount() {
-            return timeCount;
+            return commonParams.timeCount;
         }
 
         public boolean canInsertGlobalBehavior() {
-            return canInsertGlobalBehavior;
+            return commonParams.canInsertGlobalBehavior;
         }
 
         public List<String> getAllowedGlobalNameList() {
-            return allowedGlobalNameList;
+            return commonParams.allowedGlobalNameList;
+        }
+
+        public boolean canInterruptParent() {
+            return commonParams.canInterruptParent;
         }
 
 
         //行为类构造器
+        @SuppressWarnings("UnusedReturnValue")
         public static class Builder<T extends MobPatch<?>> {
             private String behaviorName = "";
-            private Consumer<T> counter;
             private Consumer<T> behavior;
-            private boolean canInsertGlobalBehavior = false;
-            private List<String> allowedGlobalNameList = new ArrayList<>();
-            private final List<Consumer<T>> exBehaviors = new ArrayList<>();
-            private final List<Consumer<T>> onCounterStart = new ArrayList<>();
-            private BehaviorType type = BehaviorType.NONE;
-            private double priority = 1;
-            private double weight = 1;
-            private int exCoolDown = 0;
-            private int behaviorTime = 0;
-            private CounterType counterType = CounterType.NEVER;
-            private double counterChance = 0.25;
-            private int maxGuardHit = Integer.MAX_VALUE;
-            private boolean resetGuardTime = false;
-            private int totalWaitTime = 0;
-            private int stopByStun = 1;
-            private boolean canInterruptParent = false;
-            private boolean canBeInterrupted = false;
-            private InterruptType interruptType = InterruptType.TIME;
-            private List<Float> interruptedWindow = new ArrayList<>();
             private final List<Condition<T>> conditions = new ArrayList<>();
             private final List<Builder<T>> nextBehaviors = new ArrayList<>();
-            private AssetAccessor<? extends StaticAnimation> counterAnimation;
-            private final LivingEntityPatch.ServerAnimationPacketProvider packetProvider = SPAnimatorControl::new;
-            private final List<TimeEvent> timeEventList = new ArrayList<>();
-            private final List<HitEvent> hitEventList = new ArrayList<>();
-            private OnHurtEvent onHurtEvent;
-            private final List<GuardHitEvent> guardHitEventList = new ArrayList<>();
-            private final Map<Integer,PhaseParams> phaseParams = new HashMap<>();
+            private BehaviorType type = BehaviorType.NONE;
+
+            private final BehaviorParams.CommonParams commonParams = new BehaviorParams.CommonParams();        //行为参数
+            private final BehaviorParams.AnimationBehavior animationParams = new BehaviorParams.AnimationBehavior();        //行为参数
+            private final BehaviorParams.GuardBehavior<T> guardParams = new BehaviorParams.GuardBehavior<>();        //行为参数
             private final CEMobEventManager eventManager = new CEMobEventManager();
 
+            private final LivingEntityPatch.ServerAnimationPacketProvider packetProvider = SPAnimatorControl::new;
+
             public Builder<T> canInsertGlobalBehavior(boolean canInsertGlobalBehavior,String... allowedGlobalNames) {
-                this.canInsertGlobalBehavior = canInsertGlobalBehavior;
-                this.allowedGlobalNameList = List.of(allowedGlobalNames);
+                this.commonParams.canInsertGlobalBehavior = canInsertGlobalBehavior;
+                this.commonParams.allowedGlobalNameList = List.of(allowedGlobalNames);
                 return this;
             }
 
             public Builder<T> addTimeEvent(TimeEvent timeEvents) {
-                this.timeEventList.add(timeEvents);
+                this.eventManager.addEvent(TimeEvent.class , timeEvents);
                 return this;
             }
 
             public Builder<T> addTimeEvent(TimeEvent... timeEvents) {
-                this.timeEventList.addAll(List.of(timeEvents));
+                this.eventManager.addEvent(TimeEvent.class , timeEvents);
                 return this;
             }
 
             public Builder<T> addHitEvent(HitEvent hitEvents) {
-                this.hitEventList.add(hitEvents);
+                this.eventManager.addEvent(HitEvent.class, hitEvents);
                 return this;
             }
 
             public Builder<T> addHitEvent(HitEvent... hitEvents) {
-                this.hitEventList.addAll(List.of(hitEvents));
+                this.eventManager.addEvent(HitEvent.class, hitEvents);
                 return this;
             }
 
             public Builder<T> setOnHurtEvent(OnHurtEvent onHurtEvent) {
-                this.onHurtEvent = onHurtEvent;
+                this.eventManager.setEventWithReturn(OnHurtEvent.class, onHurtEvent);
                 return this;
             }
 
@@ -1143,69 +1100,74 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> addGuardHitEvent(GuardHitEvent... guardHitEvent){
-                this.guardHitEventList.addAll(List.of(guardHitEvent));
+                this.eventManager.addEvent(GuardHitEvent.class, guardHitEvent);
                 return this;
             }
 
             public Builder<T> counterType(CounterType counterType) {
-                this.counterType = counterType;
+                this.guardParams.counterType = counterType;
                 return this;
             }
 
             public Builder<T> counterChance(double counterChance) {
-                this.counterChance = counterChance;
+                this.guardParams.counterChance = counterChance;
                 return this;
             }
 
             public Builder<T> maxGuardHit(int maxGuardHit) {
-                this.maxGuardHit = maxGuardHit;
+                this.guardParams.maxGuardHit = maxGuardHit;
+                return this;
+            }
+
+            public Builder<T> guardHitCost(float cost){
+                this.guardParams.guardCost = cost;
                 return this;
             }
 
             public Builder<T> resetGuardTime(boolean resetGuardTime) {
-                this.resetGuardTime = resetGuardTime;
+                this.guardParams.resetGuardTime = resetGuardTime;
                 return this;
             }
 
             public Builder<T> canInterruptParent(boolean canInterruptParent) {
-                this.canInterruptParent = canInterruptParent;
+                this.commonParams.canInterruptParent = canInterruptParent;
                 return this;
             }
 
             public Builder<T> interruptedByTime(float start, float end) {
-                this.canBeInterrupted = true;
-                this.interruptType = InterruptType.TIME;
-                this.interruptedWindow = new ArrayList<>(List.of(start,end));
+                this.commonParams.canBeInterrupted = true;
+                this.commonParams.interruptType = InterruptType.TIME;
+                this.commonParams.interruptedWindow = new ArrayList<>(List.of(start,end));
                 return this;
             }
 
             public Builder<T> interruptedByLevel(Integer... levels) {
-                this.canBeInterrupted = true;
-                this.interruptType = InterruptType.LEVEL;
+                this.commonParams.canBeInterrupted = true;
+                this.commonParams.interruptType = InterruptType.LEVEL;
                 for(int level : levels) {
-                    interruptedWindow.add((float) level);
+                    commonParams.interruptedWindow.add((float) level);
                 }
                 return this;
             }
 
             public Builder<T> setCooldown(int exCoolDown) {
-                this.exCoolDown = exCoolDown;
+                this.commonParams.exCoolDown = exCoolDown;
                 return this;
             }
 
             public Builder<T> addCooldown(int exCoolDown) {
-                this.exCoolDown += exCoolDown;
+                this.commonParams.exCoolDown += exCoolDown;
                 return this;
             }
 
             public Builder<T> waitTime(int waitTime) {
-                this.totalWaitTime = waitTime;
+                this.commonParams.totalWaitTime = waitTime;
                 return this;
             }
 
 
             public Builder<T> stopByStun(int stopByStun) {
-                this.stopByStun = stopByStun;
+                this.commonParams.stopByStun = stopByStun;
                 return this;
             }
 
@@ -1220,48 +1182,70 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 return this;
             }
 
-            public Builder<T> addExBehavior(Consumer<T> behavior) {
-                this.exBehaviors.add(behavior);
+            public Builder<T> onBehaviorStart(BehaviorStartEvent... behaviors) {
+                this.eventManager.addEvent(BehaviorStartEvent.class, behaviors);
                 return this;
             }
 
             @SafeVarargs
+            public final Builder<T> onBehaviorStart(Consumer<MobPatch<?>>... customBehaviors) {
+                for(Consumer<MobPatch<?>> consumer : customBehaviors) {
+                    this.eventManager.addEvent(BehaviorStartEvent.class, new BehaviorStartEvent(consumer));
+                }
+                return this;
+            }
+
+            /**
+             *请使用 {@link #onBehaviorStart(BehaviorStartEvent...)} 替代
+             */
+            @SuppressWarnings("unchecked")
+            @Deprecated
+            public Builder<T> addExBehavior(Consumer<T> behavior) {
+                this.onBehaviorStart(new BehaviorStartEvent((Consumer<MobPatch<?>>) behavior));
+                return this;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Deprecated
+            @SafeVarargs
             public final Builder<T> addExBehavior(Consumer<T>... behaviors) {
-                this.exBehaviors.addAll(List.of(behaviors));
+                for(Consumer<T> behavior : behaviors) {
+                    this.onBehaviorStart(new BehaviorStartEvent((Consumer<MobPatch<?>>) behavior));
+                }
                 return this;
             }
 
             public Builder<T> setStamina(float stamina) {
-                this.exBehaviors.add(mobPatch -> {
+                this.onBehaviorStart(new BehaviorStartEvent(mobPatch -> {
                     CEPatchUtils.setStamina(mobPatch, stamina);
-                });
+                }));
                 return this;
             }
 
             public Builder<T> addStamina(float stamina) {
-                this.exBehaviors.add(mobPatch -> {
+                this.onBehaviorStart(new BehaviorStartEvent(mobPatch -> {
                     CEPatchUtils.addStamina(mobPatch, stamina);
-                });
+                }));
                 return this;
             }
 
             public Builder<T> setPhase(int phase){
-                this.exBehaviors.add((mobPatch)->{
+                this.onBehaviorStart(new BehaviorStartEvent((mobPatch)->{
                     CEPatchUtils.setPhase(mobPatch, phase);
-                });
+                }));
                 return this;
             }
 
 
             public Builder<T> addPhase(int add){
-                this.exBehaviors.add((mobPatch)->{
+                this.onBehaviorStart(new BehaviorStartEvent((mobPatch)->{
                     CEPatchUtils.addPhase(mobPatch, add);
-                });
+                }));
                 return this;
             }
 
             public Builder<T> wander(int totalTime,float pForward, float pStrafe) {
-                this.behaviorTime = totalTime;
+                this.commonParams.behaviorTime = totalTime;
                 this.type = BehaviorType.WANDER;
                 this.behavior = (mobPatch)->{
                     CEPatchUtils.setWander(mobPatch, true);
@@ -1272,7 +1256,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
 
             public Builder<T> wanderWithAnimation(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation, int totalTime, float pForward, float pStrafe) {
-                this.behaviorTime = totalTime;
+                this.commonParams.behaviorTime = totalTime;
                 this.type = BehaviorType.WANDER;
                 this.behavior = (mobPatch)->{
                     CEPatchUtils.setWander(mobPatch, true);
@@ -1286,7 +1270,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> guard(int totalTime) {
-                behaviorTime = totalTime;
+                commonParams.behaviorTime = totalTime;
                 this.type = BehaviorType.GUARD;
                 this.behavior = (mobPatch)->{
                     CEPatchUtils.setGuard(mobPatch, true);
@@ -1305,7 +1289,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
 
             public Builder<T> guardWithWander(int totalTime,float pForward, float pStrafe,boolean playGuardAnimation) {
-                behaviorTime = totalTime;
+                commonParams.behaviorTime = totalTime;
                 this.type = BehaviorType.GUARD_WANDER;
                 this.behavior = (mobPatch)->{
                     CEPatchUtils.setGuard(mobPatch, true);
@@ -1323,14 +1307,22 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
 
+            @SuppressWarnings("unchecked")
             public Builder<T> onCounterStart(Consumer<T> behavior) {
-                this.onCounterStart.add(behavior);
+                this.eventManager.addEvent(CounterStartEvent.class, new CounterStartEvent((Consumer<MobPatch<?>>) behavior));
                 return this;
             }
 
-            @SafeVarargs
-            public final Builder<T> onCounterStart(Consumer<T>... behavior) {
-                this.onCounterStart.addAll(List.of(behavior));
+            @SuppressWarnings("unchecked")
+            public final Builder<T> onCounterStart(Consumer<T>... behaviors) {
+                for(Consumer<T> behavior : behaviors) {
+                    this.eventManager.addEvent(CounterStartEvent.class, new CounterStartEvent((Consumer<MobPatch<?>>) behavior));
+                }
+                return this;
+            }
+
+            public Builder<T> onCounterStart(CounterStartEvent... events) {
+                this.eventManager.addEvent(CounterStartEvent.class, events);
                 return this;
             }
 
@@ -1339,10 +1331,9 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> counterAnimation(AssetAccessor<? extends StaticAnimation> counterAnimation, AnimationParams params) {
-                this.counterAnimation = counterAnimation;
-                this.phaseParams.clear();
-                this.phaseParams.putAll(params.getPhaseParams());
-                this.counter = (mobPatch)-> {
+                this.animationParams.phaseParams.clear();
+                this.animationParams.phaseParams.putAll(params.getPhaseParams());
+                this.guardParams.counter = (mobPatch)-> {
                     mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
                     if(mobPatch instanceof ILivingEntityData livingEntityData) {
                         livingEntityData.combat_evolution$setCanModifySpeed(params.shouldChangeSpeed());
@@ -1354,8 +1345,8 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
             public Builder<T> animationBehavior(AnimationManager.AnimationAccessor<? extends StaticAnimation> motion, AnimationParams params) {
                 this.type = BehaviorType.ANIMATION;
-                this.phaseParams.clear();
-                this.phaseParams.putAll(params.getPhaseParams());
+                this.animationParams.phaseParams.clear();
+                this.animationParams.phaseParams.putAll(params.getPhaseParams());
                 this.behavior = (mobPatch) -> {
                     mobPatch.playAnimationSynchronized(motion, params.getTransitionTime(), this.packetProvider);
                     if (mobPatch instanceof ILivingEntityData livingEntityData) {
@@ -1371,12 +1362,12 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             }
 
             public Builder<T> priority(double priority) {
-                this.priority = priority;
+                this.commonParams.priority = priority;
                 return this;
             }
 
             public Builder<T> weight(double weight) {
-                this.weight = weight;
+                this.commonParams.weight = weight;
                 return this;
             }
 

@@ -7,7 +7,7 @@ import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 import java.util.function.BiConsumer;
 
-public class HitEvent implements CEMobEvent {
+public class HitEvent implements CEMobEvent<HitEvent.EventParams> {
     private final BiConsumer<MobPatch<?>, Entity> behavior;
     private final int phaseIndex;
     private final AttackResult.ResultType hitType;
@@ -42,4 +42,11 @@ public class HitEvent implements CEMobEvent {
             behavior.accept(mobPatch, target);
         }
     }
+
+    @Override
+    public void execute(EventParams param) {
+        executeHitEvent(param.phase, param.resultType, param.mobPatch, param.target);
+    }
+
+    public record EventParams(int phase, AttackResult.ResultType resultType, MobPatch<?> mobPatch, Entity target){}
 }

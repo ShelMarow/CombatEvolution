@@ -1,11 +1,12 @@
 package net.shelmarow.combat_evolution.ai.event;
 
+import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.event.manager.CEMobEvent;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 import java.util.function.Consumer;
 
-public class TimeEvent implements CEMobEvent {
+public class TimeEvent implements CEMobEvent<TimeEvent.EventParams> {
     private boolean available = true;
     private final float timeStart;
     private final float timeEnd;
@@ -62,9 +63,16 @@ public class TimeEvent implements CEMobEvent {
         available = true;
     }
 
+    @Override
+    public void execute(EventParams param) {
+        executeIfAvailable(param.prevElapsedTime, param.elapsedTime,param.ceHumanoidPatch);
+    }
+
     public enum EventType{
         TICK,
         IN_TIME,
         BETWEEN_TIMES
     }
+
+    public record EventParams(float prevElapsedTime, float elapsedTime, CEHumanoidPatch<?> ceHumanoidPatch){}
 }

@@ -6,7 +6,7 @@ import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 import java.util.function.BiConsumer;
 
-public class GuardHitEvent implements CEMobEvent {
+public class GuardHitEvent implements CEMobEvent<GuardHitEvent.EventParams> {
     private final BiConsumer<MobPatch<?>, DamageSource> behavior;
 
     public GuardHitEvent(BiConsumer<MobPatch<?>, DamageSource> behavior) {
@@ -16,4 +16,11 @@ public class GuardHitEvent implements CEMobEvent {
     public void executeGuardHitEvent(MobPatch<?> mobPatch, DamageSource damageSource){
         this.behavior.accept(mobPatch, damageSource);
     }
+
+    @Override
+    public void execute(EventParams param) {
+        executeGuardHitEvent(param.mobPatch, param.damageSource);
+    }
+
+    public record EventParams(MobPatch<?> mobPatch, DamageSource damageSource){}
 }

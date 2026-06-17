@@ -1,7 +1,6 @@
 package net.shelmarow.combat_evolution.example.entity.shelmarow.ai;
 
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -119,7 +118,7 @@ public class ShelMarowCombatBehaviors {
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
                                 .withinDistance(0, 4)
                                 .animationBehavior(Animations.LONGSWORD_LIECHTENAUER_AUTO1, 0.25F)
-                                .addExBehavior(mobPatch -> {
+                                .onBehaviorStart(mobPatch -> {
                                     mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
                                 })
                                 .setOnHurtEvent(new OnHurtEvent(onLongswordSkillBlocked()))
@@ -127,7 +126,7 @@ public class ShelMarowCombatBehaviors {
                                 .addNextBehavior(CECombatBehaviors.Behavior.builder()
                                         .withinDistance(0, 4)
                                         .animationBehavior(Animations.LONGSWORD_LIECHTENAUER_AUTO2, 0.25F)
-                                        .addExBehavior(mobPatch -> {
+                                        .onBehaviorStart(mobPatch -> {
                                             mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
                                         })
                                         .setOnHurtEvent(new OnHurtEvent(onLongswordSkillBlocked()))
@@ -135,7 +134,7 @@ public class ShelMarowCombatBehaviors {
                                         .addNextBehavior(CECombatBehaviors.Behavior.builder()
                                                 .withinDistance(0, 4)
                                                 .animationBehavior(Animations.LONGSWORD_LIECHTENAUER_AUTO3, 0.25F)
-                                                .addExBehavior(mobPatch -> {
+                                                .onBehaviorStart(mobPatch -> {
                                                     mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
                                                 })
                                                 .setOnHurtEvent(new OnHurtEvent(onLongswordSkillBlocked()))
@@ -221,6 +220,7 @@ public class ShelMarowCombatBehaviors {
                                 .stopByStun(7)
                                 .withinDistance(0, 4)
                                 .guard(60)
+                                .guardHitCost(1F)
                                 .counterAnimation(Animations.THE_GUILLOTINE, 0.15F)
                                 .counterType(CECombatBehaviors.CounterType.END)
                                 .maxGuardHit(3)
@@ -242,13 +242,14 @@ public class ShelMarowCombatBehaviors {
                                 .stopByStun(7)
                                 .withinDistance(0, 4)
                                 .guard(60)
+                                .guardHitCost(0.5F)
                                 .counterAnimation(Animations.SWEEPING_EDGE, new AnimationParams()
                                         .transitionTime(0.25F).playSpeed(0.75F)
                                         .damageMultiplier(1.5F).impactMultiplier(1.5F).armorNegationMultiplier(2F)
                                         .damageSource(Set.of(EpicFightDamageTypeTags.BYPASS_DODGE))
                                 )
-                                .counterType(CECombatBehaviors.CounterType.RANDOM)
-                                .counterChance(0.35F)
+                                .counterType(CECombatBehaviors.CounterType.END)
+                                .maxGuardHit(3)
                                 .onCounterStart(mobPatch -> {
                                     mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
                                     if(mobPatch.getTarget() != null){

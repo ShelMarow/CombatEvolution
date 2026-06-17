@@ -25,10 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -199,6 +196,14 @@ public class ExecutionHandler {
                     target.addDeltaMovement(new Vec3(vec.x, 0, vec.z));
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingHeal(LivingHealEvent event){
+        //被处决的目标禁止回血
+        if(EXECUTION_TARGETS.containsKey(event.getEntity())){
+            event.setCanceled(true);
         }
     }
 

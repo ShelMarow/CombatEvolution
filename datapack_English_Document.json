@@ -161,7 +161,7 @@
                   }
                 ]
               },
-              "exBehavior": [ // [Optional] Events executed synchronously at the start of the behavior. Can be used for all behavior types.
+              "onBehaviorStart": [ // [Optional] Events executed synchronously at the start of the behavior. Can be used for all behavior types.
                 {"onTarget": false, "command": "/say Command executed at behavior start"}
               ],
               "timeEvents": [ // [Optional] Timestamp events. Only usable in animation behaviors.
@@ -233,6 +233,7 @@
               "counterAnimation": "combat_evolution:biped/skill/shield_counter/shield_counter",
               "guardTime": 60,
               "resetGuardTime": true,
+              "guardCost": 1,    //[Optional]  Stamina Cost Percent
               "counterType": "end", // <Required> Counter type: 'random', 'end', 'never'.
               "maxGuardHit": 3,    // <Required> Required if counterType is 'end'. Number of blocks before countering.
               "onGuardHit": [       //[Optional] Event triggered on every guard hit except last block before the counter

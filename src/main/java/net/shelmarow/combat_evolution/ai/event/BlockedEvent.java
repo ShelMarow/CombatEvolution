@@ -6,7 +6,7 @@ import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 import java.util.function.BiConsumer;
 
-public class BlockedEvent implements CEMobEvent {
+public class BlockedEvent implements CEMobEvent<BlockedEvent.EventParams> {
     private final BiConsumer<MobPatch<?>, LivingEntityPatch<?>> behavior;
     private final int phaseIndex;
     private final boolean parried;
@@ -30,13 +30,13 @@ public class BlockedEvent implements CEMobEvent {
     }
 
     @Override
-    public void execute(Object... params) {
-        int phase = (int) params[0];
-        MobPatch<?> mobPatch = (MobPatch<?>) params[1];
-        LivingEntityPatch<?> target = (LivingEntityPatch<?>) params[2];
-        boolean parried = (boolean) params[3];
-        if (this.parried == parried && (this.phaseIndex == -1 || this.phaseIndex == phase)) {
-            behavior.accept(mobPatch, target);
-        }
+    public void execute(BlockedEvent.EventParams param) {
+        int phase = param.phase;
+        MobPatch<?> mobPatch = param.mobPatch;
+        LivingEntityPatch<?> target = param.target;
+        boolean parried = param.parried;
+        executeBlockedEvent(phase, mobPatch, target, parried);
     }
+
+    public record EventParams(int phase, MobPatch<?> mobPatch, LivingEntityPatch<?> target, boolean parried){}
 }

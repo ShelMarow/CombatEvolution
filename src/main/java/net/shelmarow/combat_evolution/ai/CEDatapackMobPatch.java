@@ -96,6 +96,11 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
         }
     }
 
+    @Override
+    public boolean shouldDisplayHealthBar(){
+        return !ceBossEvent.isVisible();
+    }
+
     public void putAndSetCustomAttributes() {
         Map<Attribute, AttributeInstance> newMap = Maps.newHashMap();
         AttributeSupplier.Builder builder = AttributeSupplier.builder();

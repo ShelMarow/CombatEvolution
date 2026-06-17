@@ -161,7 +161,7 @@
                   }
                 ]
               },
-              "exBehavior": [ //[可选]  额外事件，在行为开始时同步执行的内容，可以用于全类型行为
+              "onBehaviorStart": [ //[可选]  额外事件，在行为开始时同步执行的内容，可以用于全类型行为
                 {"onTarget": false, "command": "/say 行为开始时额外执行的指令"}
               ],
               "timeEvents": [ //[可选]  时间戳事件，只能用于动画行为
@@ -233,6 +233,7 @@
               "counterAnimation": "combat_evolution:biped/skill/shield_counter/shield_counter",
               "guardTime": 60,
               "resetGuardTime": true,
+              "guardCost": 1,    //[可选]  防御消耗的耐力百分比
               "counterType": "end", //<必填>  反击类型，可选 random随机 end固定次数 never不反击
               "maxGuardHit": 3,    //<必填>  当反击类型为end时必填，表示防御多少次后开始反击
               "onGuardHit": [       //[可选]  反击前每一次防御受击时触发的内容

@@ -88,7 +88,7 @@
             {
               "behaviorName": "初始武器切换",
               "wanderTime": 0,
-              "exBehavior": [
+              "onBehaviorStart": [
                 {"onTarget": false, "command": "/item replace entity @s weapon.mainhand with epicfight:diamond_longsword"}
               ]
             }

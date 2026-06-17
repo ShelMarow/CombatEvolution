@@ -1,11 +1,11 @@
 package net.shelmarow.combat_evolution.ai.event;
 
-import net.shelmarow.combat_evolution.ai.event.manager.CEMobEvent;
+import net.shelmarow.combat_evolution.ai.event.manager.CEMobEventWithReturn;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 import java.util.function.Function;
 
-public class BeforeCounterEvent implements CEMobEvent {
+public class BeforeCounterEvent implements CEMobEventWithReturn<MobPatch<?>, Boolean> {
     private final Function<MobPatch<?>, Boolean> beforeCounterEvents;
 
     public BeforeCounterEvent(Function<MobPatch<?>, Boolean> beforeCounterEvents) {
@@ -17,8 +17,8 @@ public class BeforeCounterEvent implements CEMobEvent {
     }
 
     @Override
-    public Object executeAndReturn(Object... params) {
-        MobPatch<?> mobPatch = (MobPatch<?>) params[0];
-        return beforeCounterEvents.apply(mobPatch);
+    public Boolean executeAndReturn(MobPatch<?> param) {
+        return executeBeforeCounterEvent(param);
     }
+
 }

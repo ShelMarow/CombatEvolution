@@ -24,8 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.shelmarow.combat_evolution.ai.event.BeforeCounterEvent;
-import net.shelmarow.combat_evolution.ai.event.BlockedEvent;
+import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
 import net.shelmarow.combat_evolution.ai.goal.CommonChasingGoal;
 import net.shelmarow.combat_evolution.ai.iml.IDamageSourceData;
@@ -75,6 +74,8 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
     protected int breakTime = 40;
     protected int recoverTime = 60;
     protected int recoverTickCount = 0;
+
+    protected float guardHitCost = 1F;
 
     protected int lastActionTime = 0;
     protected int staminaRegenDelay = 60;
@@ -212,6 +213,15 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         });
     }
 
+    public StaminaStatus getStaminaStatus() {
+        return CEPatchUtils.getStaminaStatus(this);
+    }
+
+
+    public boolean shouldDisplayHealthBar(){
+        return true;
+    }
+
     @Override
     public AttackResult tryHurt(DamageSource damageSource, float amount) {
         AttackResult result = super.tryHurt(damageSource, amount);
@@ -225,7 +235,10 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
                         result = combatBehavior.executeNoBehaviorOnHurt(this, damageSource, result);
                     }
                 } else {
-                    result = current.executeOnHurtEvent(this, damageSource, result);
+                    AttackResult attackResult = current.executeEventAndReturn(OnHurtEvent.class, new OnHurtEvent.EventParams(this, damageSource, result));
+                    if(attackResult != null){
+                        result = attackResult;
+                    }
                 }
             }
         }
@@ -259,7 +272,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         int phase = damageSource instanceof IDamageSourceData sourceData ? sourceData.getSourcePhaseIndex() : -1;
         CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
         if (current != null && current.shouldExecuteHitEvent()) {
-            current.executeHitEvent(phase, attackResult.resultType, this, target);
+            current.executeEvent(HitEvent.class, new HitEvent.EventParams(phase, attackResult.resultType, this, target));
         }
         return attackResult;
     }
@@ -304,11 +317,13 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
             if (current != null) {
                 if (canCounter) {
-                    cancelHitAnimation = (boolean) current.executeEventAndReturn(BeforeCounterEvent.class,this);
-                    //cancelHitAnimation = current.executeBeforeCounterEvent(this);
+                    Object object = current.executeEventAndReturn(BeforeCounterEvent.class, this);
+                    if(object instanceof Boolean result){
+                        cancelHitAnimation = result;
+                    }
                 }
                 else {
-                    current.executeGuardHitEvent(this, damageSource);
+                    current.executeEvent(GuardHitEvent.class,new GuardHitEvent.EventParams(this, damageSource));
                 }
             }
 
@@ -319,7 +334,16 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
     }
 
     public float getGuardHitImpactPercent(DamageSource damageSource){
-        return 1F;
+        return getGuardHitCost();
+    }
+
+
+    public float getGuardHitCost() {
+        return guardHitCost;
+    }
+
+    public void setGuardHitCost(float guardHitCost) {
+        this.guardHitCost = guardHitCost;
     }
 
     public void playGuardHitAnimation(DamageSource damageSource, boolean canCounter){
@@ -372,13 +396,14 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         }
     }
 
+
+
     @Override
     public void onAttackBlocked(DamageSource damageSource, LivingEntityPatch<?> blocker) {
         int phase = (damageSource instanceof IDamageSourceData sourceData) ? sourceData.getSourcePhaseIndex() : -1;
         CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
         if(current != null){
-            current.executeEvent(BlockedEvent.class,phase, this, blocker, false);
-            //current.executeBlockedEvent(phase, this, blocker, false);
+            current.executeEvent(BlockedEvent.class, new BlockedEvent.EventParams(phase, this, blocker, false));
         }
     }
 
@@ -386,8 +411,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         int phase = (damageSource instanceof IDamageSourceData sourceData) ? sourceData.getSourcePhaseIndex() : -1;
         CECombatBehaviors.Behavior<?> current = BehaviorUtils.getCurrentBehavior(this);
         if(current != null){
-            current.executeEvent(BlockedEvent.class,phase, this, blocker, true);
-            //current.executeBlockedEvent(phase, this, blocker, true);
+            current.executeEvent(BlockedEvent.class,new BlockedEvent.EventParams(phase, this, blocker, true));
         }
     }
 

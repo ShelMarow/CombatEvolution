@@ -21,6 +21,7 @@ import java.util.Set;
 
 public class ExecutionSkillAnimations {
     public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL;
+    public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL2;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_SWORD;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_DAGGER;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_TACHI;
@@ -51,6 +52,11 @@ public class ExecutionSkillAnimations {
         EXECUTED_FULL = builder.nextAccessor("biped/skill/execution/executed_full", accessor ->
                 new ExecutionHitAnimation(0.01F, accessor, Armatures.BIPED)
                         .addProperty(AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER, CONSTANT_EXECUTED)
+        );
+
+        EXECUTED_FULL2 = builder.nextAccessor("biped/skill/execution/executed_full2", accessor ->
+                new ExecutionHitAnimation(0.01F, accessor, Armatures.BIPED)
+                        .addProperty(AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER, CONSTANT_EXECUTION)
         );
 
         EXECUTION_SWORD = builder.nextAccessor("biped/skill/execution/execution_sword", accessor ->

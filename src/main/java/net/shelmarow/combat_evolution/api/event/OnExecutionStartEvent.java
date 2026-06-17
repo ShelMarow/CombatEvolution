@@ -1,6 +1,5 @@
 package net.shelmarow.combat_evolution.api.event;
 
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.eventbus.api.Event;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
 import org.jetbrains.annotations.NotNull;

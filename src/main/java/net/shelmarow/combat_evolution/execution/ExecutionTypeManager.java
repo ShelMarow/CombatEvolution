@@ -30,8 +30,8 @@ public class ExecutionTypeManager {
     );
 
     public static final Type TACHI_TYPE = new Type(
-            ExecutionSkillAnimations.EXECUTION_TACHI, ExecutionSkillAnimations.EXECUTED_FULL,
-            new Vec3(1.35,0,0),-30,100
+            ExecutionSkillAnimations.EXECUTION_TACHI, ExecutionSkillAnimations.EXECUTED_FULL2,
+            new Vec3(1.35,0,0.2),0,100
     );
 
     public static final Type GREATSWORD_TYPE = new Type(
@@ -40,7 +40,7 @@ public class ExecutionTypeManager {
     );
 
     public static final Type COLOSSALSWORD_TYPE = new Type(
-            ExecutionSkillAnimations.EXECUTION_COLOSSALSWORD, ExecutionSkillAnimations.EXECUTED_FULL,
+            ExecutionSkillAnimations.EXECUTION_COLOSSALSWORD, ExecutionSkillAnimations.EXECUTED_FULL2,
             new Vec3(1.35,0,0),0F,100
     );
 
@@ -65,7 +65,9 @@ public class ExecutionTypeManager {
             CapabilityItem.WeaponCategories.TACHI, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch) -> TACHI_TYPE),
             CapabilityItem.WeaponCategories.SPEAR, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch) -> GREATSWORD_TYPE),
             CapabilityItem.WeaponCategories.TRIDENT, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch) -> GREATSWORD_TYPE),
-            CapabilityItem.WeaponCategories.GREATSWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch) -> GREATSWORD_TYPE)
+            CapabilityItem.WeaponCategories.GREATSWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch) -> {
+                return entityPatch.getOriginal().level().getRandom().nextDouble() >= 0.5 ? GREATSWORD_TYPE : COLOSSALSWORD_TYPE;
+            })
     );
 
     public static void registerByItem(ResourceLocation resourceLocation, Style style, BiFunction<Item, LivingEntityPatch<?>,Type> biFunction) {

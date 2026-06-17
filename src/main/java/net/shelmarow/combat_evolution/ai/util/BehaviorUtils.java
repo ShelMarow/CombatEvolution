@@ -7,6 +7,7 @@ import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
 import net.shelmarow.combat_evolution.ai.params.PhaseParams;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
@@ -16,7 +17,7 @@ import java.util.Optional;
 
 public class BehaviorUtils {
 
-    public static CEAnimationAttackGoal<?> getCEAnimationAttackGoal(LivingEntity livingEntity){
+    public static @Nullable CEAnimationAttackGoal<?> getCEAnimationAttackGoal(LivingEntity livingEntity){
         if (livingEntity instanceof Mob mob){
             Optional<WrappedGoal> goal = mob.goalSelector.getAvailableGoals().stream()
                     .filter(g -> g.getGoal() instanceof CEAnimationAttackGoal<?>).findFirst();
@@ -27,7 +28,7 @@ public class BehaviorUtils {
         return null;
     }
 
-    public static CECombatBehaviors<?> getCECombatBehaviors(LivingEntityPatch<?> entityPatch){
+    public static @Nullable CECombatBehaviors<?> getCECombatBehaviors(LivingEntityPatch<?> entityPatch){
         if (entityPatch == null || entityPatch.getOriginal() == null) return null;
         if(entityPatch.isInitialized() && entityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch) {
             return ceHumanoidPatch.getOriginal().goalSelector.getAvailableGoals().stream()
@@ -37,7 +38,7 @@ public class BehaviorUtils {
         return null;
     }
 
-    public static CECombatBehaviors<?> getCECombatBehaviors(LivingEntity livingEntity){
+    public static @Nullable CECombatBehaviors<?> getCECombatBehaviors(LivingEntity livingEntity){
         if (livingEntity instanceof Mob mob){
             return mob.goalSelector.getAvailableGoals().stream()
                     .filter(g -> g.getGoal() instanceof CEAnimationAttackGoal<?>)
@@ -46,7 +47,7 @@ public class BehaviorUtils {
         return null;
     }
 
-    public static CECombatBehaviors.Behavior<?> getCurrentBehavior(LivingEntityPatch<?> entityPatch) {
+    public static @Nullable CECombatBehaviors.Behavior<?> getCurrentBehavior(LivingEntityPatch<?> entityPatch) {
         CECombatBehaviors<?> combatBehaviors = getCECombatBehaviors(entityPatch);
         if(combatBehaviors != null) {
             return combatBehaviors.getCurrentBehavior();

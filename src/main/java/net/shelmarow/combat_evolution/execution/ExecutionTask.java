@@ -1,14 +1,12 @@
 package net.shelmarow.combat_evolution.execution;
 
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.tickTask.TickTask;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
-import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 public class ExecutionTask extends TickTask {

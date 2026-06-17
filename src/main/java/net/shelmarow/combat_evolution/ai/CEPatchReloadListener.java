@@ -686,6 +686,10 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                 builder.maxGuardHit(behaviors.getInt("maxGuardHit"));
             }
 
+            if(behaviors.contains("guardCost")){
+                builder.guardHitCost(behaviors.getFloat("guardCost"));
+            }
+
             if(behaviors.contains("onGuardHit")){
                 ListTag array = behaviors.getList("onGuardHit",Tag.TAG_COMPOUND);
                 for(int i = 0; i < array.size(); i++) {
@@ -711,7 +715,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                     CompoundTag onCounterStart = array.getCompound(i);
                     boolean onTarget = onCounterStart.getBoolean("onTarget");
                     String command = onCounterStart.getString("command");
-                    builder.onCounterStart(creatCommandConsumer(onTarget, command));
+                    builder.onCounterStart(new CounterStartEvent(creatCommandConsumer(onTarget, command)));
                 }
             }
 
@@ -753,7 +757,18 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                 boolean onTarget = exBehavior.getBoolean("onTarget");
                 String command = exBehavior.getString("command");
 
-                builder.addExBehavior(creatCommandConsumer(onTarget, command));
+                builder.onBehaviorStart(new BehaviorStartEvent(creatCommandConsumer(onTarget, command)));
+            }
+        }
+
+        if (behaviors.contains("onBehaviorStart")){
+            ListTag array = behaviors.getList("onBehaviorStart",Tag.TAG_COMPOUND);
+            for (int i = 0; i < array.size(); i++) {
+                CompoundTag exBehavior = array.getCompound(i);
+                boolean onTarget = exBehavior.getBoolean("onTarget");
+                String command = exBehavior.getString("command");
+
+                builder.onBehaviorStart(new BehaviorStartEvent(creatCommandConsumer(onTarget, command)));
             }
         }
 
