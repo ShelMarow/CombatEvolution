@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Mixin(value = AttackAnimation.class)
-public abstract class EFAttackAnimation extends StaticAnimation {
+public abstract class EFAttackAnimationMixin extends StaticAnimation {
 
     @Shadow(remap = false)
     @Final

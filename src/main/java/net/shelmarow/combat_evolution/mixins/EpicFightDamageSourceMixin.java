@@ -11,6 +11,7 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 
 import java.util.List;
 
+@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(EpicFightDamageSource.class)
 public abstract class EpicFightDamageSourceMixin implements IDamageSourceData {
 

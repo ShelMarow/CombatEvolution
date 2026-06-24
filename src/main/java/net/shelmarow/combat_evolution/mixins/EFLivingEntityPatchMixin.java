@@ -16,7 +16,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 
 @Mixin(LivingEntityPatch.class)
-public abstract class EFLivingEntityPatch implements ILivingEntityData {
+public abstract class EFLivingEntityPatchMixin implements ILivingEntityData {
 
 
     //伤害源修改

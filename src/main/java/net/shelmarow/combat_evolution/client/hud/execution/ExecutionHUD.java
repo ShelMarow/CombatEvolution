@@ -15,10 +15,12 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
+import net.shelmarow.combat_evolution.api.event.ShowExecutionIconEvent;
 import net.shelmarow.combat_evolution.client.hud.execution.types.HUDType;
 import net.shelmarow.combat_evolution.config.CEClientConfig;
 import net.shelmarow.combat_evolution.config.screen.HUDConfigScreen;
@@ -75,14 +77,17 @@ public class ExecutionHUD implements IGuiOverlay {
                         AssetAccessor<? extends StaticAnimation> currentAnimation = animationPlayer.getRealAnimation();
                         //检测可处决的条件
                         if (ExecutionHandler.targetIsInRange(event.player, target, 0, ExecutionHandler.EXECUTION_DISTANCE, 180) &&
-                                ExecutionHandler.isTargetGuardBreak(currentAnimation, targetPatch) &&
-                                ExecutionHandler.canExecute(event.player, localPlayerPatch, target, targetPatch)) {
-                            float totalTime = currentAnimation.get().getTotalTime();
-                            float currentTime = animationPlayer.getElapsedTime();
-                            timePercentO = timePercent;
-                            timePercent = currentTime / totalTime;
-                            showExecutionIcon = true;
-                            return;
+                                ExecutionHandler.isTargetGuardBreak(currentAnimation, targetPatch) && ExecutionHandler.canExecute(event.player, localPlayerPatch, target, targetPatch)) {
+
+                            ShowExecutionIconEvent iconEvent = new ShowExecutionIconEvent(localPlayerPatch, targetPatch);
+                            if(!MinecraftForge.EVENT_BUS.post(iconEvent)){
+                                float totalTime = currentAnimation.get().getTotalTime();
+                                float currentTime = animationPlayer.getElapsedTime();
+                                timePercentO = timePercent;
+                                timePercent = currentTime / totalTime;
+                                showExecutionIcon = true;
+                                return;
+                            }
                         }
                     }
                 }

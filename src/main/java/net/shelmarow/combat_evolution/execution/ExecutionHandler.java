@@ -36,6 +36,7 @@ import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.api.event.OnExecutionStartEvent;
+import net.shelmarow.combat_evolution.api.event.ShowExecutionIconEvent;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.enchantment.CEEnchantments;
@@ -74,22 +75,6 @@ public class ExecutionHandler {
     private static final Map<LivingEntity, LivingEntity> EXECUTION_TARGETS = new HashMap<>();
     public static final float EXECUTION_DISTANCE = 4F;
 
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onExecutionStart(OnExecutionStartEvent event){
-        if(event.getExecutor().getOriginal() instanceof Player player){
-            PlayerPatch<?> playerPatch = EpicFightCapabilities.getPlayerPatch(player);
-            if (playerPatch != null) {
-                playerPatch.setStamina(playerPatch.getMaxStamina());
-
-                float maxHealth = player.getMaxHealth();
-                double healAmount = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_AMOUNT.get());
-                double healPercent = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_PERCENT.get());
-                player.heal((float) (healAmount + maxHealth * healPercent));
-            }
-        }
-
-    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingAttack(LivingAttackEvent event) {
@@ -151,14 +136,6 @@ public class ExecutionHandler {
         event.setAmount(amount);
 
         if(damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)){
-            //玩家获取技能能量
-            EpicFightCapabilities.getUnparameterizedEntityPatch(EXECUTION_TARGETS.get(target), ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
-                SkillContainer container = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
-                if(container != null && container.hasSkill()){
-                    container.getSkill().setStackSynchronize(container, container.getStack() + 1);
-                }
-            });
-
             //目标如果是CE实体则触发回调
             EpicFightCapabilities.getUnparameterizedEntityPatch(target, CEHumanoidPatch.class).ifPresent(targetPatch -> {
                 targetPatch.onExecutionHurt(event.getSource() ,damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED), event.getAmount());
@@ -170,30 +147,41 @@ public class ExecutionHandler {
     public static void onLivingDeath(LivingDeathEvent event){
         DamageSource source = event.getSource();
         Entity killer = source.getEntity();
+        LivingEntity target = event.getEntity();
 
-        //处决击杀敌人时，如果有威慑附魔，对周围的敌人施加负面效果
         if(source.is(CEDamageTypeTags.EXECUTION_FINISHED) && killer instanceof LivingEntity livingKiller) {
+
+            //玩家获取技能能量
+            EpicFightCapabilities.getUnparameterizedEntityPatch(EXECUTION_TARGETS.get(target), ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
+                SkillContainer container = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
+                if(container != null && container.hasSkill()){
+                    container.getSkill().setStackSynchronize(container, container.getStack() + 1);
+                }
+            });
+
+            //处决击杀敌人时，如果有威慑附魔，对周围的敌人施加负面效果
             int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.INTIMIDATE.get(), livingKiller);
             if(level > 0){
-                List<LivingEntity> targets = livingKiller.level().getEntitiesOfClass(LivingEntity.class, livingKiller.getBoundingBox().inflate(8), target -> {
-                    return target.isAlive() &&
-                            !target.equals(livingKiller) &&
-                            !(target instanceof Player) &&
-                            livingKiller.canAttack(target, TargetingConditions.forCombat()) &&
-                            (target.getTeam() == null || target.getTeam() != livingKiller.getTeam()) &&
-                            target.distanceTo(livingKiller) < 6 * 6;
+                List<LivingEntity> targets = livingKiller.level().getEntitiesOfClass(LivingEntity.class, livingKiller.getBoundingBox().inflate(8), living -> {
+                    return living.isAlive() &&
+                            !living.equals(livingKiller) &&
+                            !(living instanceof Player) &&
+                            livingKiller.canAttack(living, TargetingConditions.forCombat()) &&
+                            (living.getTeam() == null || living.getTeam() != livingKiller.getTeam()) &&
+                            living.distanceTo(livingKiller) < 6 * 6;
                 });
-                for(LivingEntity target : targets){
-                    target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
-                    target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 5));
-                    EpicFightCapabilities.getUnparameterizedEntityPatch(target, LivingEntityPatch.class).ifPresent(entityPatch -> {
+
+                for(LivingEntity living : targets){
+                    living.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
+                    living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 5));
+                    EpicFightCapabilities.getUnparameterizedEntityPatch(living, LivingEntityPatch.class).ifPresent(entityPatch -> {
                         EntityStunEvent entityStunEvent = new EntityStunEvent(new EpicFightDamageSource(source), entityPatch, StunType.HOLD);
                         if(!entityStunEvent.isCanceled()){
                             entityPatch.applyStun(StunType.HOLD, 1F);
                         }
                     });
-                    Vec3 vec = target.position().subtract(killer.position()).normalize().scale(1.0);
-                    target.addDeltaMovement(new Vec3(vec.x, 0, vec.z));
+                    Vec3 vec = living.position().subtract(killer.position()).normalize().scale(1.0);
+                    living.addDeltaMovement(new Vec3(vec.x, 0, vec.z));
                 }
             }
         }
@@ -254,12 +242,15 @@ public class ExecutionHandler {
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     ExecutionTransform transform = calculateExecutionPosition(player.level(), player, target, executionType.offset());
                     if (transform != null) {
-                        MinecraftForge.EVENT_BUS.post(new OnExecutionStartEvent(playerPatch, targetPatch, executionType));
-                        BehaviorUtils.stopCurrentBehavior(target);
-                        Vec3 executionPos = transform.position();
-                        player.teleportTo(executionPos.x, executionPos.y, executionPos.z);
-                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, transform, executionType.totalTick()));
-                        return true;
+                        OnExecutionStartEvent event = new OnExecutionStartEvent(playerPatch, targetPatch, executionType);
+                        if(!MinecraftForge.EVENT_BUS.post(event)){
+                            target.setDeltaMovement(Vec3.ZERO);
+                            BehaviorUtils.stopCurrentBehavior(target);
+                            Vec3 executionPos = transform.position();
+                            player.teleportTo(executionPos.x, executionPos.y, executionPos.z);
+                            TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, transform, executionType.totalTick()));
+                            return true;
+                        }
                     }
                     else{
                         player.displayClientMessage(Component.translatable("text.combat_evolution.not_available_pos").withStyle(ChatFormatting.RED),true);
@@ -284,15 +275,17 @@ public class ExecutionHandler {
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     ExecutionTransform transform = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
                     if (transform != null) {
-                        MinecraftForge.EVENT_BUS.post(new OnExecutionStartEvent(executorPatch, targetPatch, executionType));
-                        BehaviorUtils.stopCurrentBehavior(executor);
-                        BehaviorUtils.stopCurrentBehavior(target);
-                        executor.setDeltaMovement(Vec3.ZERO);
-                        target.setDeltaMovement(Vec3.ZERO);
-                        Vec3 executionPos = transform.position();
-                        executor.teleportTo(executionPos.x, executionPos.y, executionPos.z);
-                        TickTaskManager.addTask(target.getUUID(), new ExecutionTask(executor, target,executionType, transform, executionType.totalTick()));
-                        return true;
+                        OnExecutionStartEvent event = new OnExecutionStartEvent(executorPatch, targetPatch, executionType);
+                        if(!MinecraftForge.EVENT_BUS.post(event)){
+                            BehaviorUtils.stopCurrentBehavior(executor);
+                            BehaviorUtils.stopCurrentBehavior(target);
+                            executor.setDeltaMovement(Vec3.ZERO);
+                            target.setDeltaMovement(Vec3.ZERO);
+                            Vec3 executionPos = transform.position();
+                            executor.teleportTo(executionPos.x, executionPos.y, executionPos.z);
+                            TickTaskManager.addTask(target.getUUID(), new ExecutionTask(executor, target,executionType, transform, executionType.totalTick()));
+                            return true;
+                        }
                     }
                     else if(executor instanceof Player player) {
                         player.displayClientMessage(Component.translatable("text.combat_evolution.not_available_pos").withStyle(ChatFormatting.RED),true);
@@ -328,7 +321,7 @@ public class ExecutionHandler {
         WeaponCategory weaponCategory = capabilityItem.getWeaponCategory();
         Style style = capabilityItem.getStyle(executorPatch);
 
-        //优先寻找物品
+        //寻找物品
         ExecutionTypeManager.Type executionType = ExecutionTypeManager.getExecutionTypeByItem(item, style, executorPatch);
 
         //如果没有再寻找武器类型
@@ -337,10 +330,14 @@ public class ExecutionHandler {
         }
 
         //优先使用自定义处决实体的动画
-        if (targetPatch instanceof CustomExecuteEntity customExecuteEntity && customExecuteEntity.canUseCustomType(executorPatch, executionType)) {
+        ExecutionTypeManager.Type executionTypeByEntity = ExecutionTypeManager.getExecutionTypeByEntity(targetPatch.getOriginal().getType(), item, style, executorPatch);
+        if(executionTypeByEntity != null){
+            return executionTypeByEntity;
+        }
+        else if (targetPatch instanceof CustomExecuteEntity customExecuteEntity && customExecuteEntity.canUseCustomType(executorPatch, executionType)) {
             ExecutionTypeManager.Type customType = customExecuteEntity.getExecutionType(executorPatch, executionType);
             if(customType != null){
-                executionType = customType;
+                return customType;
             }
         }
 

@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.execution;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -48,6 +49,9 @@ public class ExecutionTypeManager {
     //其次是自定义武器的动画
     //最后是默认的类型动画
 
+    //自定义实体处决动画
+    private static final Map<ResourceLocation, Map<Style, BiFunction<Item, LivingEntityPatch<?>,Type>>> CUSTOM_ENTITY_EXECUTION_MAP = new HashMap<>();
+
     //自定义物品处决动画
     private static final Map<ResourceLocation, Map<Style, BiFunction<Item, LivingEntityPatch<?>,Type>>> CUSTOM_ITEM_EXECUTION_MAP = new HashMap<>();
 
@@ -70,12 +74,23 @@ public class ExecutionTypeManager {
             })
     );
 
+    public static void registerByEntity(ResourceLocation resourceLocation, Style style, BiFunction<Item, LivingEntityPatch<?>,Type> biFunction) {
+        CUSTOM_ENTITY_EXECUTION_MAP.computeIfAbsent(resourceLocation, c -> new HashMap<>()).put(style, biFunction);
+    }
+
     public static void registerByItem(ResourceLocation resourceLocation, Style style, BiFunction<Item, LivingEntityPatch<?>,Type> biFunction) {
         CUSTOM_ITEM_EXECUTION_MAP.computeIfAbsent(resourceLocation, c -> new HashMap<>()).put(style, biFunction);
     }
 
     public static void registerByCategory(WeaponCategory weaponCategory, Style style, BiFunction<Item, LivingEntityPatch<?>,Type> biFunction) {
         CUSTOM_CATEGORY_EXECUTION_MAP.computeIfAbsent(weaponCategory, c-> new HashMap<>()).put(style, biFunction);
+    }
+
+    public static Type getExecutionTypeByEntity(EntityType<?> entityType, Item item, Style style, LivingEntityPatch<?> entityPatch) {
+        ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(entityType);
+        Map<Style, BiFunction<Item, LivingEntityPatch<?>, Type>> stylesTypeMap = CUSTOM_ENTITY_EXECUTION_MAP.getOrDefault(id, new HashMap<>());
+        BiFunction<Item, LivingEntityPatch<?>, Type> type = stylesTypeMap.containsKey(style) ? stylesTypeMap.get(style) : stylesTypeMap.get(CapabilityItem.Styles.COMMON);
+        return type == null ? null : type.apply(item, entityPatch);
     }
 
     public static Type getExecutionTypeByItem(Item item, Style style, LivingEntityPatch<?> entityPatch) {

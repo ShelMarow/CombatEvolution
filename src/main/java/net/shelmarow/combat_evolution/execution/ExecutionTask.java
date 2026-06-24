@@ -2,11 +2,14 @@ package net.shelmarow.combat_evolution.execution;
 
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.tickTask.TickTask;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 public class ExecutionTask extends TickTask {
@@ -34,6 +37,17 @@ public class ExecutionTask extends TickTask {
 
         executor.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
         target.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
+
+
+        if(executorPatch instanceof PlayerPatch<?> playerPatch) {
+            playerPatch.setStamina(playerPatch.getMaxStamina());
+            Player player = playerPatch.getOriginal();
+
+            float maxHealth = player.getMaxHealth();
+            double healAmount = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_AMOUNT.get());
+            double healPercent = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_PERCENT.get());
+            player.heal((float) (healAmount + maxHealth * healPercent));
+        }
 
         if (executorPatch != null && targetPatch != null) {
 
