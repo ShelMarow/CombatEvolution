@@ -10,8 +10,10 @@ import net.shelmarow.combat_evolution.CombatEvolution;
 public class CESounds {
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CombatEvolution.MOD_ID);
 
-    public static final RegistryObject<SoundEvent> COUNTER = registerSound("skill.counter");
     public static final RegistryObject<SoundEvent> SILENCE = registerSound("misc.silence");
+    public static final RegistryObject<SoundEvent> COUNTER = registerSound("skill.counter");
+    public static final RegistryObject<SoundEvent> EXECUTION_1 = registerSound("skill.execution1");
+    public static final RegistryObject<SoundEvent> EXECUTION_2 = registerSound("skill.execution2");
 
 
     public static RegistryObject<SoundEvent> registerSound(String name) {

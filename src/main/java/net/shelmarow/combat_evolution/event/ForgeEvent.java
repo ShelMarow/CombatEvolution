@@ -1,8 +1,12 @@
 package net.shelmarow.combat_evolution.event;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -12,7 +16,10 @@ import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
 import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
+import net.shelmarow.combat_evolution.client.shader.ExecutionShaderManager;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
+import net.shelmarow.combat_evolution.execution.ExecutionMobReloadListener;
+import net.shelmarow.combat_evolution.execution.ExecutionTypeReloadListener;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
 import yesman.epicfight.api.forgeevent.EntityStunEvent;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
@@ -22,6 +29,17 @@ import yesman.epicfight.world.damagesource.StunType;
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeEvent {
 
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void onRender(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || Minecraft.getInstance().player == null) return;
+
+        if (!ExecutionShaderManager.isInitialized()) {
+            ExecutionShaderManager.init();
+        }
+
+        ExecutionShaderManager.tick(event.getRenderTick(), event.getPartialTick());
+    }
 
     @SubscribeEvent
     public static void onDatapackSync(final OnDatapackSyncEvent event) {
@@ -40,6 +58,8 @@ public class ForgeEvent {
     @SubscribeEvent
     public static void onReload(AddReloadListenerEvent event) {
         event.addListener(new CEPatchReloadListener());
+        event.addListener(new ExecutionTypeReloadListener());
+        event.addListener(new ExecutionMobReloadListener());
     }
 
     @SubscribeEvent

@@ -126,7 +126,7 @@ public class ExecutionHandler {
         }
 
         //处决保护，如果不是最后一击，实体会锁血，防止提前击杀
-        if(!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)) {
+        if(!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && damageSource.is(CEDamageTypeTags.EXECUTION) && !damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)) {
             float health = target.getHealth();
             if(amount >= health){
                 amount = health - 0.01F;
@@ -135,7 +135,7 @@ public class ExecutionHandler {
 
         event.setAmount(amount);
 
-        if(damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)){
+        if(EXECUTION_TARGETS.containsKey(target)){
             //目标如果是CE实体则触发回调
             EpicFightCapabilities.getUnparameterizedEntityPatch(target, CEHumanoidPatch.class).ifPresent(targetPatch -> {
                 targetPatch.onExecutionHurt(event.getSource() ,damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED), event.getAmount());
@@ -296,6 +296,38 @@ public class ExecutionHandler {
         return false;
     }
 
+    public static boolean entityForceExecute(LivingEntity executor, LivingEntity target, boolean requireGuardBreak, ExecutionTypeManager.Type executionType){
+        if(executor != null && target != null){
+            LivingEntityPatch<?> executorPatch = EpicFightCapabilities.getEntityPatch(executor, LivingEntityPatch.class);
+            LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
+
+            if(targetPatch != null && executorPatch != null) {
+                AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(targetPatch.getAnimator().getPlayerFor(null)).getRealAnimation();
+                if ((!requireGuardBreak || isTargetGuardBreak(currentAnimation, targetPatch)) && canExecute(executor, executorPatch, target, targetPatch)) {
+                    //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
+                    ExecutionTransform transform = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
+                    if (transform != null) {
+                        OnExecutionStartEvent event = new OnExecutionStartEvent(executorPatch, targetPatch, executionType);
+                        if(!MinecraftForge.EVENT_BUS.post(event)){
+                            BehaviorUtils.stopCurrentBehavior(executor);
+                            BehaviorUtils.stopCurrentBehavior(target);
+                            executor.setDeltaMovement(Vec3.ZERO);
+                            target.setDeltaMovement(Vec3.ZERO);
+                            Vec3 executionPos = transform.position();
+                            executor.teleportTo(executionPos.x, executionPos.y, executionPos.z);
+                            TickTaskManager.addTask(target.getUUID(), new ExecutionTask(executor, target,executionType, transform, executionType.totalTick()));
+                            return true;
+                        }
+                    }
+                    else if(executor instanceof Player player) {
+                        player.displayClientMessage(Component.translatable("text.combat_evolution.not_available_pos").withStyle(ChatFormatting.RED),true);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 
     public static boolean isTargetGuardBreak(AssetAccessor<? extends StaticAnimation> currentAnimation, LivingEntityPatch<?> targetPatch) {
         return currentAnimation != null && currentAnimation != Animations.EMPTY_ANIMATION &&
@@ -322,15 +354,19 @@ public class ExecutionHandler {
         Style style = capabilityItem.getStyle(executorPatch);
 
         //寻找物品
-        ExecutionTypeManager.Type executionType = ExecutionTypeManager.getExecutionTypeByItem(item, style, executorPatch);
+        ExecutionTypeManager.Type executionType = ExecutionTypeManager.getExecutionTypeByItem(item, style, executorPatch, targetPatch);
 
         //如果没有再寻找武器类型
         if(executionType == null){
-            executionType = ExecutionTypeManager.getExecutionTypeByCategory(weaponCategory, style, item, executorPatch);
+            executionType = ExecutionTypeManager.getExecutionTypeByCategory(weaponCategory, style, item, executorPatch, targetPatch);
         }
 
         //优先使用自定义处决实体的动画
-        ExecutionTypeManager.Type executionTypeByEntity = ExecutionTypeManager.getExecutionTypeByEntity(targetPatch.getOriginal().getType(), item, style, executorPatch);
+        ExecutionTypeManager.Type executionTypeByEntity = ExecutionTypeManager.getExecutionTypeByEntity(targetPatch.getOriginal().getType(), item, style, executorPatch, targetPatch);
+        if(executionTypeByEntity == null){
+            executionTypeByEntity = ExecutionTypeManager.getExecutionTypeByDatapackEntity(targetPatch.getOriginal().getType());
+        }
+
         if(executionTypeByEntity != null){
             return executionTypeByEntity;
         }

@@ -35,8 +35,7 @@ public class ExecutionHitAnimation extends ActionAnimation {
                         epicFightDamageSource.setStunType(StunType.NONE);
                         epicFightDamageSource.addRuntimeTag(EpicFightDamageTypeTags.NO_STUN);
                     }
-                    return damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) || damageSource.is(CEDamageTypeTags.EXECUTION) ?
-                            AttackResult.ResultType.SUCCESS : AttackResult.ResultType.MISSED;
+                    return AttackResult.ResultType.SUCCESS;
                 });
     }
 }

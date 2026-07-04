@@ -5,6 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.fml.event.IModBusEvent;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
+import org.apache.commons.lang3.function.TriFunction;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.Style;
@@ -30,11 +31,15 @@ public class RegisterCustomExecutionEvent extends Event implements IModBusEvent 
     }
 
     public void registerExecutionByEntity(ResourceLocation resourceLocation, Style style, ExecutionTypeManager.Type type) {
-        registerExecutionByEntity(resourceLocation, style, (item,entityPatch)->type);
+        registerExecutionByEntity(resourceLocation, style, (item,entityPatch)-> type);
     }
 
     public void registerExecutionByEntity(ResourceLocation resourceLocation, Style style, BiFunction<Item, LivingEntityPatch<?>, ExecutionTypeManager.Type> biFunction){
-        ExecutionTypeManager.registerByEntity(resourceLocation, style, biFunction);
+        registerExecutionByEntity(resourceLocation, style, (i, e, t)-> biFunction.apply(i ,e));
+    }
+
+    public void registerExecutionByEntity(ResourceLocation resourceLocation, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, ExecutionTypeManager.Type> function){
+        ExecutionTypeManager.registerByEntity(resourceLocation, style, function);
     }
 
     public void registerExecutionByItem(ResourceLocation resourceLocation, ExecutionTypeManager.Type type) {
@@ -46,7 +51,11 @@ public class RegisterCustomExecutionEvent extends Event implements IModBusEvent 
     }
 
     public void registerExecutionByItem(ResourceLocation resourceLocation, Style style, BiFunction<Item, LivingEntityPatch<?>, ExecutionTypeManager.Type> biFunction) {
-        ExecutionTypeManager.registerByItem(resourceLocation, style, biFunction);
+        registerExecutionByItem(resourceLocation, style, (i, e, t)-> biFunction.apply(i ,e));
+    }
+
+    public void registerExecutionByItem(ResourceLocation resourceLocation, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        ExecutionTypeManager.registerByItem(resourceLocation, style, function);
     }
 
     public void registerExecutionByCategory(WeaponCategory weaponCategory, ExecutionTypeManager.Type type) {
@@ -58,6 +67,10 @@ public class RegisterCustomExecutionEvent extends Event implements IModBusEvent 
     }
 
     public void registerExecutionByCategory(WeaponCategory weaponCategory, Style style, BiFunction<Item, LivingEntityPatch<?>, ExecutionTypeManager.Type> biFunction) {
-        ExecutionTypeManager.registerByCategory(weaponCategory, style, biFunction);
+        registerExecutionByCategory(weaponCategory, style, (i, e, t)-> biFunction.apply(i ,e));
+    }
+
+    public void registerExecutionByCategory(WeaponCategory weaponCategory, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        ExecutionTypeManager.registerByCategory(weaponCategory, style, function);
     }
 }

@@ -5,16 +5,28 @@
       {"name": "combat_evolution:music/ce_test_bgm","stream":true}
     ]
   },
+  "misc.silence": {
+    "category": "master",
+    "sounds": [
+      {"name": "combat_evolution:misc/silence","stream":false}
+    ]
+  },
   "skill.counter": {
     "category": "master",
     "sounds": [
       {"name": "combat_evolution:skill/counter","stream":false}
     ]
   },
-  "misc.silence": {
+  "skill.execution1": {
     "category": "master",
     "sounds": [
-      {"name": "combat_evolution:misc/silence","stream":false}
+      {"name": "combat_evolution:skill/execution1","stream":false}
+    ]
+  },
+  "skill.execution2": {
+    "category": "master",
+    "sounds": [
+      {"name": "combat_evolution:skill/execution2","stream":false}
     ]
   }
 }

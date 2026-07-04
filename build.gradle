@@ -87,6 +87,7 @@ dependencies {
     implementation fg.deobf("curse.maven:selene-499980:7072721")
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:6860192")
 
+
     compileOnly("curse.maven:free-cam-557076:4643128")
     compileOnly("libs:betterlockon:2.0.2")
 

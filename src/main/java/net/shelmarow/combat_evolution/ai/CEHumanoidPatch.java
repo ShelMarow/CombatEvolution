@@ -16,10 +16,8 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
@@ -425,6 +423,10 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         }
     }
 
+    public void onExecutionHurt(DamageSource damageSource , boolean isLastHit, float amount){
+
+    }
+
     private void playCounteredAnimation() {
         if(getArmature() instanceof HumanoidArmature){
             playAnimationSynchronized(ShieldCounterAnimations.COUNTERED,0F);
@@ -481,10 +483,6 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             this.original.goalSelector.addGoal(0, new CEAnimationAttackGoal<>(this, builder.build()));
             this.original.goalSelector.addGoal(1, new CommonChasingGoal(this, attackRadius, this.chasingSpeed));
         }
-
-    }
-
-    public void onExecutionHurt(DamageSource damageSource , boolean isLastHit, float amount){
 
     }
 
