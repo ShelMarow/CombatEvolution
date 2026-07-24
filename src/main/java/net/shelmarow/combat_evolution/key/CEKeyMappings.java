@@ -19,10 +19,6 @@ public class CEKeyMappings {
             "key.categories." + CombatEvolution.MOD_ID
     );
 
-//    public static final List<KeyMapping> CE_KEYS = List.of(
-//            EXECUTION
-//    );
-
     @SubscribeEvent
     public static void registerKeys(RegisterKeyMappingsEvent event) {
         event.register(EXECUTION);

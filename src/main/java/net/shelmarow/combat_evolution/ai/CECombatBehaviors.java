@@ -84,7 +84,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
      */
 
 
-    public Behavior<T> selectBehaviorRootByPriority(T mobPatch,List<BehaviorRoot<T>> behaviorRootList, boolean shouldCheckGlobal) {
+    public Behavior<T> selectBehaviorByPriority(T mobPatch, List<BehaviorRoot<T>> behaviorRootList, boolean canBeInterrupted, boolean shouldCheckGlobal) {
         //先清空缓存
         cachedBehaviors.clear();
         //可用的根节点列表
@@ -92,7 +92,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
         //选出冷却完毕，且存在子行为能执行（顺便选出最优并缓存）的根节点
         behaviorRootList.stream().filter(root-> root.cooldown <= 0 && root.priority > 0).forEach(root->{
-            Behavior<T> behavior = selectBehavior(mobPatch,root.getBehaviors(),false, shouldCheckGlobal);
+            Behavior<T> behavior = selectBehavior(mobPatch,root.getBehaviors(),canBeInterrupted, shouldCheckGlobal);
             if(behavior != null){
                 usableBehaviors.add(root);
                 cachedBehaviors.put(root,behavior);
@@ -165,7 +165,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 canUseList = globalBehaviors;
             }
 
-            Behavior<T> usableGlobalBehavior = selectBehaviorRootByPriority(mobPatch, canUseList, false);
+            Behavior<T> usableGlobalBehavior = selectBehaviorByPriority(mobPatch, canUseList, canBeInterrupted, false);
             if(usableGlobalBehavior != null){
                 usableBehaviors.add(Pair.of(usableGlobalBehavior, true));
             }
@@ -283,7 +283,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
 
         //不存在行为时，挑选行为
         if (currentBehavior == null && !mobPatch.getEntityState().inaction()) {
-            Behavior<T> behavior = selectBehaviorRootByPriority(mobPatch,behaviorRoots, false);
+            Behavior<T> behavior = selectBehaviorByPriority(mobPatch,behaviorRoots, false, false);
             if (behavior != null) {
                 //System.out.println("[tick查询]执行首个行为["+behavior.behaviorName+"]");
                 currentBehavior = behavior;

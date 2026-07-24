@@ -17,6 +17,7 @@
     "GuardSkillInvoker",
     "GuardSkillMixin",
     "HealthBarMixin",
+    "EntityMixin",
     "LivingEntityPatchMixin",
     "StaticAnimationsMixin"
   ]

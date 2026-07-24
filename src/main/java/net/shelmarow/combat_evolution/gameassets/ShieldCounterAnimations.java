@@ -21,7 +21,7 @@ public class ShieldCounterAnimations {
 
         SHIELD_COUNTER = builder.nextAccessor("biped/skill/shield_counter/shield_counter", accessor->
                 new ActionAnimation(0.05F, accessor, Armatures.BIPED)
-                        .newTimePair(0.15F,0.35F)
+                        .newTimePair(0.15F,0.25F)
                         .addState(CEEntityState.COUNTER_SUSSED, true)
 
                         .addEvents(AnimationEvent.InTimeEvent.create(0.15F, (entityPatch, animation, params) -> {

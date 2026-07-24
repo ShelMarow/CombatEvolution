@@ -32,7 +32,7 @@ public abstract class LivingEntityPatchMixin<T extends LivingEntity> extends Hur
     )
     public void onApplyStun(StunType stunType, float time, CallbackInfoReturnable<Boolean> cir){
         LivingEntity entity = this.getOriginal();
-        if(stunType != StunType.NEUTRALIZE && entity.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
+        if(entity.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
             entity.xxa = 0.0F;
             entity.yya = 0.0F;
             entity.zza = 0.0F;

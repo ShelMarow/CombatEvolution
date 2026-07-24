@@ -312,19 +312,26 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             for (int i = 0; i < array.size(); i++){
                 CompoundTag animationTag = array.getCompound(i);
 
-                Style style = Style.ENUM_MANAGER.getOrThrow(animationTag.getString("style"));
-                List<AnimationManager.AnimationAccessor<? extends StaticAnimation>> animations = new ArrayList<>();
+                Collection<Style> styles = Style.ENUM_MANAGER.universalValues();
+                styles.stream().filter(s -> s.toString().equalsIgnoreCase(animationTag.getString("style"))).findFirst().ifPresent(s -> {
+                    List<AnimationManager.AnimationAccessor<? extends StaticAnimation>> animations = new ArrayList<>();
+                    ListTag animationList = animationTag.getList("animations", Tag.TAG_STRING);
+                    for (Tag animation : animationList) {
+                        animations.add(AnimationManager.byKey(animation.getAsString()));
+                    }
 
-                ListTag animationList = animationTag.getList("animations",Tag.TAG_STRING);
-                for (Tag animation : animationList){
-                    animations.add(AnimationManager.byKey(animation.getAsString()));
-                }
+                    ListTag categories = animationTag.getList("weaponCategories", Tag.TAG_STRING);
+                    for (Tag categoryTag : categories) {
+                        String categoryName = categoryTag.getAsString();
+                        Collection<WeaponCategory> weaponCategories = WeaponCategory.ENUM_MANAGER.universalValues();
+                        for (WeaponCategory category : weaponCategories) {
+                            if (category.toString().equalsIgnoreCase(categoryName)) {
+                                guardHitMotions.computeIfAbsent(category, k -> new HashMap<>()).put(s, animations);
+                            }
+                        }
+                    }
+                });
 
-                ListTag categories = animationTag.getList("weaponCategories",Tag.TAG_STRING);
-                for (Tag categoryTag : categories) {
-                    String categoryName = categoryTag.getAsString();
-                    guardHitMotions.computeIfAbsent(WeaponCategory.ENUM_MANAGER.getOrThrow(categoryName), k -> new HashMap<>()).put(style, animations);
-                }
             }
         }
 
@@ -339,22 +346,29 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             for (int i = 0; i < array.size(); i++){
                 CompoundTag obj = array.getCompound(i);
 
-                Style style = Style.ENUM_MANAGER.getOrThrow(obj.getString("style"));
-                Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>> motions = new HashSet<>();
+                String name = obj.getString("style");
+                Style.ENUM_MANAGER.universalValues().stream().filter(s -> s.toString().equalsIgnoreCase(name)).findFirst().ifPresent(s->{
+                    Set<Pair<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>>> motions = new HashSet<>();
 
-                CompoundTag animationCompound = obj.getCompound("livingMotions");
-                for (LivingMotion motion : LivingMotions.values()) {
-                    String motionName = motion.toString().toLowerCase();
-                    if(animationCompound.contains(motionName)){
-                        motions.add(Pair.of(motion, AnimationManager.byKey(animationCompound.getString(motionName))));
+                    CompoundTag animationCompound = obj.getCompound("livingMotions");
+                    for (LivingMotion motion : LivingMotions.values()) {
+                        String motionName = motion.toString().toLowerCase();
+                        if(animationCompound.contains(motionName)){
+                            motions.add(Pair.of(motion, AnimationManager.byKey(animationCompound.getString(motionName))));
+                        }
                     }
-                }
 
-                ListTag categoriesTags = obj.getList("weaponCategories",Tag.TAG_STRING);
-                for (Tag categoryTag : categoriesTags){
-                    String categoryName = categoryTag.getAsString();
-                    weaponLivingMotions.computeIfAbsent(WeaponCategory.ENUM_MANAGER.getOrThrow(categoryName), k -> new HashMap<>()).put(style, motions);
-                }
+                    ListTag categoriesTags = obj.getList("weaponCategories",Tag.TAG_STRING);
+                    for (Tag categoryTag : categoriesTags){
+                        String categoryName = categoryTag.getAsString();
+                        Collection<WeaponCategory> weaponCategories = WeaponCategory.ENUM_MANAGER.universalValues();
+                        for (WeaponCategory category : weaponCategories) {
+                            if (category.toString().equalsIgnoreCase(categoryName)) {
+                                weaponLivingMotions.computeIfAbsent(category, k -> new HashMap<>()).put(s, motions);
+                            }
+                        }
+                    }
+                });
             }
         }
 
@@ -380,12 +394,19 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                 if (combatTag.contains("weaponCategories")) {
                     ListTag tagArray = combatTag.getList("weaponCategories", Tag.TAG_STRING);
                     for (Tag categoryId : tagArray) {
-                        weaponCategories.add(WeaponCategory.ENUM_MANAGER.getOrThrow(categoryId.getAsString()));
+
+                        Collection<WeaponCategory> enumCategories = WeaponCategory.ENUM_MANAGER.universalValues();
+                        for (WeaponCategory category : enumCategories) {
+                            if (category.toString().equalsIgnoreCase(categoryId.getAsString())) {
+                                weaponCategories.add(category);
+                            }
+                        }
                     }
                 }
                 //获取风格
                 if (combatTag.contains("style")) {
-                    style = Style.ENUM_MANAGER.getOrThrow(combatTag.getString("style").toUpperCase());
+                    String styleName = combatTag.getString("style");
+                    style = Style.ENUM_MANAGER.universalValues().stream().filter(s->s.toString().equalsIgnoreCase(styleName)).findFirst().orElse(CapabilityItem.Styles.COMMON);
                 }
 
                 Supplier<CECombatBehaviors.Builder<MobPatch<?>>> supplier = () -> {

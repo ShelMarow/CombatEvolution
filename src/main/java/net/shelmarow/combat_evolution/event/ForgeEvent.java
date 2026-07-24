@@ -66,7 +66,7 @@ public class ForgeEvent {
     public static void onStunApply(EntityStunEvent event) {
         LivingEntity original = event.getStunnedEntityPatch().getOriginal();
         StunType stunType = event.getStunType();
-        if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){
+        if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
             event.setCanceled(true);
         }
         else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){

@@ -90,7 +90,7 @@ public class CEShieldCounter extends Skill {
                 }
             }
 
-            if(isFront && canBlockDamage(damageSource) && attacker != null && playerPatch.getEntityState().getState(CEEntityState.COUNTER_SUSSED)) {
+            if(isFront && canBlockDamage(playerPatch,damageSource) && attacker != null && playerPatch.getEntityState().getState(CEEntityState.COUNTER_SUSSED)) {
                 //取消伤害
                 event.setResult(AttackResult.ResultType.BLOCKED);
                 event.setParried(true);
@@ -102,7 +102,7 @@ public class CEShieldCounter extends Skill {
 
                 //获得增益
                 playerPatch.setStamina(playerPatch.getStamina() + playerPatch.getMaxStamina() * 0.35F);
-                playerPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 40, 0));
+                playerPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.MIDDLE_STUN_IMMUNITY.get(), 40, 0));
                 playerPatch.getOriginal().addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 160, 3));
                 playerPatch.getOriginal().addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 160, 1));
 
@@ -156,8 +156,14 @@ public class CEShieldCounter extends Skill {
 
 
 
-    private static boolean canBlockDamage(DamageSource source) {
-        return !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !source.is(EpicFightDamageTypeTags.GUARD_PUNCTURE) && !source.is(EpicFightDamageTypeTags.UNBLOCKALBE);
+    private static boolean canBlockDamage(ServerPlayerPatch playerPatch, DamageSource source) {
+        if(source instanceof EpicFightDamageSource epicFightDamageSource){
+            float impact = epicFightDamageSource.calculateImpact();
+            if(playerPatch.getStamina() < impact){
+                return false;
+            }
+        }
+        return !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && !source.is(DamageTypeTags.BYPASSES_SHIELD) && !source.is(EpicFightDamageTypeTags.GUARD_PUNCTURE) && !source.is(EpicFightDamageTypeTags.UNBLOCKALBE) && !source.is(EpicFightDamageTypeTags.UNBLOCKALBE);
     }
 
     public static void spawnParryEffect(ServerPlayer player) {

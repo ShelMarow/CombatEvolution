@@ -26,6 +26,7 @@ import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -36,7 +37,6 @@ import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
 import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.ai.util.BehaviorUtils;
 import net.shelmarow.combat_evolution.api.event.OnExecutionStartEvent;
-import net.shelmarow.combat_evolution.api.event.ShowExecutionIconEvent;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.enchantment.CEEnchantments;
@@ -72,9 +72,13 @@ public class ExecutionHandler {
 
     //Key：被处决的实体
     //value：处决者
-    private static final Map<LivingEntity, LivingEntity> EXECUTION_TARGETS = new HashMap<>();
+    private static final Map<UUID, UUID> EXECUTION_TARGETS = new HashMap<>();
     public static final float EXECUTION_DISTANCE = 4F;
 
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        EXECUTION_TARGETS.clear();
+    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingAttack(LivingAttackEvent event) {
@@ -83,21 +87,21 @@ public class ExecutionHandler {
         if(event.getSource().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
 
         //处决时，双方不受到外部伤害
-        if (EXECUTION_TARGETS.containsKey(target)) {
+        if (EXECUTION_TARGETS.containsKey(target.getUUID())) {
             //目标只受到处决来源的伤害
-            LivingEntity allowedAttacker = EXECUTION_TARGETS.get(target);
-            if (source == null || !source.getUUID().equals(allowedAttacker.getUUID())) {
+            UUID allowedAttacker = EXECUTION_TARGETS.get(target.getUUID());
+            if (source == null || !source.getUUID().equals(allowedAttacker)) {
                 event.setCanceled(true);
             }
         }
-        else if (EXECUTION_TARGETS.containsValue(target)) {
+        else if (EXECUTION_TARGETS.containsValue(target.getUUID())) {
             event.setCanceled(true);
         }
 
         //处决者只会对目标造成伤害
         if (source instanceof LivingEntity livingEntity) {
-            if (EXECUTION_TARGETS.containsValue(livingEntity)) {
-                if (!EXECUTION_TARGETS.containsKey(target)){
+            if (EXECUTION_TARGETS.containsValue(livingEntity.getUUID())) {
+                if (!EXECUTION_TARGETS.containsKey(target.getUUID())){
                     event.setCanceled(true);
                 }
             }
@@ -126,7 +130,7 @@ public class ExecutionHandler {
         }
 
         //处决保护，如果不是最后一击，实体会锁血，防止提前击杀
-        if(!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && damageSource.is(CEDamageTypeTags.EXECUTION) && !damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target)) {
+        if(!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY) && damageSource.is(CEDamageTypeTags.EXECUTION) && !damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED) && EXECUTION_TARGETS.containsKey(target.getUUID())) {
             float health = target.getHealth();
             if(amount >= health){
                 amount = health - 0.01F;
@@ -135,7 +139,7 @@ public class ExecutionHandler {
 
         event.setAmount(amount);
 
-        if(EXECUTION_TARGETS.containsKey(target)){
+        if(EXECUTION_TARGETS.containsKey(target.getUUID())){
             //目标如果是CE实体则触发回调
             EpicFightCapabilities.getUnparameterizedEntityPatch(target, CEHumanoidPatch.class).ifPresent(targetPatch -> {
                 targetPatch.onExecutionHurt(event.getSource() ,damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED), event.getAmount());
@@ -152,7 +156,7 @@ public class ExecutionHandler {
         if(source.is(CEDamageTypeTags.EXECUTION_FINISHED) && killer instanceof LivingEntity livingKiller) {
 
             //玩家获取技能能量
-            EpicFightCapabilities.getUnparameterizedEntityPatch(EXECUTION_TARGETS.get(target), ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
+            EpicFightCapabilities.getUnparameterizedEntityPatch(killer, ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
                 SkillContainer container = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
                 if(container != null && container.hasSkill()){
                     container.getSkill().setStackSynchronize(container, container.getStack() + 1);
@@ -190,7 +194,7 @@ public class ExecutionHandler {
     @SubscribeEvent
     public static void onLivingHeal(LivingHealEvent event){
         //被处决的目标禁止回血
-        if(EXECUTION_TARGETS.containsKey(event.getEntity())){
+        if(EXECUTION_TARGETS.containsKey(event.getEntity().getUUID())){
             event.setCanceled(true);
         }
     }
@@ -199,22 +203,22 @@ public class ExecutionHandler {
     public static void onKnockback(LivingKnockBackEvent event) {
         //取消处决击退
         Entity target = event.getEntity();
-        if (EXECUTION_TARGETS.containsKey(target)) {
+        if (EXECUTION_TARGETS.containsKey(target.getUUID())) {
             event.setStrength(0.0F);
         }
     }
 
 
     public static void addExecutingTarget(LivingEntity target, LivingEntity executor) {
-        EXECUTION_TARGETS.put(target, executor);
+        EXECUTION_TARGETS.put(target.getUUID(), executor.getUUID());
     }
 
     public static void removeExecutingTarget(LivingEntity target) {
-        EXECUTION_TARGETS.remove(target);
+        EXECUTION_TARGETS.remove(target.getUUID());
     }
 
     public static boolean isExecutingTarget(LivingEntity executor, LivingEntity target) {
-        return EXECUTION_TARGETS.containsKey(target) || EXECUTION_TARGETS.containsKey(executor);
+        return EXECUTION_TARGETS.containsKey(target.getUUID()) || EXECUTION_TARGETS.containsKey(executor.getUUID());
     }
 
 
@@ -232,7 +236,7 @@ public class ExecutionHandler {
             LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
 
             //检测是否满足处决的条件
-            if(targetPatch != null && playerPatch != null && playerPatch.isEpicFightMode() && playerPatch.getEntityState().canUseSkill()) {
+            if(targetPatch != null && playerPatch != null && !playerPatch.getOriginal().isSpectator() && !targetPatch.getOriginal().isSpectator() && playerPatch.isEpicFightMode() && (playerPatch.getEntityState().canUseSkill() || playerPatch.getEntityState().canBasicAttack())) {
 
                 //判断目标是否处于破防状态
                 AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(targetPatch.getAnimator().getPlayerFor(null)).getRealAnimation();
@@ -267,7 +271,7 @@ public class ExecutionHandler {
             LivingEntityPatch<?> executorPatch = EpicFightCapabilities.getEntityPatch(executor, LivingEntityPatch.class);
             LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
 
-            if(targetPatch != null && executorPatch != null) {
+            if(targetPatch != null && executorPatch != null && !executorPatch.getOriginal().isSpectator() && !targetPatch.getOriginal().isSpectator()) {
                 AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(targetPatch.getAnimator().getPlayerFor(null)).getRealAnimation();
                 if ((!requireGuardBreak || isTargetGuardBreak(currentAnimation, targetPatch)) && canExecute(executor, executorPatch, target, targetPatch)) {
                     //获取处决类型
@@ -277,7 +281,7 @@ public class ExecutionHandler {
                     if (transform != null) {
                         OnExecutionStartEvent event = new OnExecutionStartEvent(executorPatch, targetPatch, executionType);
                         if(!MinecraftForge.EVENT_BUS.post(event)){
-                            BehaviorUtils.stopCurrentBehavior(executor);
+                            //BehaviorUtils.stopCurrentBehavior(executor);
                             BehaviorUtils.stopCurrentBehavior(target);
                             executor.setDeltaMovement(Vec3.ZERO);
                             target.setDeltaMovement(Vec3.ZERO);
@@ -309,7 +313,7 @@ public class ExecutionHandler {
                     if (transform != null) {
                         OnExecutionStartEvent event = new OnExecutionStartEvent(executorPatch, targetPatch, executionType);
                         if(!MinecraftForge.EVENT_BUS.post(event)){
-                            BehaviorUtils.stopCurrentBehavior(executor);
+                            //BehaviorUtils.stopCurrentBehavior(executor);
                             BehaviorUtils.stopCurrentBehavior(target);
                             executor.setDeltaMovement(Vec3.ZERO);
                             target.setDeltaMovement(Vec3.ZERO);
