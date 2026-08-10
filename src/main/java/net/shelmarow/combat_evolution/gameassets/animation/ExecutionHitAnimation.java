@@ -1,7 +1,5 @@
 package net.shelmarow.combat_evolution.gameassets.animation;
 
-import net.minecraft.tags.DamageTypeTags;
-import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationProperty;
 import yesman.epicfight.api.animation.types.ActionAnimation;

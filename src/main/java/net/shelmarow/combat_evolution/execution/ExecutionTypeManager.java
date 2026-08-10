@@ -10,7 +10,6 @@ import net.shelmarow.combat_evolution.gameassets.ExecutionSkillAnimations;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionAttackAnimation;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionHitAnimation;
 import org.apache.commons.lang3.function.TriFunction;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
@@ -46,6 +45,12 @@ public class ExecutionTypeManager {
             ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "tachi"),
             ExecutionSkillAnimations.EXECUTION_TACHI, ExecutionSkillAnimations.EXECUTED_FULL2,
             new Vec3(1.35,0,0.2),0,100
+    );
+
+    public static final Type SPEAR_TYPE = creatExecutionType(
+            ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "spear"),
+            ExecutionSkillAnimations.EXECUTION_COLOSSALSWORD, ExecutionSkillAnimations.EXECUTED_FULL2,
+            new Vec3(1.5,0,0),0F,100
     );
 
     public static final Type GREATSWORD_TYPE = creatExecutionType(
@@ -84,7 +89,7 @@ public class ExecutionTypeManager {
             CapabilityItem.WeaponCategories.AXE, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> COLOSSALSWORD_TYPE),
             CapabilityItem.WeaponCategories.UCHIGATANA, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> TACHI_TYPE),
             CapabilityItem.WeaponCategories.TACHI, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> TACHI_TYPE),
-            CapabilityItem.WeaponCategories.SPEAR, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> GREATSWORD_TYPE),
+            CapabilityItem.WeaponCategories.SPEAR, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> SPEAR_TYPE),
             CapabilityItem.WeaponCategories.TRIDENT, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> GREATSWORD_TYPE),
             CapabilityItem.WeaponCategories.GREATSWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> {
                 return entityPatch.getOriginal().level().getRandom().nextDouble() >= 0.5 ? GREATSWORD_TYPE : COLOSSALSWORD_TYPE;

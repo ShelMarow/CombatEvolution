@@ -1,33 +1,21 @@
 package net.shelmarow.combat_evolution.event;
 
-import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
-import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
 import net.shelmarow.combat_evolution.client.hud.execution.ExecutionHUD;
 import net.shelmarow.combat_evolution.client.hud.execution.types.DefaultType;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassDodgeParticle;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassGuardParticle;
-import net.shelmarow.combat_evolution.example.entity.CEEntities;
-import net.shelmarow.combat_evolution.example.entity.shelmarow.ShelMarowPatch;
-import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
-import yesman.epicfight.api.forgeevent.EntityPatchRegistryEvent;
 
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEvent {
-
-    @SubscribeEvent
-    public static void setPatch(EntityPatchRegistryEvent event) {
-        event.getTypeEntry().put(EntityType.ZOMBIE, (entity)-> ShelMarowPatch::new);
-    }
 
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent

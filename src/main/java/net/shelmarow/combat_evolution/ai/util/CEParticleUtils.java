@@ -10,8 +10,6 @@ import net.minecraft.world.phys.Vec3;
 import net.shelmarow.combat_evolution.client.particle.follow.CEFollowParticleOptions;
 
 public class CEParticleUtils {
-
-
     public static void spawnWarningParticle(ParticleType<CEFollowParticleOptions> particle, Entity entity, Vec3 offset) {
         if (entity != null) {
             Level level = entity.level();

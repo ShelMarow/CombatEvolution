@@ -85,7 +85,7 @@ public class CEShieldCounter extends Skill {
             if (sourceLocation != null) {
                 Vec3 viewVector = event.getPlayerPatch().getOriginal().getViewVector(1.0F);
                 Vec3 toSourceLocation = sourceLocation.subtract(event.getPlayerPatch().getOriginal().position()).normalize();
-                if (toSourceLocation.dot(viewVector) > (double) 0.0F) {
+                if (toSourceLocation.dot(viewVector) > (double) 0.0F && sourceLocation.distanceTo(event.getPlayerPatch().getOriginal().position()) < 5) {
                     isFront = true;
                 }
             }

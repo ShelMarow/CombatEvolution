@@ -39,6 +39,7 @@ public class CEAttributes {
 
         player(event);
     }
+
     private static void common(EntityAttributeModificationEvent event, EntityType<? extends LivingEntity> type) {
         event.add(type, EXECUTION_DAMAGE_MULTIPLY.get());
     }

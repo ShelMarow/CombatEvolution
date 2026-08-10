@@ -13,11 +13,11 @@
     "CustomMobPatchMixin",
     "EFAttackAnimationMixin",
     "EFLivingEntityPatchMixin",
+    "EntityMixin",
     "EpicFightDamageSourceMixin",
     "GuardSkillInvoker",
     "GuardSkillMixin",
     "HealthBarMixin",
-    "EntityMixin",
     "LivingEntityPatchMixin",
     "StaticAnimationsMixin"
   ]

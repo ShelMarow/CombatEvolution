@@ -125,7 +125,7 @@ public class ExecutionHandler {
         }
         
         //如果处决目标是玩家，根据配置文件调整伤害倍率
-        if(target instanceof Player){
+        if(damageSource.is(CEDamageTypeTags.EXECUTION) && target instanceof Player){
             amount *= CECommonConfig.EXECUTION_DAMAGE_TO_PLAYER.get().floatValue();
         }
 

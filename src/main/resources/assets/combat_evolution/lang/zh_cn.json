@@ -33,5 +33,9 @@
   "enchantment.combat_evolution.massacre": "残杀",
   "enchantment.combat_evolution.massacre.desc": "增加处决造成的伤害",
   "enchantment.combat_evolution.intimidate": "威慑",
-  "enchantment.combat_evolution.intimidate.desc": "成功处决敌人后，击退并眩晕范围内的非玩家目标"
+  "enchantment.combat_evolution.intimidate.desc": "成功处决敌人后，击退并眩晕范围内的非玩家目标",
+
+  "attribute.name.combat_evolution.execution_damage_multiply": "处决伤害倍率",
+  "attribute.name.combat_evolution.execution_regen_amount": "处决生命回复",
+  "attribute.name.combat_evolution.execution_regen_percent": "处决生命回复百分比"
 }

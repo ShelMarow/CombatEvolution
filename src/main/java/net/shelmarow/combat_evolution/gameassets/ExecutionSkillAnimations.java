@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.gameassets;
 
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.shelmarow.combat_evolution.client.fov.CEFovManager;
@@ -27,6 +28,7 @@ public class ExecutionSkillAnimations {
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_SWORD;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_DAGGER;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_TACHI;
+    public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_SPEAR;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_GREATSWORD;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_COLOSSALSWORD;
 
@@ -73,6 +75,10 @@ public class ExecutionSkillAnimations {
                 getExecutionAttackAnimation(accessor, executionCollider, CONSTANT_EXECUTION)
         );
 
+        EXECUTION_SPEAR = builder.nextAccessor("biped/skill/execution/execution_colossalsword", accessor ->
+                getExecutionAttackAnimation(accessor, executionCollider, CONSTANT_EXECUTION)
+        );
+
         EXECUTION_GREATSWORD = builder.nextAccessor("biped/skill/execution/execution_greatsword", accessor ->
                 getExecutionAttackAnimation(accessor, executionCollider, CONSTANT_EXECUTION)
         );
@@ -107,11 +113,11 @@ public class ExecutionSkillAnimations {
                         CEFovManager.setFovModifierTask(player,-0.55F, 60);
                     }}, AnimationEvent.Side.CLIENT))
                 .addEvents(AnimationEvent.InTimeEvent.create(0.86F, (entitypatch, assetAccessor, animationParameters) -> {
-                    if(entitypatch.getOriginal() instanceof LocalPlayer) {
+                    if(entitypatch.getOriginal() instanceof LocalPlayer player && player == Minecraft.getInstance().player) {
                         ExecutionShaderManager.trigger(4, 10);
                     }}, AnimationEvent.Side.CLIENT))
                 .addEvents(AnimationEvent.InTimeEvent.create(3.16F, (entitypatch, assetAccessor, animationParameters) -> {
-                    if(entitypatch.getOriginal() instanceof LocalPlayer player) {
+                    if(entitypatch.getOriginal() instanceof LocalPlayer player && player == Minecraft.getInstance().player) {
                         CEFovManager.resetFovModifier(player);
                         ExecutionShaderManager.trigger(10, 10);
                     }}, AnimationEvent.Side.CLIENT));
