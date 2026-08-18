@@ -2,7 +2,7 @@ package net.shelmarow.combat_evolution.skill;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
@@ -12,16 +12,18 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.MinecraftForge;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.gameassets.CEEntityState;
 import net.shelmarow.combat_evolution.gameassets.ShieldCounterAnimations;
 import net.shelmarow.combat_evolution.sounds.CESounds;
-import yesman.epicfight.api.forgeevent.EntityStunEvent;
+import yesman.epicfight.api.event.EntityEventListener;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.IdentifierProvider;
+import yesman.epicfight.api.event.types.entity.StunnedEvent;
 import yesman.epicfight.api.utils.AttackResult;
-import yesman.epicfight.client.ClientEngine;
+import yesman.epicfight.client.events.engine.ControlEngine;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.model.armature.HumanoidArmature;
 import yesman.epicfight.skill.*;
@@ -34,24 +36,24 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageSources;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
-import yesman.epicfight.world.effect.EpicFightMobEffects;
-import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import yesman.epicfight.registry.entries.EpicFightMobEffects;
 
 import java.util.UUID;
 
 public class CEShieldCounter extends Skill {
     private static final UUID EVENT_UUID = UUID.fromString("3ae19e9c-df47-4bc6-a3b4-781cf4a4a992");
+    private static final IdentifierProvider EVENT_IDENTIFIER = IdentifierProvider.constant(ResourceLocation.fromNamespaceAndPath("combat_evolution", EVENT_UUID.toString()));
     private float amount = 10F;
     private float percent = 0.2F;
 
-    public CEShieldCounter(SkillBuilder<? extends Skill> builder) {
+    public CEShieldCounter(SkillBuilder<?> builder) {
         super(builder.setCategory(SkillCategories.IDENTITY).setActivateType(ActivateType.TOGGLE).setResource(Resource.NONE));
     }
 
 
     @Override
-    public void setParams(CompoundTag parameters) {
-        super.setParams(parameters);
+    public void loadDatapackParameters(CompoundTag parameters) {
+        super.loadDatapackParameters(parameters);
         this.consumption = Math.max(parameters.getFloat("consumption"), 0F);
         this.amount = Math.max(parameters.getFloat("amount"), 0F);
         this.percent = Math.max(parameters.getFloat("percent"), 0F);
@@ -59,33 +61,33 @@ public class CEShieldCounter extends Skill {
 
 
     @Override
-    public void onInitiate(SkillContainer container) {
-        super.onInitiate(container);
+    public void onInitiate(SkillContainer container, EntityEventListener eventListener) {
+        super.onInitiate(container, eventListener);
 
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_CAST_EVENT, EVENT_UUID, event -> {
+        container.getExecutor().getEventListener().registerEvent(EpicFightEventHooks.Player.CAST_SKILL, event -> {
             if (container.getExecutor().isLogicalClient()) {
                 SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
                 if(skillCategory == SkillCategories.WEAPON_INNATE && EpicFightKeyMappings.GUARD.isDown()) {
                     EpicFightCapabilities.getUnparameterizedEntityPatch(container.getExecutor().getOriginal(), LivingEntityPatch.class).ifPresent(entityPatch -> {
-                        if (container.sendCastRequest(container.getClientExecutor(), ClientEngine.getInstance().controlEngine).isExecutable()) {
-                            event.setCanceled(true);
+                        if (container.sendCastRequest(container.getClientExecutor(), ControlEngine.getInstance()).isExecutable()) {
+                            event.cancel();
                         }
                     });
                 }
             }
-        });
+        }, EVENT_IDENTIFIER);
 
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID, event -> {
+        container.getExecutor().getEventListener().registerEvent(EpicFightEventHooks.Entity.TAKE_DAMAGE_INCOME, event -> {
             DamageSource damageSource = event.getDamageSource();
             Entity attacker = damageSource.getDirectEntity();
-            ServerPlayerPatch playerPatch = event.getPlayerPatch();
+            ServerPlayerPatch playerPatch = (ServerPlayerPatch) event.getEntityPatch();
 
             boolean isFront = false;
             Vec3 sourceLocation = damageSource.getSourcePosition();
             if (sourceLocation != null) {
-                Vec3 viewVector = event.getPlayerPatch().getOriginal().getViewVector(1.0F);
-                Vec3 toSourceLocation = sourceLocation.subtract(event.getPlayerPatch().getOriginal().position()).normalize();
-                if (toSourceLocation.dot(viewVector) > (double) 0.0F && sourceLocation.distanceTo(event.getPlayerPatch().getOriginal().position()) < 5) {
+                Vec3 viewVector = playerPatch.getOriginal().getViewVector(1.0F);
+                Vec3 toSourceLocation = sourceLocation.subtract(playerPatch.getOriginal().position()).normalize();
+                if (toSourceLocation.dot(viewVector) > (double) 0.0F && sourceLocation.distanceTo(playerPatch.getOriginal().position()) < 5) {
                     isFront = true;
                 }
             }
@@ -94,7 +96,7 @@ public class CEShieldCounter extends Skill {
                 //取消伤害
                 event.setResult(AttackResult.ResultType.BLOCKED);
                 event.setParried(true);
-                event.setCanceled(true);
+                event.cancel();
 
                 //音效
                 spawnParryEffect(playerPatch.getOriginal());
@@ -102,7 +104,7 @@ public class CEShieldCounter extends Skill {
 
                 //获得增益
                 playerPatch.setStamina(playerPatch.getStamina() + playerPatch.getMaxStamina() * 0.35F);
-                playerPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.MIDDLE_STUN_IMMUNITY.get(), 40, 0));
+                playerPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.MIDDLE_STUN_IMMUNITY, 40, 0));
                 playerPatch.getOriginal().addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 160, 3));
                 playerPatch.getOriginal().addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 160, 1));
 
@@ -110,7 +112,7 @@ public class CEShieldCounter extends Skill {
                 onCounterSucceed(playerPatch, attacker, damageSource);
 
             }
-        });
+        }, EVENT_IDENTIFIER);
 
     }
 
@@ -121,14 +123,16 @@ public class CEShieldCounter extends Skill {
             float rest = playerAttacker.getStamina() - amount - playerAttacker.getMaxStamina() * percent;
             playerAttacker.setStamina(rest);
             if(rest <= 0) {
-                EntityStunEvent entityStunEvent = new EntityStunEvent(efSource, attackerPatch, StunType.NEUTRALIZE);
-                if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {
+                StunnedEvent entityStunEvent = new StunnedEvent(efSource, attackerPatch, StunType.NEUTRALIZE);
+                EpicFightEventHooks.Entity.ON_STUNNED.postWithListener(entityStunEvent, attackerPatch.getEventListener());
+                if (!entityStunEvent.isCanceled()) {
                     attackerPatch.applyStun(StunType.NEUTRALIZE, 0F);
                 }
             }
             else{
-                EntityStunEvent entityStunEvent = new EntityStunEvent(efSource, attackerPatch, StunType.HOLD);
-                if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {
+                StunnedEvent entityStunEvent = new StunnedEvent(efSource, attackerPatch, StunType.HOLD);
+                EpicFightEventHooks.Entity.ON_STUNNED.postWithListener(entityStunEvent, attackerPatch.getEventListener());
+                if (!entityStunEvent.isCanceled()) {
                     attackerPatch.playAnimationSynchronized(ShieldCounterAnimations.COUNTERED,0F);
                 }
             }
@@ -138,8 +142,9 @@ public class CEShieldCounter extends Skill {
             ceHumanoidPatch.onAttackCountered(damageSource, totalAmount);
         }
         else if (attackerPatch != null && attackerPatch.getArmature() instanceof HumanoidArmature) {
-            EntityStunEvent entityStunEvent = new EntityStunEvent(efSource, attackerPatch, StunType.NEUTRALIZE);
-            if (!MinecraftForge.EVENT_BUS.post(entityStunEvent)) {
+            StunnedEvent entityStunEvent = new StunnedEvent(efSource, attackerPatch, StunType.NEUTRALIZE);
+            EpicFightEventHooks.Entity.ON_STUNNED.postWithListener(entityStunEvent, attackerPatch.getEventListener());
+            if (!entityStunEvent.isCanceled()) {
                 attackerPatch.applyStun(StunType.NEUTRALIZE, 0F);
             }
         }
@@ -150,8 +155,7 @@ public class CEShieldCounter extends Skill {
     public void onRemoved(SkillContainer container) {
         super.onRemoved(container);
 
-        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_CAST_EVENT, EVENT_UUID);
-        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListenersBelongTo(EVENT_IDENTIFIER);
     }
 
 
@@ -180,10 +184,10 @@ public class CEShieldCounter extends Skill {
     }
 
     @Override
-    public void executeOnServer(SkillContainer container, FriendlyByteBuf args) {
+    public void executeOnServer(SkillContainer container, CompoundTag args) {
         super.executeOnServer(container, args);
         if(costStamina(container.getServerExecutor())){
-            container.getExecutor().getOriginal().addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(), 10, 0, false, false, true));
+            container.getExecutor().getOriginal().addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY, 10, 0, false, false, true));
             container.getExecutor().playAnimationSynchronized(ShieldCounterAnimations.SHIELD_COUNTER, 0F);
         }
     }

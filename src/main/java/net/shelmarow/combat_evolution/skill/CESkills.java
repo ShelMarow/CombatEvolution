@@ -1,21 +1,19 @@
 package net.shelmarow.combat_evolution.skill;
 
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.item.CECreativeTab;
-import yesman.epicfight.api.forgeevent.SkillBuildEvent;
+import yesman.epicfight.registry.EpicFightRegistries;
 import yesman.epicfight.skill.Skill;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = Mod.EventBusSubscriber.Bus.MOD)
 public class CESkills {
+    public static final DeferredRegister<Skill> SKILLS = DeferredRegister.create(EpicFightRegistries.Keys.SKILL, CombatEvolution.MOD_ID);
     public static Skill SHIELD_COUNTER;
 
-    @SubscribeEvent
-    public static void buildSkillEvent(SkillBuildEvent build) {
-        SkillBuildEvent.ModRegistryWorker modRegistry = build.createRegistryWorker(CombatEvolution.MOD_ID);
-
-        SHIELD_COUNTER = modRegistry.build("shield_counter", CEShieldCounter::new,
-                CEShieldCounter.createBuilder().setCreativeTab(CECreativeTab.CE_TAB.get()));
+    static {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "shield_counter");
+        SKILLS.register("shield_counter", () -> SHIELD_COUNTER = Skill.createBuilder(CEShieldCounter::new)
+                .setCreativeTab(CECreativeTab.CE_TAB.get()).build(id));
     }
 }
