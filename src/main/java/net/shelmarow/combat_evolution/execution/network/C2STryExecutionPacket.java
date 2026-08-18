@@ -12,7 +12,7 @@ import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 
 public class C2STryExecutionPacket implements CustomPacketPayload {
     public static final Type<C2STryExecutionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "try_execution"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, C2STryExecutionPacket> STREAM_CODEC = StreamCodec.unit(new C2STryExecutionPacket());
+    public static final StreamCodec<RegistryFriendlyByteBuf, C2STryExecutionPacket> STREAM_CODEC = StreamCodec.of((buffer, msg) -> {}, buffer -> new C2STryExecutionPacket());
 
     public C2STryExecutionPacket() {
 
