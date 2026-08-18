@@ -2,16 +2,17 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'org.spongepowered.mixin' version '0.7.+'
+    id 'net.neoforged.moddev' version '2.0.144'
 }
 
 base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+version = mod_version
+group = mod_group_id
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier.set('sources')
@@ -27,40 +28,48 @@ jar {
 }
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
-minecraft {
-    mappings channel: mapping_channel, version: mapping_version
+neoForge {
+    version = neo_version
 
-    copyIdeResources = true
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
+    }
+
     runs {
         configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
+            gameDirectory = project.file('run')
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
         }
 
         client {
-            property 'forge.enabledGameTestNamespaces', mod_id
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
         }
 
         server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
+            server()
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
+            programArgument '--nogui'
         }
         gameTestServer {
-            property 'forge.enabledGameTestNamespaces', mod_id
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
         }
 
         data {
-            workingDirectory project.file('run-data')
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            data()
+            gameDirectory = project.file('run-data')
+            programArguments.addAll '--mod', mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
     }
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
@@ -69,45 +78,27 @@ repositories {
     maven {
         url "https://cursemaven.com"
     }
-     flatDir {
-         dir 'libs'
-     }
 }
 
-mixin {
-    add sourceSets.main, "combat_evolution.refmap.json"
-    config "combat_evolution.mixins.json"
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-    implementation fg.deobf("curse.maven:epic-fight-mod-405076:7617763-sources-7617764")
-
-    implementation fg.deobf("curse.maven:selene-499980:7072721")
-    implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:6860192")
-
-
-    compileOnly("curse.maven:free-cam-557076:4643128")
-    compileOnly("libs:betterlockon:2.0.2")
-
-    implementation 'org.spongepowered:mixin:0.8.5'
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    testAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
+    implementation("curse.maven:epic-fight-mod-405076:8175609")
 }
 
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
-            forge_version: forge_version, forge_version_range: forge_version_range,
+            neo_version: neo_version, neo_version_range: neo_version_range,
             loader_version_range: loader_version_range,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
     ]
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand replaceProperties + [project: project]
     }
 }
@@ -124,7 +115,6 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-    finalizedBy 'reobfJar'
 }
 
 publishing {
