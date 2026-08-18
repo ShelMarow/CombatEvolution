@@ -1,10 +1,10 @@
 package net.shelmarow.combat_evolution.item;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import net.shelmarow.combat_evolution.CombatEvolution;
 
 public class CEItems {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, CombatEvolution.MOD_ID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, CombatEvolution.MOD_ID);
 }

@@ -12,12 +12,12 @@ public class CECommonEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        super.applyEffectTick(pLivingEntity, pAmplifier);
+    public boolean applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+        return super.applyEffectTick(pLivingEntity, pAmplifier);
     }
 
     @Override
-    public boolean isDurationEffectTick(int pDuration, int pAmplifier) {
-        return super.isDurationEffectTick(pDuration, pAmplifier);
+    public boolean shouldApplyEffectTickThisTick(int pDuration, int pAmplifier) {
+        return super.shouldApplyEffectTickThisTick(pDuration, pAmplifier);
     }
 }

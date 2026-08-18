@@ -5,7 +5,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
-import yesman.epicfight.world.effect.EpicFightMobEffects;
+import yesman.epicfight.registry.entries.EpicFightMobEffects;
 
 public class CEStunImmunityEffect extends MobEffect {
 
@@ -14,12 +14,13 @@ public class CEStunImmunityEffect extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
-        pLivingEntity.addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY.get(),2, 256, false, false, false));
+    public boolean applyEffectTick(@NotNull LivingEntity pLivingEntity, int pAmplifier) {
+        pLivingEntity.addEffect(new MobEffectInstance(EpicFightMobEffects.STUN_IMMUNITY,2, 256, false, false, false));
+        return true;
     }
 
     @Override
-    public boolean isDurationEffectTick(int pDuration, int pAmplifier) {
+    public boolean shouldApplyEffectTickThisTick(int pDuration, int pAmplifier) {
         return true;
     }
 }
