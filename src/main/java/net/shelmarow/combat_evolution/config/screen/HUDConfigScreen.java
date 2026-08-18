@@ -135,7 +135,7 @@ public class HUDConfigScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        renderBackground(pGuiGraphics);
+        renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         for(ExecutionElement hudElement : hudElements){
             hudElement.renderExample(pGuiGraphics, pPartialTick);

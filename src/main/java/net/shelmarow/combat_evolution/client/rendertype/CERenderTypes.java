@@ -19,18 +19,14 @@ public class CERenderTypes extends RenderType {
     }
 
     public static final ParticleRenderType PARTICLE_SHEET_OPAQUE = new ParticleRenderType() {
-        public void begin(BufferBuilder builder, @NotNull TextureManager manager) {
+        public BufferBuilder begin(@NotNull Tesselator tesselator, @NotNull TextureManager manager) {
             RenderSystem.disableBlend();
             RenderSystem.disableCull();
             RenderSystem.disableDepthTest();
             RenderSystem.depthMask(false);
             RenderSystem.setShader(GameRenderer::getParticleShader);
             RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
-            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
-        }
-
-        public void end(Tesselator tesselator) {
-            tesselator.end();
+            return tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
 
         public String toString() {

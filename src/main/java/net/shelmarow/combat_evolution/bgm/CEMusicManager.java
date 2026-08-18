@@ -3,8 +3,8 @@ package net.shelmarow.combat_evolution.bgm;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.config.CEClientConfig;
 
 import java.util.ArrayList;

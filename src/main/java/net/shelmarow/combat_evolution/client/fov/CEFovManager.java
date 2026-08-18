@@ -2,15 +2,15 @@ package net.shelmarow.combat_evolution.client.fov;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ComputeFovModifierEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.tickTask.TickTask;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class CEFovManager {
 
     private static float fovModifier = 0.0F;
@@ -18,8 +18,8 @@ public class CEFovManager {
     private static TickTask task = null;
 
     @SubscribeEvent
-    public static void onClientEvent(TickEvent.ClientTickEvent event) {
-        if(event.phase == TickEvent.Phase.END && !Minecraft.getInstance().isPaused()) {
+    public static void onClientEvent(ClientTickEvent.Post event) {
+        if(!Minecraft.getInstance().isPaused()) {
             if(task != null) {
                 if(!task.isFinished()){
                     task.tick();

@@ -1,22 +1,22 @@
 package net.shelmarow.combat_evolution.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CECommonConfig {
-    public static final ForgeConfigSpec COMMON_SPEC;
-    public static final ForgeConfigSpec.BooleanValue ENABLED_EXECUTION;
-    public static final ForgeConfigSpec.DoubleValue EXECUTION_DAMAGE_TO_PLAYER;
-    public static final ForgeConfigSpec.BooleanValue ENABLE_DAMAGE_SOURCE_TO_PLAYER;
+    public static final ModConfigSpec COMMON_SPEC;
+    public static final ModConfigSpec.BooleanValue ENABLED_EXECUTION;
+    public static final ModConfigSpec.DoubleValue EXECUTION_DAMAGE_TO_PLAYER;
+    public static final ModConfigSpec.BooleanValue ENABLE_DAMAGE_SOURCE_TO_PLAYER;
 
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> EXECUTION_ITEM_BLACKLIST;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> EXECUTION_ITEM_BLACKLIST;
 
-    public static final ForgeConfigSpec.DoubleValue MASSACRE_ENCHANTMENT;
+    public static final ModConfigSpec.DoubleValue MASSACRE_ENCHANTMENT;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         builder.push("common");
 

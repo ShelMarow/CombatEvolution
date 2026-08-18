@@ -8,9 +8,10 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.client.rendertype.CERenderTypes;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
@@ -59,8 +60,8 @@ public abstract class CEPosFollowBaseParticle extends TextureSheetParticle {
     }
 
     @Override
-    public boolean shouldCull() {
-        return false;
+    public AABB getRenderBoundingBox(float partialTicks) {
+        return AABB.INFINITE;
     }
 
 
@@ -101,21 +102,21 @@ public abstract class CEPosFollowBaseParticle extends TextureSheetParticle {
 
         int light = this.getLightColor(partialTicks);
 
-        buffer.vertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z())
-                .uv(this.getU1(), this.getV1())
-                .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+        buffer.addVertex(avector3f[0].x(), avector3f[0].y(), avector3f[0].z())
+                .setUv(this.getU1(), this.getV1())
+                .setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(light);
 
-        buffer.vertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z())
-                .uv(this.getU1(), this.getV0())
-                .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+        buffer.addVertex(avector3f[1].x(), avector3f[1].y(), avector3f[1].z())
+                .setUv(this.getU1(), this.getV0())
+                .setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(light);
 
-        buffer.vertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z())
-                .uv(this.getU0(), this.getV0())
-                .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+        buffer.addVertex(avector3f[2].x(), avector3f[2].y(), avector3f[2].z())
+                .setUv(this.getU0(), this.getV0())
+                .setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(light);
 
-        buffer.vertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z())
-                .uv(this.getU0(), this.getV1())
-                .color(this.rCol, this.gCol, this.bCol, this.alpha).uv2(light).endVertex();
+        buffer.addVertex(avector3f[3].x(), avector3f[3].y(), avector3f[3].z())
+                .setUv(this.getU0(), this.getV1())
+                .setColor(this.rCol, this.gCol, this.bCol, this.alpha).setLight(light);
     }
 
     @Override

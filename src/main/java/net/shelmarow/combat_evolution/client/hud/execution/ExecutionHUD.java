@@ -3,22 +3,23 @@ package net.shelmarow.combat_evolution.client.hud.execution;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.api.event.ShowExecutionIconEvent;
 import net.shelmarow.combat_evolution.client.hud.execution.types.HUDType;
@@ -37,8 +38,8 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
-public class ExecutionHUD implements IGuiOverlay {
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+public class ExecutionHUD implements LayeredDraw.Layer {
     public static final ExecutionHUD instance = new ExecutionHUD();
 
     private static HUDType currentHudType;
@@ -48,13 +49,13 @@ public class ExecutionHUD implements IGuiOverlay {
 
 
     @SubscribeEvent
-    public static void onPlayerClientTick(TickEvent.PlayerTickEvent event) {
+    public static void onPlayerClientTick(PlayerTickEvent.Post event) {
         if (!CEClientConfig.ICON_DISPLAY.get()) {
             showExecutionIcon = false;
             return;
         }
 
-        if (event.player.level().isClientSide && event.player == Minecraft.getInstance().player && event.phase == TickEvent.Phase.END) {
+        if (event.getEntity().level().isClientSide && event.getEntity() == Minecraft.getInstance().player) {
             //从配置文件读取当前图标类型
             HUDType hudType = HUDTypeManager.getHUDType(CEClientConfig.HUD_TYPE.get());
 
@@ -67,7 +68,7 @@ public class ExecutionHUD implements IGuiOverlay {
             }
 
             //判断是否需要显示图标
-            LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(event.player, LocalPlayerPatch.class);
+            LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(event.getEntity(), LocalPlayerPatch.class);
             if (localPlayerPatch != null) {
                 LivingEntity target = localPlayerPatch.getTarget();
                 LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
@@ -76,11 +77,11 @@ public class ExecutionHUD implements IGuiOverlay {
                     if (animationPlayer != null) {
                         AssetAccessor<? extends StaticAnimation> currentAnimation = animationPlayer.getRealAnimation();
                         //检测可处决的条件
-                        if (ExecutionHandler.targetIsInRange(event.player, target, 0, ExecutionHandler.EXECUTION_DISTANCE, 180) &&
-                                ExecutionHandler.isTargetGuardBreak(currentAnimation, targetPatch) && ExecutionHandler.canExecute(event.player, localPlayerPatch, target, targetPatch)) {
+                        if (ExecutionHandler.targetIsInRange(event.getEntity(), target, 0, ExecutionHandler.EXECUTION_DISTANCE, 180) &&
+                                ExecutionHandler.isTargetGuardBreak(currentAnimation, targetPatch) && ExecutionHandler.canExecute(event.getEntity(), localPlayerPatch, target, targetPatch)) {
 
                             ShowExecutionIconEvent iconEvent = new ShowExecutionIconEvent(localPlayerPatch, targetPatch);
-                            if(!MinecraftForge.EVENT_BUS.post(iconEvent)){
+                            if(!NeoForge.EVENT_BUS.post(iconEvent).isCanceled()){
                                 float totalTime = currentAnimation.get().getTotalTime();
                                 float currentTime = animationPlayer.getElapsedTime();
                                 timePercentO = timePercent;
@@ -97,7 +98,11 @@ public class ExecutionHUD implements IGuiOverlay {
     }
 
     @Override
-    public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
+    public void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        Gui gui = Minecraft.getInstance().gui;
+        float partialTick = deltaTracker.getGameTimeDeltaPartialTick(false);
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         if (currentHudType == null || !showExecutionIcon || Minecraft.getInstance().screen instanceof HUDConfigScreen) {
             return;
         }
@@ -230,20 +235,19 @@ public class ExecutionHUD implements IGuiOverlay {
 
         Matrix4f matrix = guiGraphics.pose().last().pose();
         Tesselator tess = Tesselator.getInstance();
-        BufferBuilder buf = tess.getBuilder();
 
         //绘制背景
         ResourceLocation background = hudType.getBackground();
         if (background != null) {
             RenderSystem.setShaderTexture(0, background);
-            buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-            buf.vertex(matrix, 0, 0, 0).uv(0, 0).color(1, 1, 1, 1).endVertex();
-            buf.vertex(matrix, iconSize, 0, 0).uv(1, 0).color(1, 1, 1, 1).endVertex();
-            buf.vertex(matrix, iconSize, 0 + iconSize, 0).uv(1, 1).color(1, 1, 1, 1).endVertex();
-            buf.vertex(matrix, 0, 0 + iconSize, 0).uv(0, 1).color(1, 1, 1, 1).endVertex();
+            buf.addVertex(matrix, 0, 0, 0).setUv(0, 0).setColor(1, 1, 1, 1);
+            buf.addVertex(matrix, iconSize, 0, 0).setUv(1, 0).setColor(1, 1, 1, 1);
+            buf.addVertex(matrix, iconSize, 0 + iconSize, 0).setUv(1, 1).setColor(1, 1, 1, 1);
+            buf.addVertex(matrix, 0, 0 + iconSize, 0).setUv(0, 1).setColor(1, 1, 1, 1);
 
-            BufferUploader.drawWithShader(buf.end());
+            BufferUploader.drawWithShader(buf.buildOrThrow());
         }
 
         // 绘制进度外框
@@ -251,11 +255,11 @@ public class ExecutionHUD implements IGuiOverlay {
         ResourceLocation progress = hudType.getProgress();
         if (progress != null) {
             RenderSystem.setShaderTexture(0, progress);
-            buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_TEX);
+            BufferBuilder buf = tess.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_TEX);
 
             float cx = iconSize / 2f;
             float cy = iconSize / 2f;
-            buf.vertex(matrix, cx, cy, 0).uv(0.5F, 0.5F).endVertex();
+            buf.addVertex(matrix, cx, cy, 0).setUv(0.5F, 0.5F);
             float filledAngle = 360.0F * filled;
 
 
@@ -278,10 +282,10 @@ public class ExecutionHUD implements IGuiOverlay {
                 float u = px / iconSize;
                 float v = py / iconSize;
 
-                buf.vertex(matrix, px, py, 0).uv(u, v).endVertex();
+                buf.addVertex(matrix, px, py, 0).setUv(u, v);
             }
 
-            BufferUploader.drawWithShader(buf.end());
+            BufferUploader.drawWithShader(buf.buildOrThrow());
         }
 
         //绘制遮罩
@@ -290,14 +294,14 @@ public class ExecutionHUD implements IGuiOverlay {
             int index = Mth.clamp((int) (overlays.size() * filled), 0, overlays.size() - 1);
             RenderSystem.setShaderTexture(0, overlays.get(index));
 
-            buf.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            BufferBuilder buf = tess.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-            buf.vertex(matrix, 0, 0, 0).uv(0, 0).color(1, 1, 1, 1).endVertex();
-            buf.vertex(matrix, iconSize, 0, 0).uv(1, 0).color(1, 1, 1, 1).endVertex();
-            buf.vertex(matrix, iconSize, iconSize, 0).uv(1, 1).color(1, 1, 1, 1).endVertex();
-            buf.vertex(matrix, 0, iconSize, 0).uv(0, 1).color(1, 1, 1, 1).endVertex();
+            buf.addVertex(matrix, 0, 0, 0).setUv(0, 0).setColor(1, 1, 1, 1);
+            buf.addVertex(matrix, iconSize, 0, 0).setUv(1, 0).setColor(1, 1, 1, 1);
+            buf.addVertex(matrix, iconSize, iconSize, 0).setUv(1, 1).setColor(1, 1, 1, 1);
+            buf.addVertex(matrix, 0, iconSize, 0).setUv(0, 1).setColor(1, 1, 1, 1);
 
-            BufferUploader.drawWithShader(buf.end());
+            BufferUploader.drawWithShader(buf.buildOrThrow());
 
 
             RenderSystem.enableCull();

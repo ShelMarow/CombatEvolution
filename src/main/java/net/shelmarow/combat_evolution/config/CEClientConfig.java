@@ -1,24 +1,24 @@
 package net.shelmarow.combat_evolution.config;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.shelmarow.combat_evolution.client.hud.execution.HUDAlignment;
 
 @OnlyIn(Dist.CLIENT)
 public class CEClientConfig {
-    public static final ForgeConfigSpec CLIENT_SPEC;
-    public static final ForgeConfigSpec.BooleanValue PLAY_CE_MUSIC;
-    public static final ForgeConfigSpec.ConfigValue<String> HUD_TYPE;
-    public static final ForgeConfigSpec.BooleanValue ICON_DISPLAY;
-    public static final ForgeConfigSpec.BooleanValue SHOW_TEXT_DISPLAY;
+    public static final ModConfigSpec CLIENT_SPEC;
+    public static final ModConfigSpec.BooleanValue PLAY_CE_MUSIC;
+    public static final ModConfigSpec.ConfigValue<String> HUD_TYPE;
+    public static final ModConfigSpec.BooleanValue ICON_DISPLAY;
+    public static final ModConfigSpec.BooleanValue SHOW_TEXT_DISPLAY;
 
-    public static final ForgeConfigSpec.EnumValue<HUDAlignment> ICON_ALIGNMENT;
-    public static final ForgeConfigSpec.DoubleValue ICON_X;
-    public static final ForgeConfigSpec.DoubleValue ICON_Y;
+    public static final ModConfigSpec.EnumValue<HUDAlignment> ICON_ALIGNMENT;
+    public static final ModConfigSpec.DoubleValue ICON_X;
+    public static final ModConfigSpec.DoubleValue ICON_Y;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         builder.push("music");
 
