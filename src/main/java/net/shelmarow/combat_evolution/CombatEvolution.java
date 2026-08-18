@@ -68,9 +68,8 @@ public class CombatEvolution {
 
         if(dist == Dist.CLIENT) {
             modContainer.registerConfig(ModConfig.Type.CLIENT, CEClientConfig.CLIENT_SPEC);
+            modContainer.registerExtensionPoint(IConfigScreenFactory.class, CombatEvolutionConfigScreen::createConfigScreen);
         }
-
-        modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, screen) -> new CombatEvolutionConfigScreen(screen));
 
     }
 

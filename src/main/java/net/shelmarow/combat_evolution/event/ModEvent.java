@@ -15,7 +15,7 @@ import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassDodgeParticle;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassGuardParticle;
 
-@EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ModEvent {
 
     @OnlyIn(Dist.CLIENT)

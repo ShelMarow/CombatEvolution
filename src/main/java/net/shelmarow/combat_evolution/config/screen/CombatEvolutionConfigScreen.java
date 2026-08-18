@@ -8,6 +8,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.client.hud.execution.HUDTypeManager;
 import net.shelmarow.combat_evolution.config.CEClientConfig;
@@ -32,6 +33,12 @@ public class CombatEvolutionConfigScreen extends Screen {
     private int suggestionBoxY;
     private int suggestionBoxW;
     private final int suggestionLineHeight = 12;
+
+    // IConfigScreenFactory 工厂方法。放在客户端类里，避免模组主类的方法描述符引用 Screen，
+    // 否则专用服务器在构造模组时会因加载客户端类而崩溃。
+    public static Screen createConfigScreen(ModContainer container, Screen modListScreen) {
+        return new CombatEvolutionConfigScreen(modListScreen);
+    }
 
     public CombatEvolutionConfigScreen(Screen parent) {
         super(Component.literal("Combat Evolution Config"));
