@@ -16,13 +16,17 @@ import yesman.epicfight.world.damagesource.StunType;
 @Mixin(value = LivingEntityPatch.class,remap = false)
 public abstract class LivingEntityPatchMixin<T extends LivingEntity> extends HurtableEntityPatch<T> {
 
+    private LivingEntityPatchMixin(T entity) {
+        super(entity);
+    }
+
     @Inject(
             method = "initAnimator",
             at = @At(value = "HEAD")
     )
     protected void initAnimator(Animator animator, CallbackInfo ci){
-        animator.getVariables().putDefaultSharedVariable(MultiPhaseAttackAnimation.CE_PHASE_ATTACK_TRIED);
-        animator.getVariables().putDefaultSharedVariable(MultiPhaseAttackAnimation.CE_PHASE_ACTUALLY_HIT);
+        animator.getVariables().putSharedVariableWithDefault(MultiPhaseAttackAnimation.CE_PHASE_ATTACK_TRIED);
+        animator.getVariables().putSharedVariableWithDefault(MultiPhaseAttackAnimation.CE_PHASE_ACTUALLY_HIT);
     }
 
     @Inject(
@@ -32,7 +36,7 @@ public abstract class LivingEntityPatchMixin<T extends LivingEntity> extends Hur
     )
     public void onApplyStun(StunType stunType, float time, CallbackInfoReturnable<Boolean> cir){
         LivingEntity entity = this.getOriginal();
-        if(entity.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
+        if(entity.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY)){
             entity.xxa = 0.0F;
             entity.yya = 0.0F;
             entity.zza = 0.0F;

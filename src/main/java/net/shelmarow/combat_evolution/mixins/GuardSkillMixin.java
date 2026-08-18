@@ -9,7 +9,7 @@ import yesman.epicfight.skill.guard.GuardSkill;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
-import yesman.epicfight.world.entity.eventlistener.TakeDamageEvent;
+import yesman.epicfight.api.event.types.entity.TakeDamageEvent;
 
 @Mixin(value = GuardSkill.class, remap = false)
 public class GuardSkillMixin {
@@ -17,7 +17,7 @@ public class GuardSkillMixin {
             method = "dealEvent",
             at = @At("TAIL")
     )
-    private void ontDealEvent(PlayerPatch<?> playerpatch, TakeDamageEvent.Attack event, boolean advanced, CallbackInfo ci){
+    private void ontDealEvent(PlayerPatch<?> playerpatch, TakeDamageEvent.Income event, boolean advanced, CallbackInfo ci){
         if(event.isParried()){
             LivingEntityPatch<?> livingEntityPatch = EpicFightCapabilities.getEntityPatch(event.getDamageSource().getDirectEntity(),LivingEntityPatch.class);
             if(livingEntityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch) {

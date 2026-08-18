@@ -1,20 +1,20 @@
 package net.shelmarow.combat_evolution;
 
 import com.mojang.logging.LogUtils;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoader;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoader;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.shelmarow.combat_evolution.ai.CEConditions;
+import net.shelmarow.combat_evolution.ai.CEExpandedEntityDataAccessors;
 import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
 import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
@@ -26,50 +26,57 @@ import net.shelmarow.combat_evolution.config.CEClientConfig;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.config.screen.CombatEvolutionConfigScreen;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
-import net.shelmarow.combat_evolution.enchantment.CEEnchantments;
+import net.shelmarow.combat_evolution.event.ForgeEvent;
 import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.item.CECreativeTab;
 import net.shelmarow.combat_evolution.item.CEItems;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
 import net.shelmarow.combat_evolution.sounds.CESounds;
+import net.shelmarow.combat_evolution.skill.CESkills;
 import org.slf4j.Logger;
 import yesman.epicfight.gameasset.Armatures;
+import yesman.epicfight.api.event.EpicFightEventHooks;
 
 @Mod(CombatEvolution.MOD_ID)
 public class CombatEvolution {
     public static final String MOD_ID = "combat_evolution";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public CombatEvolution(FMLJavaModLoadingContext context){
-        IEventBus modEventBus = context.getModEventBus();
-        MinecraftForge.EVENT_BUS.register(this);
+    public CombatEvolution(IEventBus modEventBus, ModContainer modContainer, Dist dist){
+        NeoForge.EVENT_BUS.register(this);
+        EpicFightEventHooks.Entity.ON_STUNNED.registerEvent(ForgeEvent::onStunApply, MOD_ID);
+        net.shelmarow.combat_evolution.example.event.ModEvent.registerEpicFightEvents();
+        if (dist == Dist.CLIENT) {
+            net.shelmarow.combat_evolution.example.event.ModEventClient.registerEpicFightEvents();
+        }
         modEventBus.addListener(this::constructMod);
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(CENetworkHandler::registerPackets);
 
         CEAttributes.ATTRIBUTES.register(modEventBus);
+        CEExpandedEntityDataAccessors.REGISTRY.register(modEventBus);
         CEMobEffects.EFFECTS.register(modEventBus);
         CEParticles.PARTICLE_TYPES.register(modEventBus);
         CEEntities.ENTITY_TYPES.register(modEventBus);
         CESounds.SOUNDS.register(modEventBus);
         CEConditions.CONDITIONS.register(modEventBus);
-        CEEnchantments.ENCHANTMENTS.register(modEventBus);
+        CESkills.SKILLS.register(modEventBus);
         CEItems.ITEMS.register(modEventBus);
         CECreativeTab.CREATIVE_TAB.register(modEventBus);
 
-        context.registerConfig(ModConfig.Type.COMMON, CECommonConfig.COMMON_SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, CECommonConfig.COMMON_SPEC);
 
-        if(FMLEnvironment.dist == Dist.CLIENT) {
-            context.registerConfig(ModConfig.Type.CLIENT, CEClientConfig.CLIENT_SPEC);
+        if(dist == Dist.CLIENT) {
+            modContainer.registerConfig(ModConfig.Type.CLIENT, CEClientConfig.CLIENT_SPEC);
         }
 
-        context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> new ConfigScreenHandler.ConfigScreenFactory(CombatEvolutionConfigScreen::new));
+        modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, screen) -> new CombatEvolutionConfigScreen(screen));
 
-        CENetworkHandler.registerPackets();
     }
 
     private void constructMod(final FMLConstructModEvent event) {
         event.enqueueWork(() -> {
-            ModLoader.get().postEvent(new RegisterHUDTypeEvent());
+            ModLoader.postEvent(new RegisterHUDTypeEvent());
         });
     }
 
@@ -77,7 +84,7 @@ public class CombatEvolution {
     private void commonSetup(final FMLCommonSetupEvent event){
         event.enqueueWork(()->{
             CombatEvolution.registerArmatures();
-            ModLoader.get().postEvent(new RegisterCustomExecutionEvent());
+            ModLoader.postEvent(new RegisterCustomExecutionEvent());
         });
     }
 

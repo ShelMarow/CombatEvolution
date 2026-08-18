@@ -1,18 +1,17 @@
 package net.shelmarow.combat_evolution.mixins;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
-import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -47,7 +46,9 @@ public abstract class HealthBarMixin extends EntityUI {
                 return;
             }
 
-            Matrix4f modelViewMatrix = super.getModelViewMatrixAlignedToCamera(poseStack, entity, 0.0F, entity.getBbHeight() + 0.25F, 0.0F, true, partialTicks);
+            poseStack.pushPose();
+            EntityUI.setupPoseStack(poseStack, entity, 0.0F, entity.getBbHeight() + 0.25F, 0.0F, true, partialTicks);
+            PoseStack.Pose modelViewMatrix = poseStack.last();
             Collection<MobEffectInstance> activeEffects = entity.getActiveEffects();
 
             //药水效果
@@ -62,13 +63,13 @@ public abstract class HealthBarMixin extends EntityUI {
                 for (int i = 0; i <= column; i++) {
                     for (int j = 0; j <= row; j++) {
                         MobEffectInstance effectInstance = iter.next();
-                        MobEffect effect = effectInstance.getEffect();
+                        MobEffect effect = effectInstance.getEffect().value();
                         ResourceLocation rl = null;
 
                         if (effect instanceof VisibleMobEffect visibleMobEffect) {
                             rl = visibleMobEffect.getIcon(effectInstance);
                         } else {
-                            ResourceLocation key = ForgeRegistries.MOB_EFFECTS.getKey(effect);
+                            ResourceLocation key = BuiltInRegistries.MOB_EFFECT.getKey(effect);
                             if (key != null) {
                                 rl = ResourceLocation.fromNamespaceAndPath(key.getNamespace(), "textures/mob_effect/" + key.getPath() + ".png");
                             }
@@ -184,6 +185,8 @@ public abstract class HealthBarMixin extends EntityUI {
                         256
                 );
             }
+
+            poseStack.popPose();
         }
 
     }
