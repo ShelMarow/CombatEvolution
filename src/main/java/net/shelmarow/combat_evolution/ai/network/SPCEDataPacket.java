@@ -2,12 +2,17 @@ package net.shelmarow.combat_evolution.ai.network;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
 
-import java.util.function.Supplier;
-
-public class SPCEDataPacket {
+public class SPCEDataPacket implements CustomPacketPayload {
+    public static final Type<SPCEDataPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "ce_data"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, SPCEDataPacket> STREAM_CODEC = StreamCodec.of((buf, msg) -> encode(msg, buf), SPCEDataPacket::decode);
     private final int size;
     private final CompoundTag[] tags;
 
@@ -32,14 +37,18 @@ public class SPCEDataPacket {
         return new SPCEDataPacket(size, tags);
     }
 
-    public static void handle(SPCEDataPacket msg, Supplier<NetworkEvent.Context> ctx){
-        ctx.get().enqueueWork(() -> {
+    public static void handle(SPCEDataPacket msg, IPayloadContext ctx){
+        ctx.enqueueWork(() -> {
             CEPatchReloadListener.processServerPacket(msg);
         });
-        ctx.get().setPacketHandled(true);
     }
 
     public CompoundTag[] getTags() {
         return tags;
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

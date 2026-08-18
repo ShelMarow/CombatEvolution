@@ -1,15 +1,19 @@
 package net.shelmarow.combat_evolution.network.server;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.bossbar.ClientBossData;
 
 import java.util.UUID;
-import java.util.function.Supplier;
-
-public class S2CUpdateStaminaDataPacket {
+public class S2CUpdateStaminaDataPacket implements CustomPacketPayload {
+    public static final Type<S2CUpdateStaminaDataPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "update_stamina_data"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, S2CUpdateStaminaDataPacket> STREAM_CODEC = StreamCodec.of((buf, msg) -> encode(msg, buf), S2CUpdateStaminaDataPacket::decode);
     private final UUID uuid;
     private final float stamina;
     private final StaminaStatus staminaStatus;
@@ -33,12 +37,14 @@ public class S2CUpdateStaminaDataPacket {
         return new S2CUpdateStaminaDataPacket(uuid, stamina, staminaStatus);
     }
 
-    public static void handle(S2CUpdateStaminaDataPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-            ctx.get().enqueueWork(() -> {
-                ClientBossData.updateStaminaData(msg.uuid, msg.stamina, msg.staminaStatus);
-            });
-        }
-        ctx.get().setPacketHandled(true);
+    public static void handle(S2CUpdateStaminaDataPacket msg, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            ClientBossData.updateStaminaData(msg.uuid, msg.stamina, msg.staminaStatus);
+        });
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

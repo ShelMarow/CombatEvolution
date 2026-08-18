@@ -1,14 +1,18 @@
 package net.shelmarow.combat_evolution.execution.network;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 
-import java.util.function.Supplier;
-
-public class C2STryExecutionPacket {
+public class C2STryExecutionPacket implements CustomPacketPayload {
+    public static final Type<C2STryExecutionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "try_execution"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, C2STryExecutionPacket> STREAM_CODEC = StreamCodec.unit(new C2STryExecutionPacket());
 
     public C2STryExecutionPacket() {
 
@@ -22,17 +26,18 @@ public class C2STryExecutionPacket {
         return new C2STryExecutionPacket();
     }
 
-    public static void handle(C2STryExecutionPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_SERVER) {
-            ctx.get().enqueueWork(() -> {
-                ServerPlayer serverPlayer = ctx.get().getSender();
-                if (serverPlayer != null) {
-                    if(ExecutionHandler.tryExecute(serverPlayer)){
-                        //CombatEvolution.LOGGER.info("Execution Successfully!");
-                    }
+    public static void handle(C2STryExecutionPacket msg, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (ctx.player() instanceof ServerPlayer serverPlayer) {
+                if(ExecutionHandler.tryExecute(serverPlayer)){
+                    //CombatEvolution.LOGGER.info("Execution Successfully!");
                 }
-            });
-        }
-        ctx.get().setPacketHandled(true);
+            }
+        });
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

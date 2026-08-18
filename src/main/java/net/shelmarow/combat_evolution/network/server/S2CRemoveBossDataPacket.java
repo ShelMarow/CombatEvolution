@@ -1,14 +1,18 @@
 package net.shelmarow.combat_evolution.network.server;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.bossbar.ClientBossData;
 
 import java.util.UUID;
-import java.util.function.Supplier;
-
-public class S2CRemoveBossDataPacket {
+public class S2CRemoveBossDataPacket implements CustomPacketPayload {
+    public static final Type<S2CRemoveBossDataPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "remove_boss_data"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, S2CRemoveBossDataPacket> STREAM_CODEC = StreamCodec.of((buf, msg) -> encode(msg, buf), S2CRemoveBossDataPacket::decode);
     private final UUID uuid;
 
     public S2CRemoveBossDataPacket(UUID uuid) {
@@ -24,12 +28,14 @@ public class S2CRemoveBossDataPacket {
         return new S2CRemoveBossDataPacket(uuid);
     }
 
-    public static void handle(S2CRemoveBossDataPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-            ctx.get().enqueueWork(() -> {
-                ClientBossData.removeBoss(msg.uuid);
-            });
-        }
-        ctx.get().setPacketHandled(true);
+    public static void handle(S2CRemoveBossDataPacket msg, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            ClientBossData.removeBoss(msg.uuid);
+        });
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

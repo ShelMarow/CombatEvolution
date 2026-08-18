@@ -1,13 +1,18 @@
 package net.shelmarow.combat_evolution.network.server;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.bossbar.ClientBossData;
 
 import java.util.UUID;
-import java.util.function.Supplier;
-
-public class S2CUpdateBossBarTexture {
+public class S2CUpdateBossBarTexture implements CustomPacketPayload {
+    public static final Type<S2CUpdateBossBarTexture> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "update_boss_bar_texture"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, S2CUpdateBossBarTexture> STREAM_CODEC = StreamCodec.ofMember(S2CUpdateBossBarTexture::encode, S2CUpdateBossBarTexture::decode);
     private final UUID uuid;
     private final String texture;
 
@@ -25,10 +30,14 @@ public class S2CUpdateBossBarTexture {
         return new S2CUpdateBossBarTexture(buf.readUUID(), buf.readUtf());
     }
 
-    public static void handle(S2CUpdateBossBarTexture packet, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
+    public static void handle(S2CUpdateBossBarTexture packet, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
             ClientBossData.updateTexture(packet.uuid, packet.texture);
         });
-        ctx.get().setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

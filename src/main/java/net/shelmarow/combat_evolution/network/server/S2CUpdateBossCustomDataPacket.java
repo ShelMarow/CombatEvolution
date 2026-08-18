@@ -2,14 +2,18 @@ package net.shelmarow.combat_evolution.network.server;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.bossbar.ClientBossData;
 
 import java.util.UUID;
-import java.util.function.Supplier;
-
-public class S2CUpdateBossCustomDataPacket {
+public class S2CUpdateBossCustomDataPacket implements CustomPacketPayload {
+    public static final Type<S2CUpdateBossCustomDataPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "update_boss_custom_data"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, S2CUpdateBossCustomDataPacket> STREAM_CODEC = StreamCodec.of((buf, msg) -> encode(msg, buf), S2CUpdateBossCustomDataPacket::decode);
     private final UUID uuid;
     private final CompoundTag tag;
 
@@ -30,12 +34,14 @@ public class S2CUpdateBossCustomDataPacket {
         return new S2CUpdateBossCustomDataPacket(uuid, tag);
     }
 
-    public static void handle(S2CUpdateBossCustomDataPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
-            ctx.get().enqueueWork(() -> {
-                ClientBossData.updateCustomDate(msg.uuid,msg.tag);
-            });
-        }
-        ctx.get().setPacketHandled(true);
+    public static void handle(S2CUpdateBossCustomDataPacket msg, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            ClientBossData.updateCustomDate(msg.uuid,msg.tag);
+        });
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

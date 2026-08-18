@@ -1,12 +1,17 @@
 package net.shelmarow.combat_evolution.bgm.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.shelmarow.combat_evolution.CombatEvolution;
 
 import java.util.UUID;
-import java.util.function.Supplier;
-
-public class S2CRemoveMusicPacket {
+public class S2CRemoveMusicPacket implements CustomPacketPayload {
+    public static final Type<S2CRemoveMusicPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "remove_music"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, S2CRemoveMusicPacket> STREAM_CODEC = StreamCodec.of((buf, msg) -> encode(msg, buf), S2CRemoveMusicPacket::decode);
     private final UUID requestUUID;
     private final boolean forceRemove;
 
@@ -24,10 +29,14 @@ public class S2CRemoveMusicPacket {
         return new S2CRemoveMusicPacket(buf.readUUID(), buf.readBoolean());
     }
 
-    public static void handle(S2CRemoveMusicPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
+    public static void handle(S2CRemoveMusicPacket msg, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
             CEMusicNetworkHandler.removeMusic(msg.requestUUID, msg.forceRemove);
         });
-        ctx.get().setPacketHandled(true);
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }
