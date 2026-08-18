@@ -3,6 +3,7 @@ package net.shelmarow.combat_evolution.execution;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,13 +25,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.server.ServerStoppedEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.*;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
@@ -45,7 +46,7 @@ import net.shelmarow.combat_evolution.tickTask.TickTaskManager;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
-import yesman.epicfight.api.forgeevent.EntityStunEvent;
+import yesman.epicfight.api.event.types.entity.StunnedEvent;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.model.armature.HumanoidArmature;
 import yesman.epicfight.skill.Skill;
@@ -67,7 +68,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ExecutionHandler {
 
     //Key：被处决的实体
@@ -81,7 +82,7 @@ public class ExecutionHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
         LivingEntity target = event.getEntity();
         Entity source = event.getSource().getEntity();
         if(event.getSource().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
@@ -109,18 +110,18 @@ public class ExecutionHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingDamage(LivingDamageEvent event) {
+    public static void onLivingDamage(LivingDamageEvent.Pre event) {
         LivingEntity target = event.getEntity();
         DamageSource damageSource = event.getSource();
-        float amount = event.getAmount();
+        float amount = event.getNewDamage();
 
         //根据附魔增加处决伤害
         if(damageSource.is(CEDamageTypeTags.EXECUTION) && damageSource.getEntity() instanceof LivingEntity livingEntity) {
-            int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.MASSACRE.get(), livingEntity);
+            int level = EnchantmentHelper.getEnchantmentLevel(livingEntity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(CEEnchantments.MASSACRE), livingEntity);
             amount *= (1 + level * CECommonConfig.MASSACRE_ENCHANTMENT.get().floatValue());
 
             //根据属性调整处决伤害
-            float damageMultiply = (float) livingEntity.getAttributeValue(CEAttributes.EXECUTION_DAMAGE_MULTIPLY.get());
+            float damageMultiply = (float) livingEntity.getAttributeValue(CEAttributes.EXECUTION_DAMAGE_MULTIPLY);
             amount *= damageMultiply;
         }
         
@@ -137,12 +138,12 @@ public class ExecutionHandler {
             }
         }
 
-        event.setAmount(amount);
+        event.setNewDamage(amount);
 
         if(EXECUTION_TARGETS.containsKey(target.getUUID())){
             //目标如果是CE实体则触发回调
             EpicFightCapabilities.getUnparameterizedEntityPatch(target, CEHumanoidPatch.class).ifPresent(targetPatch -> {
-                targetPatch.onExecutionHurt(event.getSource() ,damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED), event.getAmount());
+                targetPatch.onExecutionHurt(event.getSource() ,damageSource.is(CEDamageTypeTags.EXECUTION_FINISHED), event.getNewDamage());
             });
         }
     }
@@ -164,7 +165,7 @@ public class ExecutionHandler {
             });
 
             //处决击杀敌人时，如果有威慑附魔，对周围的敌人施加负面效果
-            int level = EnchantmentHelper.getEnchantmentLevel(CEEnchantments.INTIMIDATE.get(), livingKiller);
+            int level = EnchantmentHelper.getEnchantmentLevel(livingKiller.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(CEEnchantments.INTIMIDATE), livingKiller);
             if(level > 0){
                 List<LivingEntity> targets = livingKiller.level().getEntitiesOfClass(LivingEntity.class, livingKiller.getBoundingBox().inflate(8), living -> {
                     return living.isAlive() &&
@@ -179,7 +180,7 @@ public class ExecutionHandler {
                     living.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 80, 0));
                     living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 80, 5));
                     EpicFightCapabilities.getUnparameterizedEntityPatch(living, LivingEntityPatch.class).ifPresent(entityPatch -> {
-                        EntityStunEvent entityStunEvent = new EntityStunEvent(new EpicFightDamageSource(source), entityPatch, StunType.HOLD);
+                        StunnedEvent entityStunEvent = new StunnedEvent(new EpicFightDamageSource(source), entityPatch, StunType.HOLD);
                         if(!entityStunEvent.isCanceled()){
                             entityPatch.applyStun(StunType.HOLD, 1F);
                         }
@@ -247,7 +248,7 @@ public class ExecutionHandler {
                     ExecutionTransform transform = calculateExecutionPosition(player.level(), player, target, executionType.offset());
                     if (transform != null) {
                         OnExecutionStartEvent event = new OnExecutionStartEvent(playerPatch, targetPatch, executionType);
-                        if(!MinecraftForge.EVENT_BUS.post(event)){
+                        if(!NeoForge.EVENT_BUS.post(event).isCanceled()){
                             target.setDeltaMovement(Vec3.ZERO);
                             BehaviorUtils.stopCurrentBehavior(target);
                             Vec3 executionPos = transform.position();
@@ -280,7 +281,7 @@ public class ExecutionHandler {
                     ExecutionTransform transform = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
                     if (transform != null) {
                         OnExecutionStartEvent event = new OnExecutionStartEvent(executorPatch, targetPatch, executionType);
-                        if(!MinecraftForge.EVENT_BUS.post(event)){
+                        if(!NeoForge.EVENT_BUS.post(event).isCanceled()){
                             //BehaviorUtils.stopCurrentBehavior(executor);
                             BehaviorUtils.stopCurrentBehavior(target);
                             executor.setDeltaMovement(Vec3.ZERO);
@@ -312,7 +313,7 @@ public class ExecutionHandler {
                     ExecutionTransform transform = calculateExecutionPosition(executor.level(), executor, target, executionType.offset());
                     if (transform != null) {
                         OnExecutionStartEvent event = new OnExecutionStartEvent(executorPatch, targetPatch, executionType);
-                        if(!MinecraftForge.EVENT_BUS.post(event)){
+                        if(!NeoForge.EVENT_BUS.post(event).isCanceled()){
                             //BehaviorUtils.stopCurrentBehavior(executor);
                             BehaviorUtils.stopCurrentBehavior(target);
                             executor.setDeltaMovement(Vec3.ZERO);
@@ -468,7 +469,7 @@ public class ExecutionHandler {
 
     public static boolean isHoldingWeapon(LivingEntity executor){
         ItemStack itemInHand = executor.getItemInHand(InteractionHand.MAIN_HAND);
-        ResourceLocation itemsKey = ForgeRegistries.ITEMS.getKey(itemInHand.getItem());
+        ResourceLocation itemsKey = BuiltInRegistries.ITEM.getKey(itemInHand.getItem());
         if(itemsKey != null && CECommonConfig.EXECUTION_ITEM_BLACKLIST.get().contains(itemsKey.toString())){
             return false;
         }

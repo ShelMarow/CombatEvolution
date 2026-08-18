@@ -1,13 +1,12 @@
 package net.shelmarow.combat_evolution.api.event;
 
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
 import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-@Cancelable
-public class OnExecutionStartEvent extends Event {
+public class OnExecutionStartEvent extends Event implements ICancellableEvent {
     private final @NotNull LivingEntityPatch<?> executor;
     private final @NotNull LivingEntityPatch<?> target;
     private @NotNull ExecutionTypeManager.Type type;

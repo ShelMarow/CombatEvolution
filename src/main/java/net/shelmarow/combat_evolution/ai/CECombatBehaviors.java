@@ -26,7 +26,6 @@ import yesman.epicfight.data.conditions.entity.RandomChance;
 import yesman.epicfight.data.conditions.entity.TargetInEyeHeight;
 import yesman.epicfight.data.conditions.entity.TargetInPov;
 import yesman.epicfight.gameasset.Animations;
-import yesman.epicfight.network.server.SPAnimatorControl;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
@@ -1055,8 +1054,6 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             private final BehaviorParams.GuardBehavior<T> guardParams = new BehaviorParams.GuardBehavior<>();        //行为参数
             private final CEMobEventManager eventManager = new CEMobEventManager();
 
-            private final LivingEntityPatch.ServerAnimationPacketProvider packetProvider = SPAnimatorControl::new;
-
             public Builder<T> canInsertGlobalBehavior(boolean canInsertGlobalBehavior,String... allowedGlobalNames) {
                 this.commonParams.canInsertGlobalBehavior = canInsertGlobalBehavior;
                 this.commonParams.allowedGlobalNameList = List.of(allowedGlobalNames);
@@ -1262,7 +1259,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     CEPatchUtils.setWander(mobPatch, true);
                     AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
                     if(currentAnimation != animation) {
-                        mobPatch.playAnimationSynchronized(animation, 0F, this.packetProvider);
+                        mobPatch.playAnimationSynchronized(animation, 0F);
                     }
                     mobPatch.getOriginal().getMoveControl().strafe(pForward,pStrafe);
                 };
@@ -1277,7 +1274,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                     AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
                     AssetAccessor<? extends StaticAnimation> guardAnimation = mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
                     if(currentAnimation != guardAnimation && !mobPatch.getEntityState().inaction()) {
-                        mobPatch.playAnimationSynchronized(guardAnimation, 0F, this.packetProvider);
+                        mobPatch.playAnimationSynchronized(guardAnimation, 0F);
                     }
                 };
                 return this;
@@ -1299,7 +1296,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                         AssetAccessor<? extends StaticAnimation> currentAnimation = Objects.requireNonNull(mobPatch.getAnimator().getPlayerFor(null)).getAnimation().get().getRealAnimation();
                         AssetAccessor<? extends StaticAnimation> guardAnimation = mobPatch.getAnimator().getLivingAnimation(LivingMotions.BLOCK, Animations.SWORD_GUARD);
                         if(currentAnimation != guardAnimation && !mobPatch.getEntityState().inaction()) {
-                            mobPatch.playAnimationSynchronized(guardAnimation, 0F, this.packetProvider);
+                            mobPatch.playAnimationSynchronized(guardAnimation, 0F);
                         }
                     }
                 };
@@ -1334,7 +1331,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.animationParams.phaseParams.clear();
                 this.animationParams.phaseParams.putAll(params.getPhaseParams());
                 this.guardParams.counter = (mobPatch)-> {
-                    mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime(), this.packetProvider);
+                    mobPatch.playAnimationSynchronized(counterAnimation, params.getTransitionTime());
                     if(mobPatch instanceof ILivingEntityData livingEntityData) {
                         livingEntityData.combat_evolution$setCanModifySpeed(params.shouldChangeSpeed());
                         livingEntityData.combat_evolution$setAttackSpeed(params.getPlaySpeed());
@@ -1348,7 +1345,7 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
                 this.animationParams.phaseParams.clear();
                 this.animationParams.phaseParams.putAll(params.getPhaseParams());
                 this.behavior = (mobPatch) -> {
-                    mobPatch.playAnimationSynchronized(motion, params.getTransitionTime(), this.packetProvider);
+                    mobPatch.playAnimationSynchronized(motion, params.getTransitionTime());
                     if (mobPatch instanceof ILivingEntityData livingEntityData) {
                         livingEntityData.combat_evolution$setCanModifySpeed(params.shouldChangeSpeed());
                         livingEntityData.combat_evolution$setAttackSpeed(params.getPlaySpeed());

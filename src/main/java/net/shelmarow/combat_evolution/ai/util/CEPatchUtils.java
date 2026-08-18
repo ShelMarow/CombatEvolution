@@ -5,7 +5,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.ai.iml.ILivingEntityData;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
-import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
+import yesman.epicfight.registry.entries.EpicFightAttributes;
 
 public class CEPatchUtils {
 
@@ -35,7 +35,7 @@ public class CEPatchUtils {
     }
 
     public static float getMaxStamina(LivingEntityPatch<?> entityPatch){
-        AttributeInstance instance = entityPatch.getOriginal().getAttribute(EpicFightAttributes.MAX_STAMINA.get());
+        AttributeInstance instance = entityPatch.getOriginal().getAttribute(EpicFightAttributes.MAX_STAMINA);
         return instance != null ? (float) instance.getValue() : 15F;
     }
 

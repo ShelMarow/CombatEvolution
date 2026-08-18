@@ -130,7 +130,7 @@ public class CommonChasingGoal extends Goal {
                     this.mobpatch.getOriginal().getNavigation().stop();
                 }
                 else{
-                    double d0 = this.mob.getPerceivedTargetDistanceSquareForMeleeAttack(livingentity);
+                    double d0 = this.mob.distanceToSqr(livingentity);
                     this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
 
                     if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().hasLineOfSight(livingentity)) &&

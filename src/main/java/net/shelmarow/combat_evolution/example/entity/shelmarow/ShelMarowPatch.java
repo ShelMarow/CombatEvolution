@@ -19,8 +19,8 @@ import java.util.Set;
 
 public class ShelMarowPatch extends CEHumanoidPatch<ShelMarow> implements CustomExecuteEntity {
 
-    public ShelMarowPatch() {
-        super(Factions.NEUTRAL);
+    public ShelMarowPatch(ShelMarow original) {
+        super(original, Factions.NEUTRAL);
     }
 
     @Override

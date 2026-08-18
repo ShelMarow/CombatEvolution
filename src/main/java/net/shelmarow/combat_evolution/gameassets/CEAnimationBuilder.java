@@ -1,12 +1,12 @@
 package net.shelmarow.combat_evolution.gameassets;
 
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import yesman.epicfight.api.animation.AnimationManager;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = EventBusSubscriber.Bus.MOD)
 public class CEAnimationBuilder {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

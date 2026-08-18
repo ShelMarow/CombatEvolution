@@ -8,7 +8,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.shelmarow.combat_evolution.ai.util.CEParticleUtils;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.client.particle.follow.CEFollowParticleOptions;
@@ -33,7 +33,7 @@ public class CEParticleCommand {
         );
     }
 
-    private static int spawnParticle(CommandContext<CommandSourceStack> ctx, RegistryObject<ParticleType<CEFollowParticleOptions>> bypassDodgeWarning) throws CommandSyntaxException {
+    private static int spawnParticle(CommandContext<CommandSourceStack> ctx, DeferredHolder<ParticleType<?>, ParticleType<CEFollowParticleOptions>> bypassDodgeWarning) throws CommandSyntaxException {
         CEParticleUtils.spawnWarningParticle(bypassDodgeWarning.get(), EntityArgument.getEntity(ctx, "target"), Vec3Argument.getVec3(ctx, "offset"));
         return 1;
     }

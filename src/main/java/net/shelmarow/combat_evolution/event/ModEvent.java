@@ -1,11 +1,12 @@
 package net.shelmarow.combat_evolution.event;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
 import net.shelmarow.combat_evolution.client.hud.execution.ExecutionHUD;
@@ -14,7 +15,7 @@ import net.shelmarow.combat_evolution.client.particle.CEParticles;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassDodgeParticle;
 import net.shelmarow.combat_evolution.client.particle.warning.BypassGuardParticle;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class ModEvent {
 
     @OnlyIn(Dist.CLIENT)
@@ -25,8 +26,8 @@ public class ModEvent {
 
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
-    public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
-        event.registerAboveAll("execution_hud", ExecutionHUD.instance);
+    public static void registerGuiOverlays(RegisterGuiLayersEvent event) {
+        event.registerAboveAll(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "execution_hud"), ExecutionHUD.instance);
     }
 
     @OnlyIn(Dist.CLIENT)

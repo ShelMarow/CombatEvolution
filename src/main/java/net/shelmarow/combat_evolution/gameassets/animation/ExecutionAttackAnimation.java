@@ -40,8 +40,8 @@ public class ExecutionAttackAnimation extends AttackAnimation {
         super(transitionTime, accessor, armature, phases);
         this.addProperty(AnimationProperty.AttackPhaseProperty.MAX_STRIKES_MODIFIER, ValueModifier.adder(100F));
         this.addProperty(AnimationProperty.AttackPhaseProperty.IMPACT_MODIFIER, ValueModifier.setter(0));
-        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.CAN_BASIC_ATTACK, false);
-        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.CAN_SKILL_EXECUTION, false);
+        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.COMBO_ATTACKS_DOABLE, false);
+        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.SKILL_EXECUTABLE, false);
     }
 
 
@@ -53,8 +53,8 @@ public class ExecutionAttackAnimation extends AttackAnimation {
         super(convertTime, path, armature, phases);
         this.addProperty(AnimationProperty.AttackPhaseProperty.MAX_STRIKES_MODIFIER, ValueModifier.adder(100F));
         this.addProperty(AnimationProperty.AttackPhaseProperty.IMPACT_MODIFIER, ValueModifier.setter(0));
-        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.CAN_BASIC_ATTACK, false);
-        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.CAN_SKILL_EXECUTION, false);
+        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.COMBO_ATTACKS_DOABLE, false);
+        this.newTimePair(0.0F, Float.MAX_VALUE).addStateRemoveOld(EntityState.SKILL_EXECUTABLE, false);
     }
 
     public EpicFightDamageSource getEpicFightDamageSource(DamageSource originalSource, LivingEntityPatch<?> entitypatch, Entity target, Phase phase) {

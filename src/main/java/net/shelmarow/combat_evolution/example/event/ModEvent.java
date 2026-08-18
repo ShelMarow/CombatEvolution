@@ -1,16 +1,17 @@
 package net.shelmarow.combat_evolution.example.event;
 
-import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.example.entity.shelmarow.ShelMarow;
 import net.shelmarow.combat_evolution.example.entity.shelmarow.ShelMarowPatch;
-import yesman.epicfight.api.forgeevent.EntityPatchRegistryEvent;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.types.registry.EntityPatchRegistryEvent;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = EventBusSubscriber.Bus.MOD)
 public class ModEvent {
 
     @SubscribeEvent
@@ -23,8 +24,11 @@ public class ModEvent {
         event.put(CEEntities.SHELMAROW.get(), ShelMarow.createAttributes().build());
     }
 
-    @SubscribeEvent
     public static void setPatch(EntityPatchRegistryEvent event) {
-        event.getTypeEntry().put(CEEntities.SHELMAROW.get(), (entity) -> ShelMarowPatch::new);
+        event.registerEntityPatch(CEEntities.SHELMAROW.get(), ShelMarowPatch::new);
+    }
+
+    public static void registerEpicFightEvents() {
+        EpicFightEventHooks.Registry.ENTITY_PATCH.registerEvent(ModEvent::setPatch, CombatEvolution.MOD_ID);
     }
 }

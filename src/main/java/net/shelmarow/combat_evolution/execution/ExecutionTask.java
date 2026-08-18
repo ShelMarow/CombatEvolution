@@ -35,8 +35,8 @@ public class ExecutionTask extends TickTask {
         LivingEntityPatch<?> executorPatch = EpicFightCapabilities.getEntityPatch(executor, LivingEntityPatch.class);
         LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
 
-        executor.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
-        target.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), maxTime, 1, true, false));
+        executor.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY, maxTime, 1, true, false));
+        target.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY, maxTime, 1, true, false));
 
 
         if(executorPatch instanceof PlayerPatch<?> playerPatch) {
@@ -44,8 +44,8 @@ public class ExecutionTask extends TickTask {
             Player player = playerPatch.getOriginal();
 
             float maxHealth = player.getMaxHealth();
-            double healAmount = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_AMOUNT.get());
-            double healPercent = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_PERCENT.get());
+            double healAmount = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_AMOUNT);
+            double healPercent = player.getAttributeValue(CEAttributes.EXECUTION_REGEN_PERCENT);
             player.heal((float) (healAmount + maxHealth * healPercent));
         }
 

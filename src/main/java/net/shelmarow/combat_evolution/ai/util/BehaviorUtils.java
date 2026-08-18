@@ -30,7 +30,7 @@ public class BehaviorUtils {
 
     public static @Nullable CECombatBehaviors<?> getCECombatBehaviors(LivingEntityPatch<?> entityPatch){
         if (entityPatch == null || entityPatch.getOriginal() == null) return null;
-        if(entityPatch.isInitialized() && entityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch) {
+        if(!entityPatch.uninitialized() && entityPatch instanceof CEHumanoidPatch<?> ceHumanoidPatch) {
             return ceHumanoidPatch.getOriginal().goalSelector.getAvailableGoals().stream()
                     .filter(g -> g.getGoal() instanceof CEAnimationAttackGoal<?>)
                     .map(g -> ((CEAnimationAttackGoal<?>) g.getGoal()).getCombatBehaviors()).findFirst().orElse(null);

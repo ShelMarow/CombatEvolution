@@ -10,13 +10,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.entity.PartEntity;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.*;
 import yesman.epicfight.api.animation.property.AnimationProperty;
-import yesman.epicfight.api.animation.types.BasicAttackAnimation;
+import yesman.epicfight.api.animation.types.ComboAttackAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.api.asset.AssetAccessor;
@@ -28,8 +28,8 @@ import yesman.epicfight.api.utils.math.MathUtils;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
-import yesman.epicfight.world.entity.eventlistener.AttackPhaseEndEvent;
-import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
+import yesman.epicfight.api.event.EpicFightEventHooks;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,21 +38,21 @@ import java.util.List;
 import static net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation.CE_PHASE_ACTUALLY_HIT;
 import static net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation.CE_PHASE_ATTACK_TRIED;
 
-public class MultiPhaseBasicAttackAnimation extends BasicAttackAnimation {
+public class MultiPhaseBasicAttackAnimation extends ComboAttackAnimation {
 
-    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends ComboAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, contact, recovery, collider, colliderJoint, accessor, armature);
     }
 
-    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends ComboAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature);
     }
 
-    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends ComboAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, contact, recovery, hand, collider, colliderJoint, accessor, armature);
     }
 
-    public MultiPhaseBasicAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseBasicAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends ComboAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(transitionTime, accessor, armature, phases);
     }
 
@@ -82,7 +82,7 @@ public class MultiPhaseBasicAttackAnimation extends BasicAttackAnimation {
                 this.hurtCollidingEntities(entitypatch, prevElapsedTime, elapsedTime, prevState, state, attackPhase);
 
                 if ((elapsedTime > attackPhase.contact || elapsedTime >= this.getTotalTime()) && entitypatch instanceof ServerPlayerPatch playerpatch) {
-                    playerpatch.getEventListener().triggerEvents(PlayerEventListener.EventType.ATTACK_PHASE_END_EVENT, new AttackPhaseEndEvent(playerpatch, this.getAccessor(), attackPhase, List.of(this.phases).indexOf(attackPhase)));
+                    EpicFightEventHooks.Animation.ATTACK_PHASE_END.postWithListener(new AttackPhaseEndEvent(playerpatch, this.getAccessor(), attackPhase, List.of(this.phases).indexOf(attackPhase), false), playerpatch.getEventListener());
                 }
             }
         }

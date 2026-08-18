@@ -4,15 +4,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
 import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
@@ -21,12 +21,12 @@ import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.execution.ExecutionMobReloadListener;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeReloadListener;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
-import yesman.epicfight.api.forgeevent.EntityStunEvent;
+import yesman.epicfight.api.event.types.entity.StunnedEvent;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
 
-@Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ForgeEvent {
 
     @OnlyIn(Dist.CLIENT)
@@ -38,7 +38,7 @@ public class ForgeEvent {
             ExecutionShaderManager.init();
         }
 
-        ExecutionShaderManager.tick(event.getRenderTick(), event.getPartialTick());
+        ExecutionShaderManager.tick(event.getRenderTick(), event.getPartialTick().getGameTimeDeltaPartialTick(false));
     }
 
     @SubscribeEvent
@@ -62,46 +62,45 @@ public class ForgeEvent {
         event.addListener(new ExecutionMobReloadListener());
     }
 
-    @SubscribeEvent
-    public static void onStunApply(EntityStunEvent event) {
-        LivingEntity original = event.getStunnedEntityPatch().getOriginal();
+    public static void onStunApply(StunnedEvent event) {
+        LivingEntity original = event.getEntityPatch().getOriginal();
         StunType stunType = event.getStunType();
-        if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
-            event.setCanceled(true);
+        if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY)){
+            event.cancel();
         }
-        else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){
-            event.setCanceled(true);
+        else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY) && stunType != StunType.NEUTRALIZE){
+            event.cancel();
         }
-        else if(original.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get()) &&
+        else if(original.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY) &&
                 stunType != StunType.NEUTRALIZE && stunType != StunType.FALL){
-            event.setCanceled(true);
+            event.cancel();
         }
-        else if(original.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY.get()) &&
+        else if(original.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY) &&
                 stunType != StunType.NEUTRALIZE && stunType != StunType.KNOCKDOWN && stunType != StunType.FALL){
-            event.setCanceled(true);
+            event.cancel();
         }
     }
 
     @SubscribeEvent
     public static void onKnockBack(LivingKnockBackEvent event) {
         LivingEntity target = event.getEntity();
-        if(target.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get()) ||
-                target.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) ||
-                target.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get()) ||
-                target.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY.get())){
+        if(target.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY) ||
+                target.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY) ||
+                target.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY) ||
+                target.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY)){
             event.setCanceled(true);
         }
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event){
+    public static void onLivingAttack(LivingIncomingDamageEvent event){
         DamageSource source = event.getSource();
         Entity attacker = source.getEntity();
         if(attacker instanceof LivingEntity living && source instanceof EpicFightDamageSource epicFightDamageSource){
-            if(living.hasEffect(CEMobEffects.BYPASS_DODGE_EFFECT.get())){
+            if(living.hasEffect(CEMobEffects.BYPASS_DODGE_EFFECT)){
                 epicFightDamageSource.addRuntimeTag(EpicFightDamageTypeTags.BYPASS_DODGE);
             }
-            if(living.hasEffect(CEMobEffects.BYPASS_GUARD_EFFECT.get())){
+            if(living.hasEffect(CEMobEffects.BYPASS_GUARD_EFFECT)){
                 epicFightDamageSource.addRuntimeTag(EpicFightDamageTypeTags.UNBLOCKALBE);
                 epicFightDamageSource.addRuntimeTag(EpicFightDamageTypeTags.GUARD_PUNCTURE);
             }

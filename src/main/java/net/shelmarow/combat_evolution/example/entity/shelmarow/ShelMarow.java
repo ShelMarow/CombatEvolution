@@ -18,8 +18,8 @@ import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEBossEntity;
 import net.shelmarow.combat_evolution.bgm.network.CEMusicNetworkHandler;
 import org.jetbrains.annotations.NotNull;
-import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
-import yesman.epicfight.world.item.EpicFightItems;
+import yesman.epicfight.registry.entries.EpicFightAttributes;
+import yesman.epicfight.registry.entries.EpicFightItems;
 
 import java.util.UUID;
 
@@ -39,9 +39,9 @@ public class ShelMarow extends CEBossEntity {
                 .add(Attributes.MAX_HEALTH, 1000.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.15D)
 
-                .add(EpicFightAttributes.IMPACT.get(),1.0D)
-                .add(EpicFightAttributes.MAX_STAMINA.get(),40.0D)
-                .add(EpicFightAttributes.STAMINA_REGEN.get(),1.0D);
+                .add(EpicFightAttributes.IMPACT,1.0D)
+                .add(EpicFightAttributes.MAX_STAMINA,40.0D)
+                .add(EpicFightAttributes.STAMINA_REGEN,1.0D);
     }
 
     @Override

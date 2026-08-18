@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.gameassets.ExecutionSkillAnimations;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionAttackAnimation;
@@ -113,19 +113,19 @@ public class ExecutionTypeManager {
     }
 
     public static Type getExecutionTypeByEntity(EntityType<?> entityType, Item item, Style style, LivingEntityPatch<?> entityPatch,  LivingEntityPatch<?> targetPatch) {
-        ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(entityType);
+        ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(entityType);
         Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type>> stylesTypeMap = CUSTOM_ENTITY_EXECUTION_MAP.getOrDefault(id, new HashMap<>());
         TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type> type = stylesTypeMap.containsKey(style) ? stylesTypeMap.get(style) : stylesTypeMap.get(CapabilityItem.Styles.COMMON);
         return type == null ? null : type.apply(item, entityPatch,targetPatch);
     }
 
     public static Type getExecutionTypeByDatapackEntity(EntityType<?> entityType) {
-        ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(entityType);
+        ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(entityType);
         return CUSTOM_DATAPACK_ENTITY_EXECUTION_MAP.get(id);
     }
 
     public static Type getExecutionTypeByItem(Item item, Style style, LivingEntityPatch<?> entityPatch,  LivingEntityPatch<?> targetPatch) {
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
         Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type>> stylesTypeMap = CUSTOM_ITEM_EXECUTION_MAP.getOrDefault(id, new HashMap<>());
         TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type> type = stylesTypeMap.containsKey(style) ? stylesTypeMap.get(style) : stylesTypeMap.get(CapabilityItem.Styles.COMMON);
         return type == null ? null : type.apply(item, entityPatch, targetPatch);

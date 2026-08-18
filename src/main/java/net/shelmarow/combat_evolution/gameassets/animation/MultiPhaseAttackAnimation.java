@@ -10,9 +10,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.entity.PartEntity;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.entity.PartEntity;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.*;
 import yesman.epicfight.api.animation.property.AnimationProperty;
@@ -28,18 +28,18 @@ import yesman.epicfight.api.utils.math.MathUtils;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
-import yesman.epicfight.world.entity.eventlistener.AttackPhaseEndEvent;
-import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
+import yesman.epicfight.api.event.EpicFightEventHooks;
 
 import java.util.*;
 
 public class MultiPhaseAttackAnimation extends AttackAnimation {
     //碰撞箱命中的实体
-    public static final AnimationVariables.SharedAnimationVariableKey<Map<Phase, List<Entity>>> CE_PHASE_ATTACK_TRIED =
-            AnimationVariables.shared((animator) -> new HashMap<>(), false);
+    public static final AnimationVariables.SharedVariableKey<Map<Phase, List<Entity>>> CE_PHASE_ATTACK_TRIED =
+            AnimationVariables.unsynchShared((animator) -> new HashMap<>(), false);
     //造成伤害的实体
-    public static final AnimationVariables.SharedAnimationVariableKey<Map<Phase, List<LivingEntity>>> CE_PHASE_ACTUALLY_HIT =
-            AnimationVariables.shared((animator) -> new HashMap<>(), false);
+    public static final AnimationVariables.SharedVariableKey<Map<Phase, List<LivingEntity>>> CE_PHASE_ACTUALLY_HIT =
+            AnimationVariables.unsynchShared((animator) -> new HashMap<>(), false);
 
 
     public MultiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
@@ -85,7 +85,7 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
                 this.hurtCollidingEntities(entitypatch, prevElapsedTime, elapsedTime, prevState, state, attackPhase);
 
                 if ((elapsedTime > attackPhase.contact || elapsedTime >= this.getTotalTime()) && entitypatch instanceof ServerPlayerPatch playerpatch) {
-                    playerpatch.getEventListener().triggerEvents(PlayerEventListener.EventType.ATTACK_PHASE_END_EVENT, new AttackPhaseEndEvent(playerpatch, this.getAccessor(), attackPhase, List.of(this.phases).indexOf(attackPhase)));
+                    EpicFightEventHooks.Animation.ATTACK_PHASE_END.postWithListener(new AttackPhaseEndEvent(playerpatch, this.getAccessor(), attackPhase, List.of(this.phases).indexOf(attackPhase), false), playerpatch.getEventListener());
                 }
             }
         }

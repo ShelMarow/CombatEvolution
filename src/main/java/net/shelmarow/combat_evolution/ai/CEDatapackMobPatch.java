@@ -2,6 +2,7 @@ package net.shelmarow.combat_evolution.ai;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -11,8 +12,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.bgm.network.CEMusicNetworkHandler;
 import net.shelmarow.combat_evolution.bgm.network.CEMusicPacket;
@@ -38,8 +37,8 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     private final UUID bgmUUID = UUID.randomUUID();
     private CEMusicPacket music;
 
-    public CEDatapackMobPatch(CEPatchReloadListener.CEDatapackMobPatchProvider provider) {
-        super(provider.faction);
+    public CEDatapackMobPatch(Mob original, CEPatchReloadListener.CEDatapackMobPatchProvider provider) {
+        super(original, provider.faction);
         this.provider = provider;
         this.ceBossEvent.setVisible(false);
 
@@ -77,10 +76,10 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     }
 
     @Override
-    public void onAddedToWorld(){
+    public void onAddedToLevel(){
         initBossBar();
         putAndSetCustomAttributes();
-        super.onAddedToWorld();
+        super.onAddedToLevel();
     }
 
     private void initBossBar() {
@@ -102,10 +101,10 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     }
 
     public void putAndSetCustomAttributes() {
-        Map<Attribute, AttributeInstance> newMap = Maps.newHashMap();
+        Map<Holder<Attribute>, AttributeInstance> newMap = Maps.newHashMap();
         AttributeSupplier.Builder builder = AttributeSupplier.builder();
 
-        for (Attribute attribute : this.provider.attributeMap.keySet()) {
+        for (Holder<Attribute> attribute : this.provider.attributeMap.keySet()) {
             builder.add(attribute);
         }
 
@@ -114,7 +113,7 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
         newMap.putAll(original.getAttributes().supplier.instances);
         original.getAttributes().supplier.instances = ImmutableMap.copyOf(newMap);
 
-        for (Map.Entry<Attribute, Double> entrySet : provider.attributeMap.entrySet()) {
+        for (Map.Entry<Holder<Attribute>, Double> entrySet : provider.attributeMap.entrySet()) {
             AttributeInstance instance = this.original.getAttribute(entrySet.getKey());
             if(instance != null){
                 instance.setBaseValue(entrySet.getValue());
@@ -123,8 +122,8 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     }
 
     @Override
-    public void tick(LivingEvent.LivingTickEvent event) {
-        super.tick(event);
+    public void postTick() {
+        super.postTick();
 
         if(!isLogicalClient()){
             if(ceBossEvent.isVisible()){
@@ -182,8 +181,8 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     }
 
     @Override
-    public void onDeath(LivingDeathEvent event) {
-        super.onDeath(event);
+    public void onDeath(DamageSource damageSource) {
+        super.onDeath(damageSource);
         if(!isLogicalClient() && music != null){
             for (ServerPlayer serverPlayer : ceBossEvent.getPlayers()) {
                 CEMusicNetworkHandler.sendRemoveMusicPacket(serverPlayer, bgmUUID, false);

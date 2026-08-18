@@ -17,7 +17,7 @@ import yesman.epicfight.api.collider.MultiOBBCollider;
 import yesman.epicfight.api.collider.OBBCollider;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.gameasset.Armatures;
-import yesman.epicfight.particle.EpicFightParticles;
+import yesman.epicfight.registry.entries.EpicFightParticles;
 import yesman.epicfight.world.damagesource.ExtraDamageInstance;
 
 import java.util.Set;
@@ -39,7 +39,7 @@ public class ExecutionSkillAnimations {
                 //1.基础固定伤害
                 //2.最大生命值百分比
                 return params[0] + target.getMaxHealth() * params[1];
-            },(itemstack, tooltips, baseDamage, params) -> {});
+            },(level, itemstack, tooltips, baseDamage, params) -> {});
 
 
     public static void build(AnimationManager.AnimationBuilder builder) {

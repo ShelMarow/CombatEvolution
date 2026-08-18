@@ -1,7 +1,7 @@
 package net.shelmarow.combat_evolution.api.event;
 
-import net.minecraftforge.eventbus.api.Event;
-import net.minecraftforge.fml.event.IModBusEvent;
+import net.neoforged.bus.api.Event;
+import net.neoforged.fml.event.IModBusEvent;
 import net.shelmarow.combat_evolution.client.hud.execution.HUDTypeManager;
 import net.shelmarow.combat_evolution.client.hud.execution.types.HUDType;
 

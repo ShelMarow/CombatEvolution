@@ -20,8 +20,8 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
-import yesman.epicfight.gameasset.EpicFightSounds;
-import yesman.epicfight.particle.EpicFightParticles;
+import yesman.epicfight.registry.entries.EpicFightSounds;
+import yesman.epicfight.registry.entries.EpicFightParticles;
 import yesman.epicfight.particle.HitParticleType;
 import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
@@ -119,7 +119,7 @@ public class ShelMarowCombatBehaviors {
                                 .withinDistance(0, 4)
                                 .animationBehavior(Animations.LONGSWORD_LIECHTENAUER_AUTO1, 0.25F)
                                 .onBehaviorStart(mobPatch -> {
-                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
+                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY, 30));
                                 })
                                 .setOnHurtEvent(new OnHurtEvent(onLongswordSkillBlocked()))
 
@@ -127,7 +127,7 @@ public class ShelMarowCombatBehaviors {
                                         .withinDistance(0, 4)
                                         .animationBehavior(Animations.LONGSWORD_LIECHTENAUER_AUTO2, 0.25F)
                                         .onBehaviorStart(mobPatch -> {
-                                            mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
+                                            mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY, 30));
                                         })
                                         .setOnHurtEvent(new OnHurtEvent(onLongswordSkillBlocked()))
 
@@ -135,7 +135,7 @@ public class ShelMarowCombatBehaviors {
                                                 .withinDistance(0, 4)
                                                 .animationBehavior(Animations.LONGSWORD_LIECHTENAUER_AUTO3, 0.25F)
                                                 .onBehaviorStart(mobPatch -> {
-                                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
+                                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY, 30));
                                                 })
                                                 .setOnHurtEvent(new OnHurtEvent(onLongswordSkillBlocked()))
                                         )
@@ -226,7 +226,7 @@ public class ShelMarowCombatBehaviors {
                                 .maxGuardHit(3)
                                 .resetGuardTime(true)
                                 .onCounterStart(mobPatch -> {
-                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
+                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY, 30));
                                 })
                                 .setBeforeCounterEvent(new BeforeCounterEvent(mobPatch -> {
                                     mobPatch.playSound(EpicFightSounds.BUZZ.get(), 0,0);
@@ -251,7 +251,7 @@ public class ShelMarowCombatBehaviors {
                                 .counterType(CECombatBehaviors.CounterType.END)
                                 .maxGuardHit(3)
                                 .onCounterStart(mobPatch -> {
-                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
+                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY, 30));
                                     if(mobPatch.getTarget() != null){
                                         CEParticleUtils.spawnWarningParticle(CEParticles.BYPASS_DODGE_WARNING.get(), mobPatch.getTarget(), new Vec3(0,1.25,0));
                                     }

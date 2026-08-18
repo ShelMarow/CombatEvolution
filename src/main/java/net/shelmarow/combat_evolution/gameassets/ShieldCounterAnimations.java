@@ -7,7 +7,7 @@ import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.api.animation.types.LongHitAnimation;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Armatures;
-import yesman.epicfight.gameasset.EpicFightSounds;
+import yesman.epicfight.registry.entries.EpicFightSounds;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 

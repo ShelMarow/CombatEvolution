@@ -5,6 +5,8 @@ import com.google.gson.*;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -21,10 +23,10 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
 import net.shelmarow.combat_evolution.ai.params.AnimationParams;
@@ -40,8 +42,9 @@ import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.client.ClientEngine;
+import yesman.epicfight.client.events.engine.RenderEngine;
 import yesman.epicfight.data.conditions.Condition;
-import yesman.epicfight.data.conditions.EpicFightConditions;
+import yesman.epicfight.registry.entries.EpicFightConditions;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.Armatures;
 import yesman.epicfight.main.EpicFightMod;
@@ -54,7 +57,7 @@ import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.Style;
 import yesman.epicfight.world.capabilities.item.WeaponCategory;
-import yesman.epicfight.world.capabilities.provider.EntityPatchProvider;
+import yesman.epicfight.world.capabilities.provider.CommonEntityPatchProvider;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.*;
@@ -87,12 +90,12 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             String pathString = rl.getPath();
 
             ResourceLocation registryName = ResourceLocation.fromNamespaceAndPath(rl.getNamespace(), pathString);
-            if (!ForgeRegistries.ENTITY_TYPES.containsKey(registryName)) {
+            if (!BuiltInRegistries.ENTITY_TYPE.containsKey(registryName)) {
                 EpicFightMod.LOGGER.warn("Mob Patch Exception: No Entity named {}", registryName);
                 continue;
             }
 
-            EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(registryName);
+            EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(registryName);
 
             //json文件内容
             JsonObject json = entry.getValue().getAsJsonObject();
@@ -110,7 +113,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             initProvider(provider, tag);
 
             MOB_PATCH_PROVIDERS.put(entityType, provider);
-            EntityPatchProvider.putCustomEntityPatch(entityType,(entity) -> () -> MOB_PATCH_PROVIDERS.get(entity.getType()).get(entity));
+            CommonEntityPatchProvider.INSTANCE.putCustomEntityPatch(entityType, entity -> MOB_PATCH_PROVIDERS.get(entity.getType()).get(entity));
 
             String armatureString = tag.getString("armature");
             boolean isHumanoid = tag.getBoolean("humanoid");
@@ -121,7 +124,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             TAGMAP.put(entityType, tag);
 
             if (EpicFightSharedConstants.isPhysicalClient()) {
-                ClientEngine.getInstance().renderEngine.registerCustomEntityRenderer(entityType, tag.getString("renderer"), tag);
+                RenderEngine.getInstance().registerCustomEntityRenderer(entityType, tag.getString("renderer"), tag);
             }
         }
     }
@@ -139,13 +142,13 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
     public static void processServerPacket(SPCEDataPacket packet) {
         for (CompoundTag tag : packet.getTags()) {
 
-            EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(ResourceLocation.parse(tag.getString("id")));
+            EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(tag.getString("id")));
 
             CEDatapackMobPatchProvider provider = new CEDatapackMobPatchProvider();
             initProvider(provider, tag);
 
             MOB_PATCH_PROVIDERS.put(entityType, provider);
-            EntityPatchProvider.putCustomEntityPatch(entityType,(entity) -> () -> MOB_PATCH_PROVIDERS.get(entity.getType()).get(entity));
+            CommonEntityPatchProvider.INSTANCE.putCustomEntityPatch(entityType, entity -> MOB_PATCH_PROVIDERS.get(entity.getType()).get(entity));
 
             String armatureString = tag.getString("armature");
             boolean isHumanoid = tag.getBoolean("humanoid");
@@ -153,7 +156,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             AssetAccessor<? extends Armature> armature = Armatures.getOrCreate(armatureLocation, isHumanoid ? HumanoidArmature::new : Armature::new);
             Armatures.registerEntityTypeArmature(entityType, armature);
 
-            ClientEngine.getInstance().renderEngine.registerCustomEntityRenderer(entityType, tag.getString("renderer"), tag);
+            RenderEngine.getInstance().registerCustomEntityRenderer(entityType, tag.getString("renderer"), tag);
         }
     }
 
@@ -273,14 +276,14 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         return Factions.NEUTRAL;
     }
 
-    public static Map<Attribute, Double> getAttributeMap(CompoundTag tag) {
-        Map<Attribute, Double> attributes = new HashMap<>();
+    public static Map<Holder<Attribute>, Double> getAttributeMap(CompoundTag tag) {
+        Map<Holder<Attribute>, Double> attributes = new HashMap<>();
         if (tag.contains("attributes")){
             ListTag array = tag.getList("attributes", Tag.TAG_COMPOUND);
             for (int i = 0; i < array.size(); i++){
                 CompoundTag attributeTag = array.getCompound(i);
                 ResourceLocation id = ResourceLocation.parse(attributeTag.getString("attribute"));
-                Attribute attribute = ForgeRegistries.ATTRIBUTES.getDelegateOrThrow(id).get();
+                Holder<Attribute> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(id).orElseThrow();
                 double value = attributeTag.getDouble("value");
                 attributes.put(attribute, value);
             }
@@ -1050,7 +1053,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         public Map<WeaponCategory, Map<Style, List<AnimationManager.AnimationAccessor<? extends StaticAnimation>>>> guardHitMotions = new HashMap<>();
         public Map<WeaponCategory, Map<Style, Supplier<CECombatBehaviors.Builder<MobPatch<?>>>>> weaponAttackMotions = new HashMap<>();
         public Map<StunType, AnimationManager.AnimationAccessor<? extends StaticAnimation>> stunAnimations = new HashMap<>();
-        public Map<Attribute, Double> attributeMap = new HashMap<>();
+        public Map<Holder<Attribute>, Double> attributeMap = new HashMap<>();
         public Factions faction;
         public int breakTime = 40;
         public int recoverTime = 60;
@@ -1074,7 +1077,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
 
         @Override
         public EntityPatch<?> get(Entity entity) {
-            return new CEDatapackMobPatch(this);
+            return new CEDatapackMobPatch((Mob) entity, this);
         }
 
     }
