@@ -121,6 +121,7 @@
               "setStamina": 10,   // [Optional] Sets stamina (setting to 0 does not trigger the guard break animation but can change stamina state).
               "setPhase": 0,      // [Optional] Sets a special condition phase.
               "addPhase": 0,      // [Optional] Adds to a special condition phase.
+              "jump": 0.42,       // [Optional] Mob will jump when bahavior started
               "conditions": [     // [Optional] Conditions required for the behavior to execute. If omitted, defaults to true. Multiple conditions must all be met.
                 {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4},
                 {"type": "combat_evolution:phase_between", "min": 0, "max": 2},

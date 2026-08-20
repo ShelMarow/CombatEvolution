@@ -1,10 +1,12 @@
-package net.shelmarow.combat_evolution.execution.network;
+package net.shelmarow.combat_evolution.network.client;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
+import net.shelmarow.combat_evolution.network.CENetworkHandler;
+import net.shelmarow.combat_evolution.network.server.S2CReleaseGuardPacket;
 
 import java.util.function.Supplier;
 
@@ -28,7 +30,7 @@ public class C2STryExecutionPacket {
                 ServerPlayer serverPlayer = ctx.get().getSender();
                 if (serverPlayer != null) {
                     if(ExecutionHandler.tryExecute(serverPlayer)){
-                        //CombatEvolution.LOGGER.info("Execution Successfully!");
+                        CENetworkHandler.sendToPlayer(serverPlayer, new S2CReleaseGuardPacket());
                     }
                 }
             });

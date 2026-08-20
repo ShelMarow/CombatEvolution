@@ -20,5 +20,8 @@
     "HealthBarMixin",
     "LivingEntityPatchMixin",
     "StaticAnimationsMixin"
+  ],
+  "client": [
+    "KeyboardHandlerMixin"
   ]
 }

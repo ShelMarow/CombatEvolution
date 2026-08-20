@@ -5,8 +5,11 @@ import yesman.epicfight.world.capabilities.entitypatch.MobPatch;
 
 public class DefaultCombatBehavior {
     public static final CECombatBehaviors.Builder<MobPatch<?>> FIST;
+    public static final CECombatBehaviors.Builder<MobPatch<?>> BOW;
 
     static {
+        BOW = CECombatBehaviors.builder();
+
         //默认拳头
         FIST = CECombatBehaviors.builder()
                 .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()

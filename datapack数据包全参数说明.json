@@ -121,6 +121,7 @@
               "setStamina": 10,   //[可选]  设置耐力（修改和设置耐力为0无法使实体播放破防动画，但是可以切换耐力状态）
               "setPhase": 0,      //[可选]  设置特殊的条件Phase
               "addPhase": 0,      //[可选]  设置特殊的条件Phase
+              "jump": 0.42,       //[可选]  生物会在行为开始时跳跃
               "conditions": [     //[可选]  设置执行行为所需要满足的条件，如果不填则默认满足，当有多个条件时需要全部满足才能执行
                 {"type": "combat_evolution:target_in_distance", "min": 0, "max": 4},
                 {"type": "combat_evolution:phase_between", "min": 0, "max": 2},

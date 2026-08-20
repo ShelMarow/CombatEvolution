@@ -598,6 +598,10 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             builder.addPhase(behaviors.getInt("addPhase"));
         }
 
+        if(behaviors.contains("jump")){
+            builder.jump(behaviors.getDouble("jump"));
+        }
+
         if(behaviors.contains("conditions")){
             ListTag array = behaviors.getList("conditions",Tag.TAG_COMPOUND);
             for (int i = 0; i < array.size(); i++) {

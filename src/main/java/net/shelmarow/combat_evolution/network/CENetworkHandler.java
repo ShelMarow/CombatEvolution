@@ -9,7 +9,7 @@ import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
 import net.shelmarow.combat_evolution.bgm.network.S2CRemoveMusicPacket;
 import net.shelmarow.combat_evolution.bgm.network.S2CRequestMusicPacket;
-import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
+import net.shelmarow.combat_evolution.network.client.C2STryExecutionPacket;
 import net.shelmarow.combat_evolution.network.server.*;
 
 public class CENetworkHandler {
@@ -45,6 +45,7 @@ public class CENetworkHandler {
         CHANNEL.registerMessage(packetId++, S2CRequestMusicPacket.class, S2CRequestMusicPacket::encode, S2CRequestMusicPacket::decode, S2CRequestMusicPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRemoveMusicPacket.class, S2CRemoveMusicPacket::encode, S2CRemoveMusicPacket::decode, S2CRemoveMusicPacket::handle);
         CHANNEL.registerMessage(packetId++, SPCEDataPacket.class, SPCEDataPacket::encode, SPCEDataPacket::decode, SPCEDataPacket::handle);
+        CHANNEL.registerMessage(packetId++, S2CReleaseGuardPacket.class, S2CReleaseGuardPacket::encode, S2CReleaseGuardPacket::decode, S2CReleaseGuardPacket::handle);
 
         CHANNEL.registerMessage(packetId++, C2STryExecutionPacket.class, C2STryExecutionPacket::encode,C2STryExecutionPacket::decode, C2STryExecutionPacket::handle);
     }

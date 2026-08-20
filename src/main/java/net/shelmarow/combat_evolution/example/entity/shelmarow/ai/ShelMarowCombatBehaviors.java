@@ -4,6 +4,8 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec3;
 import net.shelmarow.combat_evolution.ai.CECombatBehaviors;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
@@ -119,7 +121,8 @@ public class ShelMarowCombatBehaviors {
                                 .withinDistance(0, 4)
                                 .animationBehavior(Animations.LONGSWORD_LIECHTENAUER_AUTO1, 0.25F)
                                 .onBehaviorStart(mobPatch -> {
-                                    mobPatch.getOriginal().addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
+                                    Mob original = mobPatch.getOriginal();
+                                    original.addEffect(new MobEffectInstance(CEMobEffects.FULL_STUN_IMMUNITY.get(), 30));
                                 })
                                 .setOnHurtEvent(new OnHurtEvent(onLongswordSkillBlocked()))
 
@@ -180,8 +183,8 @@ public class ShelMarowCombatBehaviors {
                 )
 
                 .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(1).weight(1)
-                        .maxCooldown(200).cooldown(100)
+                        .priority(100).weight(1)
+                        //.maxCooldown(200).cooldown(100)
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
                                 .stopByStun(4)

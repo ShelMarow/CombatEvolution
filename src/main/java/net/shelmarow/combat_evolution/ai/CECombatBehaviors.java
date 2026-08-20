@@ -3,6 +3,8 @@ package net.shelmarow.combat_evolution.ai;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.phys.Vec3;
 import net.shelmarow.combat_evolution.ai.condition.*;
 import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.event.manager.CEMobEvent;
@@ -1240,6 +1242,14 @@ public class CECombatBehaviors<T extends MobPatch<?>> {
             public Builder<T> addPhase(int add){
                 this.onBehaviorStart(new BehaviorStartEvent((mobPatch)->{
                     CEPatchUtils.addPhase(mobPatch, add);
+                }));
+                return this;
+            }
+
+            public Builder<T> jump(double strength){
+                this.onBehaviorStart(new BehaviorStartEvent((mobPatch)->{
+                    Mob original = mobPatch.getOriginal();
+                    original.addDeltaMovement(new Vec3(0, strength,0));
                 }));
                 return this;
             }

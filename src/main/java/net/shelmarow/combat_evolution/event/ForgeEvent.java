@@ -1,11 +1,14 @@
 package net.shelmarow.combat_evolution.event;
 
+import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
@@ -14,6 +17,7 @@ import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
+import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
 import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
 import net.shelmarow.combat_evolution.client.shader.ExecutionShaderManager;
@@ -41,6 +45,19 @@ public class ForgeEvent {
         ExecutionShaderManager.tick(event.getRenderTick(), event.getPartialTick());
     }
 
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void onKeyInput(InputEvent event){
+        LocalPlayer player = Minecraft.getInstance().player;
+        if(player != null){
+            if(player.hasEffect(CEMobEffects.ON_EXECUTION.get())){
+                if(event.isCancelable()){
+                    event.setCanceled(true);
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onDatapackSync(final OnDatapackSyncEvent event) {
         if (event.getPlayer() != null) {
@@ -66,20 +83,8 @@ public class ForgeEvent {
     public static void onStunApply(EntityStunEvent event) {
         LivingEntity original = event.getStunnedEntityPatch().getOriginal();
         StunType stunType = event.getStunType();
-        if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
-            event.setCanceled(true);
-        }
-        else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){
-            event.setCanceled(true);
-        }
-        else if(original.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get()) &&
-                stunType != StunType.NEUTRALIZE && stunType != StunType.FALL){
-            event.setCanceled(true);
-        }
-        else if(original.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY.get()) &&
-                stunType != StunType.NEUTRALIZE && stunType != StunType.KNOCKDOWN && stunType != StunType.FALL){
-            event.setCanceled(true);
-        }
+        boolean canStun = CEHumanoidPatch.canStun(original, stunType);
+        event.setCanceled(!canStun);
     }
 
     @SubscribeEvent

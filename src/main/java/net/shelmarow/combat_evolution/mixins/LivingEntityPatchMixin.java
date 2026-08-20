@@ -1,6 +1,7 @@
 package net.shelmarow.combat_evolution.mixins;
 
 import net.minecraft.world.entity.LivingEntity;
+import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.gameassets.animation.MultiPhaseAttackAnimation;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +33,7 @@ public abstract class LivingEntityPatchMixin<T extends LivingEntity> extends Hur
     )
     public void onApplyStun(StunType stunType, float time, CallbackInfoReturnable<Boolean> cir){
         LivingEntity entity = this.getOriginal();
-        if(entity.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
+        if(!CEHumanoidPatch.canStun(entity, stunType)){
             entity.xxa = 0.0F;
             entity.yya = 0.0F;
             entity.zza = 0.0F;

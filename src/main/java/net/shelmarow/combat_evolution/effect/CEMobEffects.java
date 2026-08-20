@@ -30,6 +30,10 @@ public class CEMobEffects {
     public static final RegistryObject<MobEffect> BYPASS_GUARD_EFFECT =
             EFFECTS.register("bypass_guard_effect",() -> new CECommonEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
 
+
+    public static final RegistryObject<MobEffect> ON_EXECUTION =
+            EFFECTS.register("on_execution",() -> new CECommonEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF));
+
     public static final RegistryObject<MobEffect> IMPACT_BOOST =
             EFFECTS.register("impact_boost",()-> new CECommonEffect(MobEffectCategory.BENEFICIAL,0xFFFFFF)
                     .addAttributeModifier(EpicFightAttributes.IMPACT.get(), "96bd5bc6-37b0-46b5-a0ce-b7a914d43c2a", 0.5, AttributeModifier.Operation.ADDITION)

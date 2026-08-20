@@ -8,7 +8,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
-import net.shelmarow.combat_evolution.execution.network.C2STryExecutionPacket;
+import net.shelmarow.combat_evolution.network.client.C2STryExecutionPacket;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
 
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID,bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)

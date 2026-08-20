@@ -12,15 +12,16 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
-import net.minecraft.world.entity.ai.goal.WrappedGoal;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -42,6 +43,7 @@ import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.asset.AssetAccessor;
+import yesman.epicfight.api.client.animation.Layer;
 import yesman.epicfight.api.forgeevent.EntityStunEvent;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.gameasset.Animations;
@@ -231,7 +233,8 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             if (combatBehavior != null) {
                 CECombatBehaviors.Behavior<?> current = combatBehavior.getCurrentBehavior();
                 if (current == null) {
-                    if (BehaviorUtils.getCEAnimationAttackGoal(original).canUse()) {
+                    CEAnimationAttackGoal<?> ceAnimationAttackGoal = BehaviorUtils.getCEAnimationAttackGoal(original);
+                    if (ceAnimationAttackGoal != null && ceAnimationAttackGoal.canUse()) {
                         result = combatBehavior.executeNoBehaviorOnHurt(this, damageSource, result);
                     }
                 } else {
@@ -380,6 +383,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         }
 
         //切换状态，并进入硬直
+        original.removeEffect(CEMobEffects.FULL_STUN_IMMUNITY.get());
         if(this.applyStun(StunType.NEUTRALIZE, 0F)){
             if(damageSource != null){
                 Vec3 sourcePosition = damageSource.getSourcePosition();
@@ -476,7 +480,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
                 return motionByStyle.getOrDefault(style, motionByStyle.get(CapabilityItem.Styles.COMMON));
             }
         }
-        return DefaultCombatBehavior.FIST;
+        return original instanceof RangedAttackMob ? null : DefaultCombatBehavior.FIST;
     }
 
     protected void setAIAsInfantry() {
@@ -517,6 +521,24 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         else {
             this.currentLivingMotion = LivingMotions.FALL;
         }
+
+        UseAnim useAction = this.original.getItemInHand(this.original.getUsedItemHand()).getUseAnimation();
+        if (this.getClientAnimator().getCompositeLayer(Layer.Priority.MIDDLE).animationPlayer.getRealAnimation().get().isReboundAnimation()) {
+            this.currentLivingMotion = LivingMotions.SHOT;
+        }
+        else if (this.original.isUsingItem()) {
+            if (useAction == UseAnim.CROSSBOW){
+                this.currentLivingMotion = LivingMotions.RELOAD;
+            }
+            else {
+                this.currentLivingMotion = LivingMotions.AIM;
+            }
+        } else {
+            if (CrossbowItem.isCharged(this.original.getMainHandItem())){
+                this.currentLivingMotion = LivingMotions.AIM;
+            }
+        }
+
         this.currentCompositeMotion = this.currentLivingMotion;
     }
 
@@ -688,6 +710,26 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             }
         }
         return applied;
+    }
+
+
+
+    public static boolean canStun(LivingEntity original, StunType stunType) {
+        if(original.hasEffect(CEMobEffects.FULL_STUN_IMMUNITY.get())){
+            return false;
+        }
+        else if(original.hasEffect(CEMobEffects.HIGH_STUN_IMMUNITY.get()) && stunType != StunType.NEUTRALIZE){
+            return false;
+        }
+        else if(original.hasEffect(CEMobEffects.MIDDLE_STUN_IMMUNITY.get()) &&
+                stunType != StunType.NEUTRALIZE && stunType != StunType.FALL){
+            return false;
+        }
+        else if(original.hasEffect(CEMobEffects.NORMAL_STUN_IMMUNITY.get()) &&
+                stunType != StunType.NEUTRALIZE && stunType != StunType.KNOCKDOWN && stunType != StunType.FALL){
+            return false;
+        }
+        return true;
     }
 
     @Override
