@@ -13,7 +13,15 @@ import java.util.function.Supplier;
 public class CEConditions {
 
     public static final DeferredRegister<Supplier<Condition<?>>> CONDITIONS =
-            DeferredRegister.create(ResourceLocation.fromNamespaceAndPath(EpicFightMod.MODID,"conditions"), CombatEvolution.MOD_ID);
+            // Epic Fight's registry key is singular: EpicFightRegistries.Keys.CONDITION
+            // is built from key("condition"). Registering into "conditions" targets a
+            // registry that does not exist, so none of the entries below ever reach
+            // EpicFightRegistries.CONDITION. Every datapack using a combat_evolution:*
+            // condition then dies in deserializeBehaviorCondition with "Unknown
+            // condition", which aborts the whole CEDatapackMobPatch constructor.
+            // Code-built mob AI never looks conditions up by id and is unaffected --
+            // which is why this only ever showed up on the datapack path.
+            DeferredRegister.create(ResourceLocation.fromNamespaceAndPath(EpicFightMod.MODID,"condition"), CombatEvolution.MOD_ID);
 
     public static final DeferredHolder<Supplier<Condition<?>>, Supplier<Condition<?>>> TARGET_IN_DISTANCE =
             CONDITIONS.register(ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID,"target_in_distance").getPath(),() -> TargetInDistance::new);
