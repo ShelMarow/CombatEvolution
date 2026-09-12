@@ -183,8 +183,8 @@ public class ShelMarowCombatBehaviors {
                 )
 
                 .newBehaviorRoot(CECombatBehaviors.BehaviorRoot.builder()
-                        .priority(100).weight(1)
-                        //.maxCooldown(200).cooldown(100)
+                        .priority(1).weight(1)
+                        .maxCooldown(200).cooldown(100)
 
                         .addFirstBehavior(CECombatBehaviors.Behavior.builder()
                                 .stopByStun(4)

@@ -19,9 +19,10 @@
     "GuardSkillMixin",
     "HealthBarMixin",
     "LivingEntityPatchMixin",
+    "SkillContainerMixin",
     "StaticAnimationsMixin"
   ],
   "client": [
-    "KeyboardHandlerMixin"
+    "client.KeyboardHandlerMixin"
   ]
 }

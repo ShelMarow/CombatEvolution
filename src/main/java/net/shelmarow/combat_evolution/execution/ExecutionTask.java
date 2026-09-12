@@ -7,6 +7,7 @@ import net.minecraft.world.phys.Vec3;
 import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.tickTask.TickTask;
+import yesman.epicfight.skill.passive.EmergencyEscapeSkill;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;

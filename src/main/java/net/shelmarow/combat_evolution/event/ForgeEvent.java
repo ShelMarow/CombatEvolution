@@ -47,14 +47,10 @@ public class ForgeEvent {
 
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
-    public static void onKeyInput(InputEvent event){
+    public static void onKeyInput(InputEvent.MouseButton.Pre event){
         LocalPlayer player = Minecraft.getInstance().player;
-        if(player != null){
-            if(player.hasEffect(CEMobEffects.ON_EXECUTION.get())){
-                if(event.isCancelable()){
-                    event.setCanceled(true);
-                }
-            }
+        if(Minecraft.getInstance().screen == null && player != null && player.hasEffect(CEMobEffects.ON_EXECUTION.get())){
+            event.setCanceled(true);
         }
     }
 

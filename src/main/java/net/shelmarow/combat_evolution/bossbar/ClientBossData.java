@@ -66,7 +66,7 @@ public class ClientBossData {
     }
 
     //更新自定义数据
-    public static void updateCustomDate(UUID uuid, CompoundTag tag) {
+    public static void updateCustomData(UUID uuid, CompoundTag tag) {
         getBossData(uuid).customData = tag;
     }
 }

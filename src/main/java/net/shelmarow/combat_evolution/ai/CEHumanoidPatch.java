@@ -24,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.combat_evolution.ai.event.*;
 import net.shelmarow.combat_evolution.ai.goal.CEAnimationAttackGoal;
@@ -83,7 +84,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
     protected int staminaRegenDelay = 60;
 
     protected int attackRadius = 1;
-    protected double chasingSpeed = 1.25F;
+    protected double chasingSpeed = 1.3F;
 
     public CEHumanoidPatch(Factions factions) {
         super(factions);
@@ -132,6 +133,14 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
         animator.addLivingAnimation(LivingMotions.FALL, Animations.BIPED_FALL);
         animator.addLivingAnimation(LivingMotions.MOUNT, Animations.BIPED_MOUNT);
         animator.addLivingAnimation(LivingMotions.DEATH, Animations.BIPED_DEATH);
+    }
+
+    @Override
+    public void onDeath(LivingDeathEvent event) {
+        if(!isLogicalClient()){
+            playAnimationSynchronized(animator.getLivingAnimation(LivingMotions.DEATH, Animations.EMPTY_ANIMATION), 0F);
+        }
+        this.currentLivingMotion = LivingMotions.DEATH;
     }
 
 
@@ -504,13 +513,14 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
             this.currentLivingMotion = LivingMotions.MOUNT;
         }
         else if (!(this.original.getDeltaMovement().y < -0.55) && !this.isAirborneState()) {
-            if (this.original.walkAnimation.speed() > 0.08F && this.original.walkAnimation.speed() <= 0.65) {
+            if (this.original.walkAnimation.speed() > 0.08F && this.original.walkAnimation.speed() <= 0.55) {
                 this.currentLivingMotion = LivingMotions.WALK;
             }
-            else if (this.original.walkAnimation.speed() > 0.65) {
+            else if (this.original.walkAnimation.speed() > 0.55) {
                 if (this.original.isAggressive()) {
                     this.currentLivingMotion = LivingMotions.CHASE;
-                } else {
+                }
+                else {
                     this.currentLivingMotion = LivingMotions.RUN;
                 }
             }
@@ -683,6 +693,7 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
 
         if (hasChange || forceChange) {
             this.getAnimator().resetLivingAnimations();
+            oldLivingAnimations.forEach(this.getAnimator()::addLivingAnimation);
             newLivingAnimations.forEach(this.getAnimator()::addLivingAnimation);
             if(!isLogicalClient()) {
                 SPChangeLivingMotion msg = new SPChangeLivingMotion(this.original.getId());

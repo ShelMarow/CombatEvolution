@@ -6,7 +6,7 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
-import net.shelmarow.combat_evolution.network.server.S2CReleaseGuardPacket;
+import net.shelmarow.combat_evolution.network.server.S2CReleaseSKillKeyPacket;
 
 import java.util.function.Supplier;
 
@@ -30,7 +30,7 @@ public class C2STryExecutionPacket {
                 ServerPlayer serverPlayer = ctx.get().getSender();
                 if (serverPlayer != null) {
                     if(ExecutionHandler.tryExecute(serverPlayer)){
-                        CENetworkHandler.sendToPlayer(serverPlayer, new S2CReleaseGuardPacket());
+                        CENetworkHandler.sendToPlayer(serverPlayer, new S2CReleaseSKillKeyPacket());
                     }
                 }
             });

@@ -35,6 +35,5 @@ public abstract class TickTask {
             onFinish();
         }
     }
-
 }
 

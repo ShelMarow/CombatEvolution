@@ -45,7 +45,7 @@ public class CENetworkHandler {
         CHANNEL.registerMessage(packetId++, S2CRequestMusicPacket.class, S2CRequestMusicPacket::encode, S2CRequestMusicPacket::decode, S2CRequestMusicPacket::handle);
         CHANNEL.registerMessage(packetId++, S2CRemoveMusicPacket.class, S2CRemoveMusicPacket::encode, S2CRemoveMusicPacket::decode, S2CRemoveMusicPacket::handle);
         CHANNEL.registerMessage(packetId++, SPCEDataPacket.class, SPCEDataPacket::encode, SPCEDataPacket::decode, SPCEDataPacket::handle);
-        CHANNEL.registerMessage(packetId++, S2CReleaseGuardPacket.class, S2CReleaseGuardPacket::encode, S2CReleaseGuardPacket::decode, S2CReleaseGuardPacket::handle);
+        CHANNEL.registerMessage(packetId++, S2CReleaseSKillKeyPacket.class, S2CReleaseSKillKeyPacket::encode, S2CReleaseSKillKeyPacket::decode, S2CReleaseSKillKeyPacket::handle);
 
         CHANNEL.registerMessage(packetId++, C2STryExecutionPacket.class, C2STryExecutionPacket::encode,C2STryExecutionPacket::decode, C2STryExecutionPacket::handle);
     }

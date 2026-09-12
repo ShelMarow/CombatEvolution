@@ -33,7 +33,7 @@ public class S2CUpdateBossCustomDataPacket {
     public static void handle(S2CUpdateBossCustomDataPacket msg, Supplier<NetworkEvent.Context> ctx) {
         if (ctx.get().getDirection() == NetworkDirection.PLAY_TO_CLIENT) {
             ctx.get().enqueueWork(() -> {
-                ClientBossData.updateCustomDate(msg.uuid,msg.tag);
+                ClientBossData.updateCustomData(msg.uuid,msg.tag);
             });
         }
         ctx.get().setPacketHandled(true);
