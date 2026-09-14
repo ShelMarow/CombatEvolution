@@ -13,7 +13,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Mixin(KeyboardHandler.class)
@@ -31,7 +33,7 @@ public class KeyboardHandlerMixin {
             if(localPlayer.hasEffect(CEMobEffects.ON_EXECUTION.get())){
                 ci.cancel();
 
-                Set<Integer> bannedKey = new HashSet<>(Set.of(
+                List<Integer> bannedKey = new ArrayList<>(List.of(
                         EpicFightKeyMappings.WEAPON_INNATE_SKILL.getKey().getValue(),
                         EpicFightKeyMappings.ATTACK.getKey().getValue(),
                         EpicFightKeyMappings.DODGE.getKey().getValue(),
