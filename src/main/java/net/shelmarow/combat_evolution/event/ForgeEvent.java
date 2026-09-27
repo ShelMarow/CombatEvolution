@@ -1,17 +1,19 @@
 package net.shelmarow.combat_evolution.event;
 
-import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -25,7 +27,13 @@ import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.execution.ExecutionMobReloadListener;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeReloadListener;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
+import net.shelmarow.combat_evolution.skill.CESkillSlots;
+import net.shelmarow.combat_evolution.skill.CESkills;
 import yesman.epicfight.api.forgeevent.EntityStunEvent;
+import yesman.epicfight.skill.SkillSlots;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
+import yesman.epicfight.world.capabilities.skill.CapabilitySkill;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.EpicFightDamageTypeTags;
 import yesman.epicfight.world.damagesource.StunType;
@@ -33,17 +41,6 @@ import yesman.epicfight.world.damagesource.StunType;
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ForgeEvent {
 
-    @OnlyIn(Dist.CLIENT)
-    @SubscribeEvent
-    public static void onRender(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || Minecraft.getInstance().player == null) return;
-
-        if (!ExecutionShaderManager.isInitialized()) {
-            ExecutionShaderManager.init();
-        }
-
-        ExecutionShaderManager.tick(event.getRenderTick(), event.getPartialTick());
-    }
 
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
@@ -51,6 +48,17 @@ public class ForgeEvent {
         LocalPlayer player = Minecraft.getInstance().player;
         if(Minecraft.getInstance().screen == null && player != null && player.hasEffect(CEMobEffects.ON_EXECUTION.get())){
             event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerJointWorld(EntityJoinLevelEvent event){
+        if(event.getEntity() instanceof Player player) {
+            PlayerPatch<?> playerPatch = EpicFightCapabilities.getPlayerPatch(player);
+            if (playerPatch != null) {
+                CapabilitySkill skillCapability = playerPatch.getSkillCapability();
+                skillCapability.getSkillContainerFor(CESkillSlots.CE_SKILL_SLOT).setSkill(CESkills.CE_SKILL_HANDLER);
+            }
         }
     }
 

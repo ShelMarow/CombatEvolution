@@ -3,6 +3,7 @@ package net.shelmarow.combat_evolution.mixins;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,10 +20,17 @@ public class EntityMixin {
     )
     private void setDeltaMovement(Vec3 pDeltaMovement, CallbackInfo ci) {
         Entity entity = (Entity) (Object) this;
-        if(entity instanceof LivingEntity livingEntity) {
-            if(ExecutionHandler.isExecutingTarget(livingEntity, livingEntity)){
-                ci.cancel();
-            }
+        if (!(entity instanceof LivingEntity livingEntity)) {
+            return;
+        }
+
+        if (ExecutionHandler.isExecutingTarget(livingEntity, livingEntity)) {
+            ci.cancel();
+            return;
+        }
+
+        if (CEMobEffects.ON_EXECUTION.isPresent() && livingEntity.hasEffect(CEMobEffects.ON_EXECUTION.get())) {
+            ci.cancel();
         }
     }
 }

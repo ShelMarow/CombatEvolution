@@ -31,9 +31,13 @@ import net.shelmarow.combat_evolution.example.entity.CEEntities;
 import net.shelmarow.combat_evolution.item.CECreativeTab;
 import net.shelmarow.combat_evolution.item.CEItems;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
+import net.shelmarow.combat_evolution.skill.CESkillCategories;
+import net.shelmarow.combat_evolution.skill.CESkillSlots;
 import net.shelmarow.combat_evolution.sounds.CESounds;
 import org.slf4j.Logger;
 import yesman.epicfight.gameasset.Armatures;
+import yesman.epicfight.skill.SkillCategory;
+import yesman.epicfight.skill.SkillSlot;
 
 @Mod(CombatEvolution.MOD_ID)
 public class CombatEvolution {
@@ -55,6 +59,9 @@ public class CombatEvolution {
         CEEnchantments.ENCHANTMENTS.register(modEventBus);
         CEItems.ITEMS.register(modEventBus);
         CECreativeTab.CREATIVE_TAB.register(modEventBus);
+
+        SkillSlot.ENUM_MANAGER.registerEnumCls(MOD_ID, CESkillSlots.class);
+        SkillCategory.ENUM_MANAGER.registerEnumCls(MOD_ID, CESkillCategories.class);
 
         context.registerConfig(ModConfig.Type.COMMON, CECommonConfig.COMMON_SPEC);
 

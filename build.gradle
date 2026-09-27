@@ -87,9 +87,11 @@ dependencies {
     implementation fg.deobf("curse.maven:selene-499980:7072721")
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:6860192")
 
-
-    compileOnly("curse.maven:free-cam-557076:4643128")
-    compileOnly("libs:betterlockon:2.0.2")
+    //客户端mod
+//    implementation fg.deobf("libs:betterlockon:2.0.10")
+//    implementation fg.deobf("curse.maven:free-cam-557076:4643128")
+//    implementation fg.deobf("curse.maven:embeddium-908741:5556138")
+//    implementation fg.deobf("curse.maven:oculus-581495:5299671")
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'

@@ -23,6 +23,10 @@
     "StaticAnimationsMixin"
   ],
   "client": [
-    "client.KeyboardHandlerMixin"
+    "client.GameRendererMixin",
+    "client.LevelRendererAccessor",
+    "client.LevelRendererMixin",
+    "client.KeyboardHandlerMixin",
+    "client.ParticleEngineMixin"
   ]
 }

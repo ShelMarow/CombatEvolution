@@ -19,9 +19,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.monster.RangedAttackMob;
-import net.minecraft.world.item.CrossbowItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.*;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -489,7 +487,16 @@ public abstract class CEHumanoidPatch<T extends Mob> extends MobPatch<T> {
                 return motionByStyle.getOrDefault(style, motionByStyle.get(CapabilityItem.Styles.COMMON));
             }
         }
-        return original instanceof RangedAttackMob ? null : DefaultCombatBehavior.FIST;
+        return (original instanceof RangedAttackMob && isHoldingRangedWeapon(original)) ? null : DefaultCombatBehavior.FIST;
+    }
+
+
+    private boolean isHoldingRangedWeapon(Mob mob) {
+        return isRangedWeapon(mob.getMainHandItem()) || isRangedWeapon(mob.getOffhandItem());
+    }
+
+    private static boolean isRangedWeapon(ItemStack stack) {
+        return stack.getItem() instanceof ProjectileWeaponItem;
     }
 
     protected void setAIAsInfantry() {
