@@ -2,7 +2,7 @@ package net.shelmarow.combat_evolution.network.server;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
-import net.shelmarow.combat_evolution.bossbar.ClientBossData;
+import net.shelmarow.combat_evolution.bossbar.client.ClientBossData;
 
 import java.util.UUID;
 import java.util.function.Supplier;

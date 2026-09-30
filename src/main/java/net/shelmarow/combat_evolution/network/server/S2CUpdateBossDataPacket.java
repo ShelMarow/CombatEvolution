@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.shelmarow.combat_evolution.bossbar.BossData;
-import net.shelmarow.combat_evolution.bossbar.ClientBossData;
+import net.shelmarow.combat_evolution.bossbar.client.ClientBossData;
 
 import java.util.UUID;
 import java.util.function.Supplier;

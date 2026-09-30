@@ -2,10 +2,12 @@ package net.shelmarow.combat_evolution.execution;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.combat_evolution.CombatEvolution;
+import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.gameassets.ExecutionSkillAnimations;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionAttackAnimation;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionHitAnimation;
@@ -28,8 +30,14 @@ public class ExecutionTypeManager {
     private static final Map<ResourceLocation, Type> EXECUTION_TYPES = new HashMap<>();
     private static final Map<ResourceLocation, Type> DATAPACK_EXECUTION_TYPES = new HashMap<>();
 
+    private static final Map<ResourceLocation, Type> ASSASSINATION_TYPES = new HashMap<>();
 
-    public static final Type DEFAULT_TYPE = creatExecutionType(
+    private static final Map<ResourceLocation, Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type>>> CUSTOM_ENTITY_ASSASSINATION_MAP = new HashMap<>();
+    private static final Map<ResourceLocation, Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type>>> CUSTOM_ITEM_ASSASSINATION_MAP = new HashMap<>();
+    private static final Map<WeaponCategory, Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type>>> CUSTOM_CATEGORY_ASSASSINATION_MAP = new HashMap<>();
+
+
+    public static final Type SWORD_TYPE = creatExecutionType(
             ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "sword"),
             ExecutionSkillAnimations.EXECUTION_SWORD, ExecutionSkillAnimations.EXECUTED_FULL,
             new Vec3(1.35,0,0),-10,100
@@ -84,8 +92,8 @@ public class ExecutionTypeManager {
     //默认类型
     private static final Map<WeaponCategory, Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type>>> CATEGORY_EXECUTION_MAP = Map.of(
             CapabilityItem.WeaponCategories.DAGGER, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> DAGGER_TYPE),
-            CapabilityItem.WeaponCategories.SWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> DEFAULT_TYPE),
-            CapabilityItem.WeaponCategories.LONGSWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> DEFAULT_TYPE),
+            CapabilityItem.WeaponCategories.SWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> SWORD_TYPE),
+            CapabilityItem.WeaponCategories.LONGSWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> SWORD_TYPE),
             CapabilityItem.WeaponCategories.AXE, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> COLOSSALSWORD_TYPE),
             CapabilityItem.WeaponCategories.UCHIGATANA, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> TACHI_TYPE),
             CapabilityItem.WeaponCategories.TACHI, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> TACHI_TYPE),
@@ -95,6 +103,52 @@ public class ExecutionTypeManager {
                 return entityPatch.getOriginal().level().getRandom().nextDouble() >= 0.5 ? GREATSWORD_TYPE : COLOSSALSWORD_TYPE;
             })
     );
+
+
+
+
+
+
+
+
+
+    public static final Type ASSASSINATION_COLOSSALSWORD_TYPE = creatAssassinationType(
+            ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "assassination_colossalsword"),
+            ExecutionSkillAnimations.EXECUTION_COLOSSALSWORD, ExecutionSkillAnimations.ASSASSINATION,
+            new Vec3(-1.0,0,0.2),0,100
+    );
+
+
+    public static final Type ASSASSINATION_DAGGER_TYPE = creatExecutionType(
+            ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "assassination_dagger"),
+            ExecutionSkillAnimations.EXECUTION_DAGGER, ExecutionSkillAnimations.ASSASSINATION,
+            new Vec3(-0.65,0,0),0,100
+    );
+
+    //暗杀的处决类型
+    private static final Map<WeaponCategory, Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type>>> CATEGORY_ASSASSINATION_MAP = Map.of(
+            CapabilityItem.WeaponCategories.DAGGER, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_DAGGER_TYPE),
+            CapabilityItem.WeaponCategories.SWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_DAGGER_TYPE),
+            CapabilityItem.WeaponCategories.LONGSWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_DAGGER_TYPE),
+            CapabilityItem.WeaponCategories.AXE, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_COLOSSALSWORD_TYPE),
+            CapabilityItem.WeaponCategories.UCHIGATANA, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_COLOSSALSWORD_TYPE),
+            CapabilityItem.WeaponCategories.TACHI, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_COLOSSALSWORD_TYPE),
+            CapabilityItem.WeaponCategories.SPEAR, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_COLOSSALSWORD_TYPE),
+            CapabilityItem.WeaponCategories.TRIDENT, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_COLOSSALSWORD_TYPE),
+            CapabilityItem.WeaponCategories.GREATSWORD, Map.of(CapabilityItem.Styles.COMMON, (item, entityPatch, targetPatch) -> ASSASSINATION_COLOSSALSWORD_TYPE)
+    );
+
+    public static void registerAssassinationByEntity(ResourceLocation resourceLocation, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type> function) {
+        CUSTOM_ENTITY_ASSASSINATION_MAP.computeIfAbsent(resourceLocation, key -> new HashMap<>()).put(style, function);
+    }
+
+    public static void registerAssassinationByItem(ResourceLocation resourceLocation, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type> function) {
+        CUSTOM_ITEM_ASSASSINATION_MAP.computeIfAbsent(resourceLocation, key -> new HashMap<>()).put(style, function);
+    }
+
+    public static void registerAssassinationByCategory(WeaponCategory weaponCategory, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type> function) {
+        CUSTOM_CATEGORY_ASSASSINATION_MAP.computeIfAbsent(weaponCategory, key -> new HashMap<>()).put(style, function);
+    }
 
     public static void registerByEntity(ResourceLocation resourceLocation, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type> function) {
         CUSTOM_ENTITY_EXECUTION_MAP.computeIfAbsent(resourceLocation, c -> new HashMap<>()).put(style, function);
@@ -139,9 +193,67 @@ public class ExecutionTypeManager {
         }
         else {
             Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>,Type>> orDefault = CATEGORY_EXECUTION_MAP.getOrDefault(weaponCategory, new HashMap<>());
-            return orDefault.containsKey(style) ? orDefault.get(style).apply(item, entityPatch, targetPatch) : orDefault.getOrDefault(CapabilityItem.Styles.COMMON, (i, e, t)-> DEFAULT_TYPE).apply(item,entityPatch, targetPatch);
+            return orDefault.containsKey(style) ? orDefault.get(style).apply(item, entityPatch, targetPatch) : orDefault.getOrDefault(CapabilityItem.Styles.COMMON, (i, e, t)-> SWORD_TYPE).apply(item,entityPatch, targetPatch);
         }
 
+    }
+
+    public static Type getAssassinationTypeByEntity(EntityType<?> entityType, Item item, Style style, LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
+        ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(entityType);
+        Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type>> styles = CUSTOM_ENTITY_ASSASSINATION_MAP.getOrDefault(id, Map.of());
+        TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type> function = styles.getOrDefault(style, styles.get(CapabilityItem.Styles.COMMON));
+        return function == null ? null : function.apply(item, executorPatch, targetPatch);
+    }
+
+    public static Type getAssassinationTypeByItem(Item item, Style style, LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
+        ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type>> styles = CUSTOM_ITEM_ASSASSINATION_MAP.getOrDefault(id, Map.of());
+        TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type> function = styles.getOrDefault(style, styles.get(CapabilityItem.Styles.COMMON));
+        return function == null ? null : function.apply(item, executorPatch, targetPatch);
+    }
+
+    public static Type getAssassinationTypeByCategory(WeaponCategory weaponCategory, Style style, Item item, LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
+        Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type>> custom = CUSTOM_CATEGORY_ASSASSINATION_MAP.getOrDefault(weaponCategory, Map.of());
+        TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type> function = custom.getOrDefault(style, custom.get(CapabilityItem.Styles.COMMON));
+        if (function != null) {
+            return function.apply(item, executorPatch, targetPatch);
+        }
+
+        Map<Style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, Type>> defaults = CATEGORY_ASSASSINATION_MAP.getOrDefault(weaponCategory, Map.of());
+        function = defaults.getOrDefault(style, defaults.get(CapabilityItem.Styles.COMMON));
+        return function == null ? ASSASSINATION_COLOSSALSWORD_TYPE : function.apply(item, executorPatch, targetPatch);
+    }
+
+    @Deprecated
+    public static Type getAssassinationType(WeaponCategory weaponCategory, Style style, Item item, LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
+        return getAssassinationTypeByCategory(weaponCategory, style, item, executorPatch, targetPatch);
+    }
+
+    public static Type getAssassinationType(LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
+        CapabilityItem capabilityItem = executorPatch.getHoldingItemCapability(InteractionHand.MAIN_HAND);
+        Item item = executorPatch.getOriginal().getItemInHand(InteractionHand.MAIN_HAND).getItem();
+        WeaponCategory weaponCategory = capabilityItem.getWeaponCategory();
+        Style style = capabilityItem.getStyle(executorPatch);
+
+        Type assassinationType = getAssassinationTypeByItem(item, style, executorPatch, targetPatch);
+        if (assassinationType == null) {
+            assassinationType = getAssassinationTypeByCategory(weaponCategory, style, item, executorPatch, targetPatch);
+        }
+
+        Type entityType = getAssassinationTypeByEntity(targetPatch.getOriginal().getType(), item, style, executorPatch, targetPatch);
+        if (entityType != null) {
+            return entityType;
+        }
+
+        if (targetPatch instanceof CustomExecuteEntity customExecuteEntity
+                && customExecuteEntity.canUseCustomType(executorPatch, assassinationType)) {
+            Type customType = customExecuteEntity.getExecutionType(executorPatch, assassinationType);
+            if (customType != null) {
+                return customType;
+            }
+        }
+
+        return assassinationType;
     }
 
     public static Type creatExecutionType(ResourceLocation id, AnimationManager.AnimationAccessor<? extends ExecutionAttackAnimation> executionAnimation, AnimationManager.AnimationAccessor<? extends ExecutionHitAnimation> executedAnimation, Vec3 offset, float rotationOffset, int totalTick){
@@ -150,9 +262,24 @@ public class ExecutionTypeManager {
         return type;
     }
 
+    public static Type creatAssassinationType(ResourceLocation id, AnimationManager.AnimationAccessor<? extends ExecutionAttackAnimation> executionAnimation, AnimationManager.AnimationAccessor<? extends ExecutionHitAnimation> executedAnimation, Vec3 offset, float rotationOffset, int totalTick) {
+        Type type = new Type(executionAnimation, executedAnimation, offset, rotationOffset, totalTick);
+        ASSASSINATION_TYPES.put(id, type);
+        return type;
+    }
+
     public static void creatDatapackExecutionType(ResourceLocation id, AnimationManager.AnimationAccessor<? extends StaticAnimation> executionAnimation, AnimationManager.AnimationAccessor<? extends StaticAnimation> executedAnimation, Vec3 offset, float rotationOffset, int totalTick){
         Type type = new Type(executionAnimation, executedAnimation, offset, rotationOffset, totalTick);
         DATAPACK_EXECUTION_TYPES.put(id, type);
+    }
+
+
+    public static Type getAssassinationType(ResourceLocation id) {
+        return ASSASSINATION_TYPES.get(id);
+    }
+
+    public static Set<ResourceLocation> getAssassinationTypeKeys() {
+        return new HashSet<>(ASSASSINATION_TYPES.keySet());
     }
 
     public static void clearDatapackExecutionType(){
@@ -165,13 +292,18 @@ public class ExecutionTypeManager {
 
 
     public static @Nullable Type getExecutionType(ResourceLocation id){
-        return DATAPACK_EXECUTION_TYPES.getOrDefault(id, EXECUTION_TYPES.get(id));
+        Type type = DATAPACK_EXECUTION_TYPES.get(id);
+        if (type == null) {
+            type = EXECUTION_TYPES.get(id);
+        }
+        return type == null ? ASSASSINATION_TYPES.get(id) : type;
     }
 
     public static Set<ResourceLocation> getExecutionTypeKeys() {
         Set<ResourceLocation> keys = new HashSet<>();
         keys.addAll(EXECUTION_TYPES.keySet());
         keys.addAll(DATAPACK_EXECUTION_TYPES.keySet());
+        keys.addAll(ASSASSINATION_TYPES.keySet());
         return keys;
     }
 

@@ -8,6 +8,7 @@
   "humanoid": true,       // [Optional] Whether to use a humanoid model. If true and renderer is epicfight:custom, the default human model will be used.
   "chasingSpeed": 1.25,   // [Optional] Additional speed multiplier when mobs chase targets
   "scale": 1.0,           // [Optional] Render scale. Does not affect the actual collision box.
+  "canBeAssassinate": false, // [Optional] Whether this entity can be assassinated. When set, this value directly controls eligibility: true also allows entities with a target or the BOSS tag; false prevents assassination. If omitted, the default rule applies (no target and no BOSS tag).
   "breakTime": 40,        // [Optional] Duration (in ticks) of the stagger/break state after stamina is depleted (independent of animations).
   "recoverTime": 60,      // [Optional] Time (in ticks) needed for stamina to fully recover after the break state ends.
   "staminaRegenDelay":60, // [Optional] Delay (in ticks) before natural stamina regeneration begins when idle and not performing actions.
@@ -17,6 +18,7 @@
   "ceBossBar": {          //[Optional]  Display BOSS Bar
     "enableBossBar": true,
     "bossBarName":"Zombie Boss",  //BOSS Bar Display Name，can use translate lang key
+    "bossBarType": "[CE:DefaultType]", //Boss bar type. Built-in types: [CE:DefaultType] and [CE:SoulLikeType].
     "bossBarTextures": "combat_evolution:textures/gui/bossbar/ce_boss_bar.png"  //BOSS Bar Texture Resource Location
   },
   "ceBossMusic": {  //[Optional]  Play BOSS BGM
@@ -106,6 +108,7 @@
           "firstBehaviors": [     // <Required> Collection of child behavior nodes for this root. All child nodes share the root node's cooldown.
             {
               "behaviorName": "Animation Behavior A1", // [Optional] Name for the child behavior. No restrictions.
+              "behaviorType": "animation", // [Optional] Editor behavior kind: animation, defense, or wander. Set to wander to create a pure wander behavior without guard-counter setup.
               "priority": 1,             // [Optional] Priority among multiple available child nodes. Default 1.
               "weight": 4,              // [Optional] Weight for random selection when priorities are equal. Default 1.
               "stopByStun": 1,          // [Optional] Determines if stuns interrupt the behavior. 1 (default): Interrupted by all stuns. 2: Not interrupted by short stun. 3: Not interrupted by short/long. 4: Not interrupted by short/long/hold. 5: Not interrupted by short/long/hold/fall. 6: Not interrupted by short/long/hold/knockdown. 7: Not interrupted by short/long/hold/fall/knockdown.

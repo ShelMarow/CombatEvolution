@@ -2,6 +2,7 @@ package net.shelmarow.combat_evolution.ai;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -13,10 +14,12 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.shelmarow.combat_evolution.ai.iml.CustomExecuteEntity;
 import net.shelmarow.combat_evolution.ai.util.CEPatchUtils;
 import net.shelmarow.combat_evolution.bgm.network.CEMusicNetworkHandler;
 import net.shelmarow.combat_evolution.bgm.network.CEMusicPacket;
 import net.shelmarow.combat_evolution.bossbar.CEBossEvent;
+import net.shelmarow.combat_evolution.execution.ExecutionTypeManager;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
@@ -28,15 +31,18 @@ import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
+public class CEDatapackMobPatch extends CEHumanoidPatch<Mob> implements CustomExecuteEntity {
     private final CEPatchReloadListener.CEDatapackMobPatchProvider provider;
     protected final CEBossEvent ceBossEvent = new CEBossEvent(Component.empty());
     private boolean shouldPlayBGM = false;
     private final UUID bgmUUID = UUID.randomUUID();
     private CEMusicPacket music;
+    private float bossBarHealth = Float.NaN;
+    private float bossBarMaxHealth = Float.NaN;
 
     public CEDatapackMobPatch(CEPatchReloadListener.CEDatapackMobPatchProvider provider) {
         super(provider.faction);
@@ -84,6 +90,7 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     }
 
     private void initBossBar() {
+        ceBossEvent.setDisplayType(provider.bossBarType);
         ceBossEvent.setVisible(provider.enableBossBar);
         if(!provider.bossBarName.equals("[CE:EMPTY_NAME]")){
             ceBossEvent.setName(Component.translatable(provider.bossBarName));
@@ -128,7 +135,7 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
 
         if(!isLogicalClient()){
             if(ceBossEvent.isVisible()){
-                ceBossEvent.setProgress(Mth.clamp(original.getHealth() / original.getMaxHealth(),0,1));
+                updateBossBarHealth();
                 ceBossEvent.setStaminaStatus(CEPatchUtils.getStaminaStatus(this));
                 ceBossEvent.setStamina(CEPatchUtils.getStaminaPercent(this));
             }
@@ -149,6 +156,20 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
                 }
             }
 
+        }
+    }
+
+    private void updateBossBarHealth() {
+        float maxHealth = Math.max(original.getMaxHealth(), 1.0F);
+        float health = Math.max(original.getHealth(), 0.0F);
+        ceBossEvent.setProgress(Mth.clamp(health / maxHealth, 0.0F, 1.0F));
+        if (Float.compare(bossBarHealth, health) != 0 || Float.compare(bossBarMaxHealth, maxHealth) != 0) {
+            CompoundTag customData = ceBossEvent.getCustomData();
+            customData.putFloat("health", health);
+            customData.putFloat("max_health", maxHealth);
+            ceBossEvent.updateCustomData(customData);
+            bossBarHealth = health;
+            bossBarMaxHealth = maxHealth;
         }
     }
 
@@ -194,6 +215,7 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
     @Override
     public void onStartTracking(ServerPlayer serverPlayer) {
         super.onStartTracking(serverPlayer);
+        if (ceBossEvent.isVisible()) updateBossBarHealth();
         ceBossEvent.addPlayer(serverPlayer);
         if(music != null && shouldPlayBGM){
             CEMusicNetworkHandler.sendRequestPlayPacket(serverPlayer, music);
@@ -207,5 +229,29 @@ public class CEDatapackMobPatch extends CEHumanoidPatch<Mob>{
         if(music != null){
             CEMusicNetworkHandler.sendRemoveMusicPacket(serverPlayer, bgmUUID, false);
         }
+    }
+
+    @Override
+    public boolean canBeExecuted(LivingEntityPatch<?> executorPatch) {
+        return true;
+    }
+
+    @Override
+    public boolean canUseCustomType(LivingEntityPatch<?> executorPatch, ExecutionTypeManager.Type originalType) {
+        return false;
+    }
+
+    @Override
+    public ExecutionTypeManager.Type getExecutionType(LivingEntityPatch<?> executorPatch, ExecutionTypeManager.Type originalType) {
+        return originalType;
+    }
+
+    @Override
+    public boolean canBeAssassinate(LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
+        if(provider.canBeAssassinate != null){
+            boolean b = provider.canBeAssassinate;
+            return b && CustomExecuteEntity.super.canBeAssassinate(executorPatch, targetPatch);
+        }
+        return CustomExecuteEntity.super.canBeAssassinate(executorPatch, targetPatch);
     }
 }

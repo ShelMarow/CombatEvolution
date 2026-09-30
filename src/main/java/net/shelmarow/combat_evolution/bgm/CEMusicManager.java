@@ -198,7 +198,13 @@ public class CEMusicManager {
         }
         //都不满足，将后续会播放的原本音乐替换
         else{
-            replacePlayListMusic(music);
+            boolean replacedQueuedMusic = playList.stream()
+                    .anyMatch(queuedMusic -> queuedMusic.getRequestUUID().equals(music.getRequestUUID()));
+            if (replacedQueuedMusic) {
+                replacePlayListMusic(music);
+            } else if (music.isCanAddToList()) {
+                playList.add(music);
+            }
         }
     }
 

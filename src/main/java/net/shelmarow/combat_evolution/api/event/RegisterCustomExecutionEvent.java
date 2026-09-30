@@ -15,17 +15,6 @@ import java.util.function.BiFunction;
 
 public class RegisterCustomExecutionEvent extends Event implements IModBusEvent {
 
-    @Deprecated(forRemoval = true)
-    public void RegisterExecutionByItem(ResourceLocation resourceLocation, ExecutionTypeManager.Type type) {
-        registerExecutionByItem(resourceLocation, CapabilityItem.Styles.COMMON, type);
-    }
-
-    @Deprecated(forRemoval = true)
-    public void RegisterExecutionByCategory(WeaponCategory weaponCategory, ExecutionTypeManager.Type type) {
-        registerExecutionByCategory(weaponCategory, CapabilityItem.Styles.COMMON, type);
-    }
-
-
     public void registerExecutionByEntity(ResourceLocation resourceLocation, ExecutionTypeManager.Type type) {
         registerExecutionByEntity(resourceLocation, CapabilityItem.Styles.COMMON, type);
     }
@@ -72,5 +61,53 @@ public class RegisterCustomExecutionEvent extends Event implements IModBusEvent 
 
     public void registerExecutionByCategory(WeaponCategory weaponCategory, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
         ExecutionTypeManager.registerByCategory(weaponCategory, style, function);
+    }
+
+    public void registerAssassinationByEntity(ResourceLocation resourceLocation, ExecutionTypeManager.Type type) {
+        registerAssassinationByEntity(resourceLocation, CapabilityItem.Styles.COMMON, type);
+    }
+
+    public void registerAssassinationByEntity(ResourceLocation resourceLocation, Style style, ExecutionTypeManager.Type type) {
+        registerAssassinationByEntity(resourceLocation, style, (item, executorPatch) -> type);
+    }
+
+    public void registerAssassinationByEntity(ResourceLocation resourceLocation, Style style, BiFunction<Item, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        registerAssassinationByEntity(resourceLocation, style, (item, executorPatch, targetPatch) -> function.apply(item, executorPatch));
+    }
+
+    public void registerAssassinationByEntity(ResourceLocation resourceLocation, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        ExecutionTypeManager.registerAssassinationByEntity(resourceLocation, style, function);
+    }
+
+    public void registerAssassinationByItem(ResourceLocation resourceLocation, ExecutionTypeManager.Type type) {
+        registerAssassinationByItem(resourceLocation, CapabilityItem.Styles.COMMON, type);
+    }
+
+    public void registerAssassinationByItem(ResourceLocation resourceLocation, Style style, ExecutionTypeManager.Type type) {
+        registerAssassinationByItem(resourceLocation, style, (item, executorPatch) -> type);
+    }
+
+    public void registerAssassinationByItem(ResourceLocation resourceLocation, Style style, BiFunction<Item, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        registerAssassinationByItem(resourceLocation, style, (item, executorPatch, targetPatch) -> function.apply(item, executorPatch));
+    }
+
+    public void registerAssassinationByItem(ResourceLocation resourceLocation, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        ExecutionTypeManager.registerAssassinationByItem(resourceLocation, style, function);
+    }
+
+    public void registerAssassinationByCategory(WeaponCategory weaponCategory, ExecutionTypeManager.Type type) {
+        registerAssassinationByCategory(weaponCategory, CapabilityItem.Styles.COMMON, type);
+    }
+
+    public void registerAssassinationByCategory(WeaponCategory weaponCategory, Style style, ExecutionTypeManager.Type type) {
+        registerAssassinationByCategory(weaponCategory, style, (item, executorPatch) -> type);
+    }
+
+    public void registerAssassinationByCategory(WeaponCategory weaponCategory, Style style, BiFunction<Item, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        registerAssassinationByCategory(weaponCategory, style, (item, executorPatch, targetPatch) -> function.apply(item, executorPatch));
+    }
+
+    public void registerAssassinationByCategory(WeaponCategory weaponCategory, Style style, TriFunction<Item, LivingEntityPatch<?>, LivingEntityPatch<?>, ExecutionTypeManager.Type> function) {
+        ExecutionTypeManager.registerAssassinationByCategory(weaponCategory, style, function);
     }
 }

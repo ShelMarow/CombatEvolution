@@ -11,6 +11,7 @@ public class CEClientConfig {
     public static final ForgeConfigSpec.BooleanValue PLAY_CE_MUSIC;
     public static final ForgeConfigSpec.ConfigValue<String> HUD_TYPE;
     public static final ForgeConfigSpec.BooleanValue ICON_DISPLAY;
+    public static final ForgeConfigSpec.BooleanValue ASSASSINATION_ICON_DISPLAY;
     public static final ForgeConfigSpec.BooleanValue SHOW_TEXT_DISPLAY;
 
     public static final ForgeConfigSpec.EnumValue<HUDAlignment> ICON_ALIGNMENT;
@@ -37,6 +38,10 @@ public class CEClientConfig {
         ICON_DISPLAY = builder
                 .comment("Whether to show the icon in the execution HUD")
                 .define("iconDisplay", true);
+
+        ASSASSINATION_ICON_DISPLAY = builder
+                .comment("Whether to show the icon for available assassinations")
+                .define("assassinationIconDisplay", true);
 
         SHOW_TEXT_DISPLAY = builder
                 .comment("Whether to show text display in the execution HUD")

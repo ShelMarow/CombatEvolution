@@ -26,6 +26,8 @@ import net.shelmarow.combat_evolution.config.CEClientConfig;
 import net.shelmarow.combat_evolution.config.screen.HUDConfigScreen;
 import net.shelmarow.combat_evolution.execution.ExecutionHandler;
 import net.shelmarow.combat_evolution.key.CEKeyMappings;
+import net.shelmarow.combat_evolution.network.CENetworkHandler;
+import net.shelmarow.combat_evolution.network.client.C2SRequestAssassinationEligibilityPacket;
 import org.joml.Matrix4f;
 import yesman.epicfight.api.animation.AnimationPlayer;
 import yesman.epicfight.api.animation.types.StaticAnimation;
@@ -43,14 +45,22 @@ public class ExecutionHUD implements IGuiOverlay {
 
     private static HUDType currentHudType;
     private static boolean showExecutionIcon = false;
+    private static boolean showAssassinationIcon = false;
+    private static int lastEligibilityRequestTargetId = -1;
+    private static int lastEligibilityRequestTick = -5;
+    private static int eligibilityTargetId = -1;
+    private static boolean serverSaysAssassinationEligible = false;
     private static float timePercent = 1F;
     private static float timePercentO = 1F;
 
 
     @SubscribeEvent
     public static void onPlayerClientTick(TickEvent.PlayerTickEvent event) {
-        if (!CEClientConfig.ICON_DISPLAY.get()) {
+        if (!CEClientConfig.ICON_DISPLAY.get() && !CEClientConfig.ASSASSINATION_ICON_DISPLAY.get()) {
             showExecutionIcon = false;
+            showAssassinationIcon = false;
+            eligibilityTargetId = -1;
+            serverSaysAssassinationEligible = false;
             return;
         }
 
@@ -70,10 +80,50 @@ public class ExecutionHUD implements IGuiOverlay {
             LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(event.player, LocalPlayerPatch.class);
             if (localPlayerPatch != null) {
                 LivingEntity target = localPlayerPatch.getTarget();
+                if (target == null) {
+                    lastEligibilityRequestTargetId = -1;
+                    eligibilityTargetId = -1;
+                    serverSaysAssassinationEligible = false;
+                } else if (!CEClientConfig.ASSASSINATION_ICON_DISPLAY.get()) {
+                    lastEligibilityRequestTargetId = -1;
+                    eligibilityTargetId = -1;
+                    serverSaysAssassinationEligible = false;
+                } else {
+                    int targetEntityId = target.getId();
+                    int tickCount = event.player.tickCount;
+                    if (targetEntityId != lastEligibilityRequestTargetId) {
+                        eligibilityTargetId = -1;
+                        serverSaysAssassinationEligible = false;
+                    }
+                    if (targetEntityId != lastEligibilityRequestTargetId || tickCount - lastEligibilityRequestTick >= 5) {
+                        lastEligibilityRequestTargetId = targetEntityId;
+                        lastEligibilityRequestTick = tickCount;
+                        CENetworkHandler.sendToServer(new C2SRequestAssassinationEligibilityPacket(targetEntityId));
+                    }
+                }
+
                 LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
                 if (targetPatch != null) {
+                    if (CEClientConfig.ASSASSINATION_ICON_DISPLAY.get()
+                            && ExecutionHandler.isBehindTarget(event.player, target, ExecutionHandler.ASSASSINATION_DISTANCE)
+                            && eligibilityTargetId == target.getId() && serverSaysAssassinationEligible
+                            && !localPlayerPatch.getOriginal().isSpectator()
+                            && !targetPatch.getOriginal().isSpectator()
+                            && localPlayerPatch.isEpicFightMode()
+                            && (localPlayerPatch.getEntityState().canUseSkill() || localPlayerPatch.getEntityState().canBasicAttack())
+                            && ExecutionHandler.canExecute(event.player, localPlayerPatch, target, targetPatch)) {
+                        ShowExecutionIconEvent iconEvent = new ShowExecutionIconEvent(localPlayerPatch, targetPatch);
+                        if (!MinecraftForge.EVENT_BUS.post(iconEvent)) {
+                            timePercentO = 0F;
+                            timePercent = 0F;
+                            showExecutionIcon = true;
+                            showAssassinationIcon = true;
+                            return;
+                        }
+                    }
+
                     AnimationPlayer animationPlayer = targetPatch.getAnimator().getPlayerFor(null);
-                    if (animationPlayer != null) {
+                    if (CEClientConfig.ICON_DISPLAY.get() && animationPlayer != null) {
                         AssetAccessor<? extends StaticAnimation> currentAnimation = animationPlayer.getRealAnimation();
                         //检测可处决的条件
                         if (ExecutionHandler.targetIsInRange(event.player, target, 0, ExecutionHandler.EXECUTION_DISTANCE, 180) &&
@@ -86,6 +136,7 @@ public class ExecutionHUD implements IGuiOverlay {
                                 timePercentO = timePercent;
                                 timePercent = currentTime / totalTime;
                                 showExecutionIcon = true;
+                                showAssassinationIcon = false;
                                 return;
                             }
                         }
@@ -93,6 +144,7 @@ public class ExecutionHUD implements IGuiOverlay {
                 }
             }
             showExecutionIcon = false;
+            showAssassinationIcon = false;
         }
     }
 
@@ -154,7 +206,8 @@ public class ExecutionHUD implements IGuiOverlay {
         renderX = Mth.clamp(renderX, 0, screenWidth - iconSize);
         renderY = Mth.clamp(renderY, 0, screenHeight - iconSize);
 
-        if (CEClientConfig.ICON_DISPLAY.get()) {
+        if ((showAssassinationIcon && CEClientConfig.ASSASSINATION_ICON_DISPLAY.get())
+                || (!showAssassinationIcon && CEClientConfig.ICON_DISPLAY.get())) {
             poseStack.pushPose();
             poseStack.translate(renderX, renderY, 0);
             poseStack.scale(1, 1, 1);
@@ -216,6 +269,11 @@ public class ExecutionHUD implements IGuiOverlay {
     }
 
     public static void drawExecutionIcon(GuiGraphics guiGraphics, float partialTick, HUDType currentHudType, float iconSize) {
+        drawExecutionIcon(guiGraphics, partialTick, currentHudType, iconSize, timePercentO, timePercent);
+    }
+
+    public static void drawExecutionIcon(GuiGraphics guiGraphics, float partialTick, HUDType currentHudType,
+                                         float iconSize, float elapsedPercentO, float elapsedPercent) {
         HUDType hudType = currentHudType;
 
         if (hudType == null) {
@@ -247,7 +305,7 @@ public class ExecutionHUD implements IGuiOverlay {
         }
 
         // 绘制进度外框
-        float filled = 1.0F - Mth.lerp(partialTick, timePercentO, timePercent);
+        float filled = 1.0F - Mth.lerp(partialTick, elapsedPercentO, elapsedPercent);
         ResourceLocation progress = hudType.getProgress();
         if (progress != null) {
             RenderSystem.setShaderTexture(0, progress);
@@ -307,6 +365,11 @@ public class ExecutionHUD implements IGuiOverlay {
 
     public static void setCurrentHudType(HUDType currentHudType) {
         ExecutionHUD.currentHudType = currentHudType;
+    }
+
+    public static void setServerAssassinationEligibility(int targetEntityId, boolean eligible) {
+        eligibilityTargetId = targetEntityId;
+        serverSaysAssassinationEligible = eligible;
     }
 
     public static void setShowExecutionIcon(boolean showExecutionIcon) {

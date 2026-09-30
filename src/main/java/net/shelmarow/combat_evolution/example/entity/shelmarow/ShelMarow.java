@@ -29,6 +29,7 @@ public class ShelMarow extends CEBossEntity {
 
     public ShelMarow(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
+        this.ceBossEvent.setDisplayType("[CE:SoulLikeType]");
 
         ItemStack weapon = new ItemStack(EpicFightItems.IRON_LONGSWORD.get());
         setItemSlot(EquipmentSlot.MAINHAND,weapon);

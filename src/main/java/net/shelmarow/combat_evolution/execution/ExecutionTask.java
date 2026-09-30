@@ -93,6 +93,9 @@ public class ExecutionTask extends TickTask {
     @Override
     public void onFinish() {
         ExecutionHandler.removeExecutingTarget(target);
+        target.addEffect(new MobEffectInstance(
+                CEMobEffects.ASSASSINATION_PROTECTION.get(), 40, 0, false, false, false)
+        );
     }
 
 }

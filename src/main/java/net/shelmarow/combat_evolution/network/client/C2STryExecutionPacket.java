@@ -29,7 +29,7 @@ public class C2STryExecutionPacket {
             ctx.get().enqueueWork(() -> {
                 ServerPlayer serverPlayer = ctx.get().getSender();
                 if (serverPlayer != null) {
-                    if(ExecutionHandler.tryExecute(serverPlayer)){
+                    if(ExecutionHandler.tryAssassinate(serverPlayer) || ExecutionHandler.tryExecute(serverPlayer)){
                         CENetworkHandler.sendToPlayer(serverPlayer, new S2CReleaseSKillKeyPacket());
                     }
                 }

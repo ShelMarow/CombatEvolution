@@ -16,6 +16,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.shelmarow.combat_evolution.ai.CEConditions;
 import net.shelmarow.combat_evolution.ai.attribute.CEAttributes;
+import net.shelmarow.combat_evolution.api.event.RegisterBossBarTypeEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterCustomExecutionEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
@@ -77,6 +78,7 @@ public class CombatEvolution {
     private void constructMod(final FMLConstructModEvent event) {
         event.enqueueWork(() -> {
             ModLoader.get().postEvent(new RegisterHUDTypeEvent());
+            ModLoader.get().postEvent(new RegisterBossBarTypeEvent());
         });
     }
 

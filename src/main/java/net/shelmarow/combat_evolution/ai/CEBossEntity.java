@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.ai;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
@@ -14,6 +15,8 @@ public abstract class CEBossEntity extends PathfinderMob {
 
     protected final CEBossEvent ceBossEvent = new CEBossEvent(getDisplayName());
     protected LivingEntityPatch<?> cePatch = null;
+    private float bossBarHealth = Float.NaN;
+    private float bossBarMaxHealth = Float.NaN;
 
     protected CEBossEntity(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -22,12 +25,26 @@ public abstract class CEBossEntity extends PathfinderMob {
     @Override
     public void tick() {
         super.tick();
-        setBossBarHealth();
-        setBossBarStamina();
+        if(!level().isClientSide()){
+            setBossBarHealth();
+            setBossBarStamina();
+        }
     }
 
+
     protected void setBossBarHealth() {
-        this.ceBossEvent.setProgress(this.getHealth() / this.getMaxHealth());
+        float maxHealth = Math.max(this.getMaxHealth(), 1.0F);
+        float health = Math.max(this.getHealth(), 0.0F);
+        this.ceBossEvent.setProgress(health / maxHealth);
+
+        if (Float.compare(this.bossBarHealth, health) != 0 || Float.compare(this.bossBarMaxHealth, maxHealth) != 0) {
+            CompoundTag customData = this.ceBossEvent.getCustomData();
+            customData.putFloat("health", health);
+            customData.putFloat("max_health", maxHealth);
+            this.ceBossEvent.updateCustomData(customData);
+            this.bossBarHealth = health;
+            this.bossBarMaxHealth = maxHealth;
+        }
     }
 
     protected void setBossBarStamina() {

@@ -6,6 +6,7 @@
   "humanoid": true,
   "chasingSpeed": 1.25,
   "scale": 1.0,
+  "canBeAssassinate": true,
   "breakTime": 40,
   "recoverTime": 60,
   "staminaRegenDelay":60,
@@ -15,6 +16,7 @@
   "ceBossBar": {
     "enableBossBar": true,
     "bossBarName":"Zombie Boss",
+    "bossBarType": "[CE:DefaultType]",
     "bossBarTextures": "combat_evolution:textures/gui/bossbar/ce_boss_bar.png"
   },
   "ceBossMusic": {

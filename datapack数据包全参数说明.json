@@ -8,6 +8,7 @@
   "humanoid": true,       //[可选]  是否使用人形模型，在渲染类型为epicfight:custom时如果该选项为true，会使用默认人模
   "chasingSpeed": 1.25,   //[可选]  生物追逐目标时额外的速度倍率
   "scale": 1.0,           //[可选]  渲染大小，不影响实际碰撞箱
+  "canBeAssassinate": false, //[可选] 是否允许被刺杀；设置后直接决定刺杀资格，true可允许有目标或带BOSS标签的实体被刺杀，false禁止刺杀；未设置时使用默认判定（无目标且不带BOSS标签）
   "breakTime": 40,        //[可选]  耐力清空的破防持续时间（和动画无关）Tick
   "recoverTime": 60,      //[可选]  耐力从破防结束到完全恢复所需要的时间 Tick
   "staminaRegenDelay":60, //[可选]  正常状态且没有行动的情况下，需要多久才会开始自然恢复耐力值
@@ -17,6 +18,7 @@
   "ceBossBar": {          //[可选]  是否显示BOSS血条
     "enableBossBar": true,
     "bossBarName":"Zombie Boss",  //血条显示名称，支持翻译键
+    "bossBarType": "[CE:DefaultType]", //血条类型；内置类型为[CE:DefaultType]和[CE:SoulLikeType]
     "bossBarTextures": "combat_evolution:textures/gui/bossbar/ce_boss_bar.png"  //血条资源路径
   },
   "ceBossMusic": {  //[可选]  是否播放BGM
@@ -106,6 +108,7 @@
           "firstBehaviors": [     //<必填>  根节点的子行为节点合集，所有的子行为共享根节点的冷却时间
             {
               "behaviorName": "动画行为A1", //[可选]  子行为的名称，无限制，可以自由命名
+              "behaviorType": "animation", //[可选]  编辑器使用的行为类型，可选 animation、defense、wander；设置为 wander 时仅执行游荡，不会初始化防御反击逻辑
               "priority": 1,             //[可选]  优先级，在有多个可用的子节点时，根据优先级选择，默认1
               "weight": 4,              //[可选]  权重，优先级相等时会根据权重随机选择，权重越大概率越高，默认1
               "stopByStun": 1,          //[可选]  眩晕打断，是否会被眩晕打断整个行为，其他 不会被眩晕打断  (默认)1会被所有眩晕打断  2不会被short打断  3不会被short long打断 4不会被short long hold打断  5不会被short long hold fall打断 6不会被short long hold knockdown打断  7不会被short long hold fall knockdown打断

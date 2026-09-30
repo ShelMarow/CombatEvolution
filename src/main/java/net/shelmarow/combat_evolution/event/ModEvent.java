@@ -7,7 +7,10 @@ import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.combat_evolution.CombatEvolution;
+import net.shelmarow.combat_evolution.api.event.RegisterBossBarTypeEvent;
 import net.shelmarow.combat_evolution.api.event.RegisterHUDTypeEvent;
+import net.shelmarow.combat_evolution.bossbar.client.types.CEDefaultType;
+import net.shelmarow.combat_evolution.bossbar.client.types.CESoulLikeType;
 import net.shelmarow.combat_evolution.client.hud.execution.ExecutionHUD;
 import net.shelmarow.combat_evolution.client.hud.execution.types.DefaultType;
 import net.shelmarow.combat_evolution.client.particle.CEParticles;
@@ -16,6 +19,13 @@ import net.shelmarow.combat_evolution.client.particle.warning.BypassGuardParticl
 
 @Mod.EventBusSubscriber(modid = CombatEvolution.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModEvent {
+
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void registerBossBarType(RegisterBossBarTypeEvent event){
+        event.registerBossBarType(new CEDefaultType());
+        event.registerBossBarType(new CESoulLikeType());
+    }
 
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent

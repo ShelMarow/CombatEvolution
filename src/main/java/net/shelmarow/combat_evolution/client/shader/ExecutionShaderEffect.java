@@ -7,6 +7,10 @@ import net.shelmarow.combat_evolution.CombatEvolution;
 
 @OnlyIn(Dist.CLIENT)
 public final class ExecutionShaderEffect extends CEFullscreenShaderEffect {
+    private static final ResourceLocation ID =
+            ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "execution");
+    public static final ExecutionShaderEffect INSTANCE = new ExecutionShaderEffect();
+
     private static final ResourceLocation PROGRAM =
             ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "impact_blur");
 
@@ -16,8 +20,8 @@ public final class ExecutionShaderEffect extends CEFullscreenShaderEffect {
     private int startTime;
     private int totalTime;
 
-    public ExecutionShaderEffect() {
-        super(CEShaderManager.EXECUTION_EFFECT, 1000);
+    private ExecutionShaderEffect() {
+        super(ID, 1000);
     }
 
     @Override

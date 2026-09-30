@@ -166,6 +166,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         provider.faction = getFaction(tag);
         provider.chasingSpeed = getChasingSpeed(tag);
         provider.scale = getScale(tag);
+        provider.canBeAssassinate = getCanBeAssassinate(tag);
         provider.breakTime = getBreakTime(tag);
         provider.recoverTime = getRecoverTime(tag);
         provider.staminaRegenDelay = getStaminaRegenDelay(tag);
@@ -191,7 +192,7 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             provider.bgm =  ResourceLocation.parse(ceBossBGM.getString("bgm"));
             provider.bgmLoop =  ceBossBGM.getBoolean("loop");
             provider.bgmDuration = ceBossBGM.getInt("duration");
-            provider.bgmVolume = ceBossBGM.getInt("volume");
+            provider.bgmVolume = ceBossBGM.getFloat("volume");
             provider.bgmFadeIn = ceBossBGM.getInt("fadeIn");
             provider.bgmFadeOut = ceBossBGM.getInt("fadeOut");
         }
@@ -205,6 +206,9 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             }
             if(bossBar.contains("bossBarName")){
                 provider.bossBarName = bossBar.getString("bossBarName");
+            }
+            if (bossBar.contains("bossBarType")) {
+                provider.bossBarType = bossBar.getString("bossBarType");
             }
             if(bossBar.contains("bossBarTextures")) {
                 provider.bossBarTexture = ResourceLocation.parse(bossBar.getString("bossBarTextures"));
@@ -259,6 +263,13 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             return tag.getFloat("scale");
         }
         return 1;
+    }
+
+    public static Boolean getCanBeAssassinate(CompoundTag tag) {
+        if (tag.contains("canBeAssassinate")) {
+            return tag.getBoolean("canBeAssassinate");
+        }
+        return null;
     }
 
     public static Factions getFaction(CompoundTag tag) {
@@ -610,7 +621,12 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
             }
         }
 
-        if(behaviors.contains("animation")){
+        boolean animationBehavior = behaviors.contains("animation")
+                || (behaviors.contains("behaviorType") && behaviors.getString("behaviorType").equalsIgnoreCase("animation"));
+        if(animationBehavior){
+            if (!behaviors.contains("animation")) {
+                throw new IllegalArgumentException("Animation behavior is missing animation id");
+            }
             String path = behaviors.getString("animation");
             AnimationManager.AnimationAccessor<? extends StaticAnimation> animation = AnimationManager.byKey(path);
             AnimationParams animationParams = new AnimationParams();
@@ -677,6 +693,12 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
                     builder.addBlockedEvent(new BlockedEvent(phase, parried, creatCommandConsumer3(onTarget, command)));
                 }
             }
+        }
+        else if (behaviors.contains("behaviorType") && behaviors.getString("behaviorType").equalsIgnoreCase("wander")) {
+            int wanderTime = behaviors.contains("wanderTime") ? behaviors.getInt("wanderTime") : 40;
+            float forward = behaviors.contains("forward") ? behaviors.getFloat("forward") : 0.0F;
+            float strafe = behaviors.contains("strafe") ? behaviors.getFloat("strafe") : 0.0F;
+            builder.wander(wanderTime, forward, strafe);
         }
         else{
             AnimationManager.AnimationAccessor<? extends StaticAnimation> counter = Animations.SWEEPING_EDGE;
@@ -1061,6 +1083,8 @@ public class CEPatchReloadListener extends SimpleJsonResourceReloadListener {
         public int staminaRegenDelay = 60;
         public float chasingSpeed = 1.25F;
         public float scale = 1;
+        public String bossBarType = "[CE:DefaultType]";
+        public Boolean canBeAssassinate = null;
         public float guardHitImpact = 1F;
         public float hurtImpact = 0.35F;
         public float beParriedDamage = 1F;

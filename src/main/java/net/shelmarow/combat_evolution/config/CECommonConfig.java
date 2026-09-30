@@ -8,6 +8,7 @@ import java.util.List;
 public class CECommonConfig {
     public static final ForgeConfigSpec COMMON_SPEC;
     public static final ForgeConfigSpec.BooleanValue ENABLED_EXECUTION;
+    public static final ForgeConfigSpec.BooleanValue ENABLED_ASSASSINATION;
     public static final ForgeConfigSpec.DoubleValue EXECUTION_DAMAGE_TO_PLAYER;
     public static final ForgeConfigSpec.BooleanValue ENABLE_DAMAGE_SOURCE_TO_PLAYER;
 
@@ -23,6 +24,10 @@ public class CECommonConfig {
         ENABLED_EXECUTION = builder
                 .comment("Enable execution")
                 .define("enabledExecution", true);
+
+        ENABLED_ASSASSINATION = builder
+                .comment("Enable assassination")
+                .define("enabledAssassination", true);
 
         EXECUTION_DAMAGE_TO_PLAYER = builder
                 .comment("Execution damage multiplier to player")

@@ -1,4 +1,4 @@
-package net.shelmarow.combat_evolution.bossbar;
+package net.shelmarow.combat_evolution.bossbar.client;
 
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
@@ -7,6 +7,8 @@ import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
+import net.shelmarow.combat_evolution.bossbar.BossData;
+import net.shelmarow.combat_evolution.bossbar.client.types.AbstractBossBarType;
 
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +34,10 @@ public class ClientBossData {
 
     //更新全部数据
     public static void updateData(UUID bossId, BossData bossData) {
+        if (!bossData.customTexture) {
+            AbstractBossBarType type = BossBarTypeManager.getInstance().getBossBarType(bossData.displayType);
+            if (type != null) bossData.bossBarTexture = type.getDefaultTexture();
+        }
         BOSS_DATA_MAP.put(bossId, bossData);
     }
 
@@ -41,6 +47,7 @@ public class ClientBossData {
         ResourceLocation barTexture = ResourceLocation.tryParse(texture);
         if (barTexture != null) {
             bossData.bossBarTexture = barTexture;
+            bossData.customTexture = true;
         }
     }
 

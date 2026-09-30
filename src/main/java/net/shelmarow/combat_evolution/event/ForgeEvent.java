@@ -22,7 +22,6 @@ import net.shelmarow.combat_evolution.CombatEvolution;
 import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
 import net.shelmarow.combat_evolution.ai.CEPatchReloadListener;
 import net.shelmarow.combat_evolution.ai.network.SPCEDataPacket;
-import net.shelmarow.combat_evolution.client.shader.ExecutionShaderManager;
 import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.execution.ExecutionMobReloadListener;
 import net.shelmarow.combat_evolution.execution.ExecutionTypeReloadListener;

@@ -33,9 +33,6 @@ import java.util.function.BooleanSupplier;
 public final class CEShaderManager {
     private static final int GL_BLEND_COLOR = 0x8005;
     private static final int RESTORED_TEXTURE_SLOTS = 12;
-    public static final ResourceLocation EXECUTION_EFFECT =
-            ResourceLocation.fromNamespaceAndPath(CombatEvolution.MOD_ID, "execution");
-
     @FunctionalInterface
     public interface Effect {
         void render(int tick, float partialTick, RenderTarget source, RenderTarget target);
@@ -50,7 +47,7 @@ public final class CEShaderManager {
     private static boolean particlePhase;
 
     static {
-        register(ExecutionShaderManager.effect());
+        register(ExecutionShaderEffect.INSTANCE);
     }
 
     private CEShaderManager() {

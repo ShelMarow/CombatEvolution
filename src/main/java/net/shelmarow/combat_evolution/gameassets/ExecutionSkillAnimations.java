@@ -4,8 +4,10 @@ package net.shelmarow.combat_evolution.gameassets;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.shelmarow.combat_evolution.client.fov.CEFovManager;
-import net.shelmarow.combat_evolution.client.shader.ExecutionShaderManager;
+import net.shelmarow.combat_evolution.client.shader.ExecutionShaderEffect;
+import net.shelmarow.combat_evolution.effect.CEMobEffects;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionAttackAnimation;
 import net.shelmarow.combat_evolution.gameassets.animation.ExecutionHitAnimation;
 import net.shelmarow.combat_evolution.sounds.CESounds;
@@ -25,6 +27,8 @@ import java.util.Set;
 public class ExecutionSkillAnimations {
     public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL;
     public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> EXECUTED_FULL2;
+    public static AnimationManager.AnimationAccessor<ExecutionHitAnimation> ASSASSINATION;
+
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_SWORD;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_DAGGER;
     public static AnimationManager.AnimationAccessor<ExecutionAttackAnimation> EXECUTION_TACHI;
@@ -61,6 +65,12 @@ public class ExecutionSkillAnimations {
         EXECUTED_FULL2 = builder.nextAccessor("biped/skill/execution/executed_full2", accessor ->
                 new ExecutionHitAnimation(0.01F, accessor, Armatures.BIPED)
                         .addProperty(AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER, CONSTANT_EXECUTION)
+        );
+
+
+        ASSASSINATION = builder.nextAccessor("biped/skill/execution/assassination", accessor ->
+                new ExecutionHitAnimation(0.45F, accessor, Armatures.BIPED)
+                        .addProperty(AnimationProperty.StaticAnimationProperty.PLAY_SPEED_MODIFIER, CONSTANT_EXECUTED)
         );
 
         EXECUTION_SWORD = builder.nextAccessor("biped/skill/execution/execution_sword", accessor ->
@@ -114,12 +124,12 @@ public class ExecutionSkillAnimations {
                     }}, AnimationEvent.Side.CLIENT))
                 .addEvents(AnimationEvent.InTimeEvent.create(0.86F, (entitypatch, assetAccessor, animationParameters) -> {
                     if(entitypatch.getOriginal() instanceof LocalPlayer player && player == Minecraft.getInstance().player) {
-                        ExecutionShaderManager.trigger(4, 10);
+                        ExecutionShaderEffect.INSTANCE.trigger(4, 10);
                     }}, AnimationEvent.Side.CLIENT))
                 .addEvents(AnimationEvent.InTimeEvent.create(3.16F, (entitypatch, assetAccessor, animationParameters) -> {
                     if(entitypatch.getOriginal() instanceof LocalPlayer player && player == Minecraft.getInstance().player) {
                         CEFovManager.resetFovModifier(player);
-                        ExecutionShaderManager.trigger(10, 10);
+                        ExecutionShaderEffect.INSTANCE.trigger(10, 10);
                     }}, AnimationEvent.Side.CLIENT));
     }
 }

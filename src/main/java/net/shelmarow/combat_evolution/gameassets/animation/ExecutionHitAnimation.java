@@ -1,5 +1,6 @@
 package net.shelmarow.combat_evolution.gameassets.animation;
 
+import net.shelmarow.combat_evolution.gameassets.CEEntityState;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.property.AnimationProperty;
 import yesman.epicfight.api.animation.types.ActionAnimation;
@@ -28,6 +29,7 @@ public class ExecutionHitAnimation extends ActionAnimation {
                 .addState(EntityState.CAN_BASIC_ATTACK, false)
                 .addState(EntityState.CAN_SKILL_EXECUTION, false)
                 .addState(EntityState.INACTION, true)
+                .addState(CEEntityState.CAN_ASSASSINATE, false)
                 .addState(EntityState.ATTACK_RESULT, damageSource ->{
                     if(damageSource instanceof EpicFightDamageSource epicFightDamageSource){
                         epicFightDamageSource.setStunType(StunType.NONE);

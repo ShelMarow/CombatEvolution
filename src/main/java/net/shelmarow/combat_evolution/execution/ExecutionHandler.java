@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -41,6 +42,8 @@ import net.shelmarow.combat_evolution.api.event.OnExecutionStartEvent;
 import net.shelmarow.combat_evolution.config.CECommonConfig;
 import net.shelmarow.combat_evolution.damage_source.CEDamageTypeTags;
 import net.shelmarow.combat_evolution.enchantment.CEEnchantments;
+import net.shelmarow.combat_evolution.effect.CEMobEffects;
+import net.shelmarow.combat_evolution.gameassets.CEEntityState;
 import net.shelmarow.combat_evolution.mixins.GuardSkillInvoker;
 import net.shelmarow.combat_evolution.tickTask.TickTaskManager;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
@@ -75,6 +78,8 @@ public class ExecutionHandler {
     //value：处决者
     private static final Map<UUID, UUID> EXECUTION_TARGETS = new HashMap<>();
     public static final float EXECUTION_DISTANCE = 4F;
+    public static final float ASSASSINATION_DISTANCE = 2F;
+    public static final float ASSASSINATION_ANGLE = 30F;
 
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
@@ -247,6 +252,52 @@ public class ExecutionHandler {
                     //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
                     ExecutionTransform transform = calculateExecutionPosition(player.level(), player, target, executionType.offset());
                     if (transform != null) {
+                        OnExecutionStartEvent event = new OnExecutionStartEvent(playerPatch, targetPatch, executionType);
+                        if(!MinecraftForge.EVENT_BUS.post(event)){
+                            target.setDeltaMovement(Vec3.ZERO);
+                            BehaviorUtils.stopCurrentBehavior(target);
+                            Vec3 executionPos = transform.position();
+                            player.teleportTo(executionPos.x, executionPos.y, executionPos.z);
+                            TickTaskManager.addTask(target.getUUID(), new ExecutionTask(player, target,executionType, transform, executionType.totalTick()));
+                            return true;
+                        }
+                    }
+                    else{
+                        player.displayClientMessage(Component.translatable("text.combat_evolution.not_available_pos").withStyle(ChatFormatting.RED),true);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+    //刺杀
+    public static boolean tryAssassinate(ServerPlayer player){
+        if(!CECommonConfig.ENABLED_ASSASSINATION.get()) {
+            return false;
+        }
+
+        //获取视线上的第一个实体
+        LivingEntity target = getEntityLookedAt(player,ASSASSINATION_DISTANCE);
+
+        if(target != null){
+
+            ServerPlayerPatch playerPatch = EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class);
+            LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
+
+            //检测是否满足处决的条件
+            if(targetPatch != null && playerPatch != null && !playerPatch.getOriginal().isSpectator() && !targetPatch.getOriginal().isSpectator() && playerPatch.isEpicFightMode() && (playerPatch.getEntityState().canUseSkill() || playerPatch.getEntityState().canBasicAttack())) {
+
+                //刺杀要求执行者位于目标背后，并在刺杀距离内
+                if (isBehindTarget(player, target, ASSASSINATION_DISTANCE) && canAssassinate(playerPatch, targetPatch) && canExecute(player, playerPatch, target, targetPatch)) {
+                    ExecutionTypeManager.Type executionType = ExecutionTypeManager.getAssassinationType(playerPatch, targetPatch);
+                    //检查是否有足够的空间进行处决,一些处决位移不一样，需要额外调整
+                    ExecutionTransform transform = calculateExecutionPosition(player.level(), player, target, executionType.offset());
+                    if (transform != null) {
+                        Vec3 awayFromExecutor = target.position().subtract(transform.position());
+                        float targetYaw = (float) (Math.toDegrees(Mth.atan2(awayFromExecutor.z, awayFromExecutor.x)) - 90.0F);
+                        transform = new ExecutionTransform(transform.position(), targetYaw);
                         OnExecutionStartEvent event = new OnExecutionStartEvent(playerPatch, targetPatch, executionType);
                         if(!MinecraftForge.EVENT_BUS.post(event)){
                             target.setDeltaMovement(Vec3.ZERO);
@@ -467,6 +518,40 @@ public class ExecutionHandler {
         return executor.isAlive() && entity.isAlive() && !isExecutingTarget(executor, entity) && isTargetSupported(executorPatch, targetPatch) && isHoldingWeapon(executor);
     }
 
+    public static boolean canPlayerAssassinate(ServerPlayer executor, LivingEntity target) {
+        if (!CECommonConfig.ENABLED_ASSASSINATION.get() || target == null || !target.isAlive()) {
+            return false;
+        }
+
+        ServerPlayerPatch executorPatch = EpicFightCapabilities.getEntityPatch(executor, ServerPlayerPatch.class);
+        LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(target, LivingEntityPatch.class);
+        return executorPatch != null && targetPatch != null
+                && !executor.isSpectator() && !target.isSpectator()
+                && executorPatch.isEpicFightMode()
+                && (executorPatch.getEntityState().canUseSkill() || executorPatch.getEntityState().canBasicAttack())
+                && isBehindTarget(executor, target, ASSASSINATION_DISTANCE)
+                && canAssassinate(executorPatch, targetPatch)
+                && canExecute(executor, executorPatch, target, targetPatch);
+    }
+
+    public static boolean canAssassinate(LivingEntityPatch<?> executorPatch, LivingEntityPatch<?> targetPatch) {
+        if (targetPatch.getOriginal().hasEffect(CEMobEffects.ASSASSINATION_PROTECTION.get())) {
+            return false;
+        }
+
+        if(!targetPatch.getEntityState().getState(CEEntityState.CAN_ASSASSINATE)){
+            return false;
+        }
+
+        if (targetPatch instanceof CustomExecuteEntity customExecuteEntity) {
+            return customExecuteEntity.canBeAssassinate(executorPatch, targetPatch);
+        }
+
+        LivingEntity target = targetPatch.getOriginal();
+        boolean hasNoTarget = !(target instanceof Mob mob) || mob.getTarget() == null;
+        return hasNoTarget && !target.getType().is(Tags.EntityTypes.BOSSES);
+    }
+
     public static boolean isHoldingWeapon(LivingEntity executor){
         ItemStack itemInHand = executor.getItemInHand(InteractionHand.MAIN_HAND);
         ResourceLocation itemsKey = ForgeRegistries.ITEMS.getKey(itemInHand.getItem());
@@ -502,6 +587,18 @@ public class ExecutionHandler {
         double angle = Math.toDegrees(Math.acos(dot));
 
         return angle <= maxAngleDegrees;
+    }
+
+    public static boolean isBehindTarget(LivingEntity executor, LivingEntity target, double maxDistance) {
+        Vec3 toExecutor = executor.position().subtract(target.position());
+        if (toExecutor.lengthSqr() > maxDistance * maxDistance || toExecutor.lengthSqr() == 0.0D) {
+            return false;
+        }
+
+        float yawRad = target.getYHeadRot() * Mth.DEG_TO_RAD;
+        Vec3 targetForward = new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad));
+        double rearDot = -targetForward.dot(toExecutor.normalize());
+        return rearDot >= Mth.cos(ASSASSINATION_ANGLE * Mth.DEG_TO_RAD);
     }
 
     @Nullable

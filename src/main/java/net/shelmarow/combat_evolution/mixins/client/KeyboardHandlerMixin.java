@@ -13,11 +13,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 @Mixin(KeyboardHandler.class)
 public class KeyboardHandlerMixin {
 
@@ -29,18 +24,13 @@ public class KeyboardHandlerMixin {
     private void onKeyPressHead(long pWindowPointer, int pKey, int pScanCode, int pAction, int pModifiers, CallbackInfo ci) {
         InputConstants.Key inputconstants$key = InputConstants.getKey(pKey, pScanCode);
         LocalPlayer localPlayer = Minecraft.getInstance().player;
-        if (Minecraft.getInstance().screen == null && localPlayer != null && pKey != EpicFightKeyMappings.LOCK_ON.getKey().getValue() && pKey != GLFW.GLFW_KEY_ESCAPE) {
+        if (Minecraft.getInstance().screen == null && localPlayer != null
+                && !inputconstants$key.equals(EpicFightKeyMappings.LOCK_ON.getKey())
+                && pKey != GLFW.GLFW_KEY_ESCAPE) {
             if(localPlayer.hasEffect(CEMobEffects.ON_EXECUTION.get())){
                 ci.cancel();
 
-                List<Integer> bannedKey = new ArrayList<>(List.of(
-                        EpicFightKeyMappings.WEAPON_INNATE_SKILL.getKey().getValue(),
-                        EpicFightKeyMappings.ATTACK.getKey().getValue(),
-                        EpicFightKeyMappings.DODGE.getKey().getValue(),
-                        EpicFightKeyMappings.GUARD.getKey().getValue()
-                ));
-
-                if(!bannedKey.contains(pKey)) {
+                if(!isBlockedActionKey(inputconstants$key)) {
                     boolean held = pAction != 0;
                     KeyMapping.set(inputconstants$key, held);
                     if(held){
@@ -49,5 +39,12 @@ public class KeyboardHandlerMixin {
                 }
             }
         }
+    }
+
+    private static boolean isBlockedActionKey(InputConstants.Key key) {
+        return key.equals(EpicFightKeyMappings.WEAPON_INNATE_SKILL.getKey())
+                || key.equals(EpicFightKeyMappings.ATTACK.getKey())
+                || key.equals(EpicFightKeyMappings.DODGE.getKey())
+                || key.equals(EpicFightKeyMappings.GUARD.getKey());
     }
 }

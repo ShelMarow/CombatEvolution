@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.shelmarow.combat_evolution.ai.StaminaStatus;
 import net.shelmarow.combat_evolution.network.CENetworkHandler;
 import net.shelmarow.combat_evolution.network.server.*;
+import net.shelmarow.combat_evolution.utils.RLUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,12 +37,19 @@ public class CEBossEvent extends ServerBossEvent {
         CENetworkHandler.sendToPlayer(pPlayer, new S2CRemoveBossDataPacket(getId()));
     }
 
-    public void setDisplayType(String pType){
+    public void setDisplayType(String pType) {
+        if (pType == null || pType.isBlank()) return;
         bossData.displayType = pType;
+        bossData.customTexture = false;
+        bossData.bossBarTexture = RLUtils.getRL("textures/gui/bossbar/ce_boss_bar.png");
+        for (ServerPlayer serverPlayer : getPlayers()) {
+            CENetworkHandler.sendToPlayer(serverPlayer, new S2CUpdateBossDataPacket(getId(), bossData));
+        }
     }
 
     public void setBossBarTexture(@NonNull ResourceLocation bossBarTexture) {
         bossData.bossBarTexture = bossBarTexture;
+        bossData.customTexture = true;
         for (ServerPlayer serverPlayer : getPlayers()){
             CENetworkHandler.sendToPlayer(serverPlayer, new S2CUpdateBossBarTexture(getId(), bossData.bossBarTexture.toString()));
         }
